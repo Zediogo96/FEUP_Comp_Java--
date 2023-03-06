@@ -15,10 +15,8 @@ public class MySymbolTable implements SymbolTable {
     private final List<String> imports = new ArrayList<>();
     private String className, superClassName;
     private final Map<Symbol, Boolean> fields = new HashMap<>();
-    /*
     private final List<Method> methods = new ArrayList<>();
     private Method currentMethod;
-    */
 
     public static Type getType(JmmNode node, String attribute) {
         Type type;
@@ -107,9 +105,15 @@ public class MySymbolTable implements SymbolTable {
     }
 
     @Override
-    public List<Symbol> getParameters(String s) {
+    public List<Symbol> getParameters(String methodName) {
+        for (Method m : this.methods) {
+            if (m.getName().equals(methodName)) {
+                return m.getParameters();
+            }
+        }
         return null;
     }
+
 
     @Override
     public List<Symbol> getLocalVariables(String s) {

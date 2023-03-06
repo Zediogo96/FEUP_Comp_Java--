@@ -20,7 +20,7 @@ public class Method {
         this.returnType = returnType;
     }
 
-    public String getName(String name) {
+    public String getName() {
         return name;
     }
 
@@ -35,11 +35,11 @@ public class Method {
         this.returnType = returnType;
     }
 
-    public List<Type> getParameters() {
-        List<Type> parameters = new ArrayList<>();
+    public List<Symbol> getParameters() {
+        List<Symbol> parameters = new ArrayList<>();
 
         for (Map.Entry<Symbol, String> parameter : this.parameters) {
-            parameters.add(parameter.getKey().getType());
+            parameters.add(parameter.getKey());
         }
         return parameters;
     }
