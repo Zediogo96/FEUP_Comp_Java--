@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 public class MySymbolTable implements SymbolTable {
-
     private final List<String> imports = new ArrayList<>();
     private String className, superClassName;
     private final Map<Symbol, Boolean> fields = new HashMap<>();
@@ -56,15 +55,37 @@ public class MySymbolTable implements SymbolTable {
         return false;
     }
 
-//    get field
-    public Symbol getField(String name) {
+    public Method getMethod(String methodName, List<Type> parameters, Type returnType) {
+        for (Method m : methods) {
+            if (m.getName().equals(methodName) && m.getParameters().size() == parameters.size() && m.getReturnType().equals(returnType)) {
+                boolean equal = true;
+                for (int i = 0; i < parameters.size(); i++) {
+                    if (!m.getParameters().get(i).getType().equals(parameters.get(i))) {
+                        equal = false;
+                        break;
+                    }
+                }
+                if (equal) {
+                    return m;
+                }
+            }
+        }
+        return null;
+    }
+
+    public void addMethod(String methodName, Type returnType) {
+        currentMethod = new Method(methodName, returnType);
+        methods.add(currentMethod);
+    }
+
+    /*public Symbol getField(String name) {
         for (Symbol field : fields.keySet()) {
             if (field.getName().equals(name)) {
                 return field;
             }
         }
         return null;
-    }
+    }*/
 
     public boolean initializeField(Symbol field) {
         if (fields.containsKey(field)) {
@@ -118,5 +139,19 @@ public class MySymbolTable implements SymbolTable {
     @Override
     public List<Symbol> getLocalVariables(String s) {
         return null;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("---------------- Symbol Table ----------------\n");
+        sb.append("1) Imports: \n");
+        for (String imp : imports) {
+            sb.append("\t-").append(imp).append("\n");
+        }
+
+//        TODO
+//        TODO
+
+        return sb.toString();
     }
 }

@@ -27,8 +27,8 @@ public class Method {
     public void setName(String name) {
         this.name = name;
     }
-    public void getReturnType(Type returnType) {
-        this.returnType = returnType;
+    public Type getReturnType() {
+        return returnType;
     }
 
     public void setReturnType(Type returnType) {
