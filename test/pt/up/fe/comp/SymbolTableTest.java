@@ -45,8 +45,8 @@ public class SymbolTableTest {
     	
     }
     
-    /*@Test
-    public void Fields() {		
+    @Test
+    public void Fields() {
     	var semantics = test("symboltable/MethodsAndFields.jmm",false);
     	var fields = semantics.getSymbolTable().getFields();
     	assertEquals(3, fields.size());
@@ -65,10 +65,10 @@ public class SymbolTableTest {
     	assertEquals("Field of type boolean", 1, checkBool);
     	assertEquals("Field of type object", 1, checkObj);
 
-    }*/
+    }
     
-    /*@Test
-    public void Methods() {		
+    @Test
+    public void Methods() {
     	var semantics = test("symboltable/MethodsAndFields.jmm",false);
     	var st = semantics.getSymbolTable();
     	var methods = st.getMethods();
@@ -80,27 +80,27 @@ public class SymbolTableTest {
     	System.out.println("METHODS: "+methods);
     	for(var m :methods){
     		var ret = st.getReturnType(m);
+			System.out.println("METHOD: "+m+" RETURN: "+ret);
     		var numParameters = st.getParameters(m).size();
-    		switch(ret.getName()) {
-	    		case "MethodsAndFields": 
-	    			checkObj++; 
-	    			assertEquals("Method "+m+" parameters",0,numParameters);
-	    			break;
-	    		case "boolean": 
-	    			checkBool++; 
-	    			assertEquals("Method "+m+" parameters",0,numParameters);
-	    			break;
-	    		case "int": 
-	    			if(ret.isArray()){
-	    				checkAll++;
-	    				assertEquals("Method "+m+" parameters",3,numParameters);
-	    			}else {
-	    				checkInt++;
-	    				assertEquals("Method "+m+" parameters",0,numParameters);
-	    			}
-	    			break;
-	    			
-    		}
+			switch (ret.getName()) {
+				case "MethodsAndFields" -> {
+					checkObj++;
+					assertEquals("Method " + m + " parameters", 0, numParameters);
+				}
+				case "boolean" -> {
+					checkBool++;
+					assertEquals("Method " + m + " parameters", 0, numParameters);
+				}
+				case "int" -> {
+					if (ret.isArray()) {
+						checkAll++;
+						assertEquals("Method " + m + " parameters", 3, numParameters);
+					} else {
+						checkInt++;
+						assertEquals("Method " + m + " parameters", 0, numParameters);
+					}
+				}
+			}
     	}
 		assertEquals("Method with return type int", 1, checkInt);
     	assertEquals("Method with return type boolean", 1, checkBool);
@@ -108,7 +108,7 @@ public class SymbolTableTest {
     	assertEquals("Method with three arguments", 1, checkAll);
 
 
-    }*/
+    }
     
     @Test
     public void Parameters() {		

@@ -38,7 +38,7 @@ public class MySymbolTable implements SymbolTable {
 
         type = switch (temp) {
             case "Int" -> new Type("int", false);
-            case "Array" -> new Type("int[]", true);
+            case "Array" -> new Type("int", true);
             case "Boolean" -> new Type("boolean", false);
             case "Class" -> new Type(node.get("name"), false);
             default -> new Type(temp, false);
@@ -112,6 +112,10 @@ public class MySymbolTable implements SymbolTable {
         return false;
     }
 
+    public Method getCurrentMethod() {
+        return currentMethod;
+    }
+
     @Override
     public String getClassName() {
         return className;
@@ -143,6 +147,12 @@ public class MySymbolTable implements SymbolTable {
 
     @Override
     public Type getReturnType(String s) {
+
+        for (Method m : methods) {
+            if (m.getName().equals(s)) {
+                return m.getReturnType();
+            }
+        }
         return null;
     }
 
@@ -161,6 +171,8 @@ public class MySymbolTable implements SymbolTable {
     public List<Symbol> getLocalVariables(String s) {
         return null;
     }
+
+
 
     @Override
     public String toString() {

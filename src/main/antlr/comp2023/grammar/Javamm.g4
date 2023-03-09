@@ -14,9 +14,9 @@ program : (importDeclaration)* (classDeclaration)+ EOF ;
 // import declaration that allows empty string
 importDeclaration : 'import' name=ID ('.' ID)* ';' ;
 
-classDeclaration : 'class' className=ID ( 'extends' extendName=ID )? '{' ( varDeclaration )* ( methodDeclaration )* '}' ;
+classDeclaration : 'class' className=ID ( 'extends' extendName=ID )? '{' ( varDeclaration )* ( methodDeclaration )* (mainMethodDeclaration)*'}' ;
 
-varDeclaration : type ID ';' ;
+varDeclaration : type name=ID ';' ;
 
 type : name = 'int' '[' ']' #array
     | name = 'boolean' #boolean
@@ -27,9 +27,10 @@ type : name = 'int' '[' ']' #array
 
 parameter : type name=ID ;
 
+mainMethodDeclaration : 'public' 'static' 'void' 'main' '(' 'String' '[' ']' name=ID ')' '{' ( varDeclaration )? ( statement )? '}' ;
+
 methodDeclaration :
-    ('public' | 'private' | 'protected')? type name=ID '(' ( parameter ( ',' parameter )* )? ')' '{' ( varDeclaration )* ( statement )* ('return' returnType=expression)* ';' '}'
-    | ('public')? 'static' 'void' 'main' '(' 'String' '[' ']' name=ID ')' '{' ( varDeclaration )*? ( statement )*? '}'
+    ('public' | 'private' | 'protected')? type name=ID '(' ( parameter ( ',' parameter )* )? ')' '{' ( varDeclaration )* ( statement )* ('return' expression)* ';' '}'
     ;
 
 statement :
@@ -61,3 +62,4 @@ expression :
     | 'false'
     | 'this'
     ;
+

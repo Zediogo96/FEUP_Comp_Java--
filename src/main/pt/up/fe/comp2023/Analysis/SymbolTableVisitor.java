@@ -26,7 +26,10 @@ public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {
 
         addVisit("ImportDeclaration", this::dealWithImport);
         addVisit("ClassDeclaration", this::dealWithClassDeclaration);
+        addVisit("MainMethodDeclaration", this::dealWithMainMethodDeclaration);
         addVisit("MethodDeclaration", this::dealWithMethodDeclaration);
+        addVisit("VarDeclaration", this::dealWithVarDeclaration);
+
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -57,11 +60,32 @@ public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {
             parametersList.add(new Symbol(getTypeFromNode(typeNode), parameter.get("name")));
         }
 
-        Type returnType = getTypeFromAttr(node, "returnType");
-        st.addMethod(node.get("name"), returnType, parametersList);
+        JmmNode typeNode = node.getChildren().get(0);
+        st.addMethod(node.get("name"), getTypeFromNode(typeNode), parametersList);
+
         return space + "METHOD";
+    }
 
+    private String dealWithMainMethodDeclaration(JmmNode node, String space) {
+        scope = "MAIN";
+        var parametersList = new ArrayList<Symbol>();
+        parametersList.add(new Symbol(new Type("String[]", true), "args"));
+        st.addMethod("main", new Type("void", false), parametersList);
 
+        return space + "MAIN";
+    }
+
+    private String dealWithVarDeclaration(JmmNode node, String space) {
+        JmmNode typeNode = node.getChildren().get(0);
+        Symbol field = new Symbol(getTypeFromNode(typeNode), node.get("name"));
+
+        if (scope.equals("CLASS")) {
+            st.addField(field, false);
+        } else if (scope.equals("METHOD")) {
+            st.getCurrentMethod().addLocalVariable(field, false);
+        }
+
+        return space + "VAR";
     }
 
     /**
@@ -86,7 +110,5 @@ public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {
 
     @Override
     protected void buildVisitor() {
-        addVisit("ImportDeclaration", this::dealWithImport);
-
     }
 }

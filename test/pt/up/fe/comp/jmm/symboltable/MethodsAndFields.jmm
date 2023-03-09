@@ -20,8 +20,9 @@ class MethodsAndFields{
 		int[] c;
 		return c;
 	}
-	
+
 	public static void main(String[] args){
-		
-	}
+  	}
+
+
 }
