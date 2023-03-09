@@ -26,11 +26,7 @@ public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {
 
         addVisit("ImportDeclaration", this::dealWithImport);
         addVisit("ClassDeclaration", this::dealWithClassDeclaration);
-<<<<<<< HEAD
         addVisit("MethodDeclaration", this::dealWithMethodDeclaration);
-=======
->>>>>>> 61c10a4020c0840c5d56dc6172a1645ee8acfca2
-//
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -41,8 +37,6 @@ public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {
 
 
     private String dealWithClassDeclaration(JmmNode node, String space) {
-        st.setClassName(node.get("name"));
-
         st.setClassName(node.get("className"));
         try {
             st.setSuperClassName(node.get("extendName"));
