@@ -17,13 +17,30 @@ public class MySymbolTable implements SymbolTable {
     private final List<Method> methods = new ArrayList<>();
     private Method currentMethod;
 
-    public static Type getType(JmmNode node, String attribute) {
+    public static Type getTypeFromAttr(JmmNode node, String attribute) {
         Type type;
         String temp = node.get(attribute);
 
         type = switch (temp) {
             case "int" -> new Type("int", false);
             case "int[]" -> new Type("int[]", true);
+            case "boolean" -> new Type("boolean", false);
+            case "String" -> new Type("String", false);
+            default -> new Type(temp, false);
+        };
+
+        return type;
+    }
+
+    public static Type getTypeFromNode(JmmNode node) {
+        Type type;
+        String temp = node.getKind();
+
+        type = switch (temp) {
+            case "Int" -> new Type("int", false);
+            case "Array" -> new Type("int[]", true);
+            case "Boolean" -> new Type("boolean", false);
+            case "Class" -> new Type(node.get("name"), false);
             default -> new Type(temp, false);
         };
 
@@ -73,19 +90,19 @@ public class MySymbolTable implements SymbolTable {
         return null;
     }
 
-    public void addMethod(String methodName, Type returnType) {
-        currentMethod = new Method(methodName, returnType);
+    public void addMethod(String methodName, Type returnType, List<Symbol> parameters) {
+        currentMethod = new Method(methodName, returnType, parameters);
         methods.add(currentMethod);
     }
 
-    /*public Symbol getField(String name) {
+    public Symbol getField(String name) {
         for (Symbol field : fields.keySet()) {
             if (field.getName().equals(name)) {
                 return field;
             }
         }
         return null;
-    }*/
+    }
 
     public boolean initializeField(Symbol field) {
         if (fields.containsKey(field)) {
@@ -117,7 +134,11 @@ public class MySymbolTable implements SymbolTable {
 
     @Override
     public List<String> getMethods() {
-        return null;
+        List<String> methodNames = new ArrayList<>();
+        for (Method m : methods) {
+            methodNames.add(m.getName());
+        }
+        return methodNames;
     }
 
     @Override

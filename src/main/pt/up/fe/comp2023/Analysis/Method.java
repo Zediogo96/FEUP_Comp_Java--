@@ -2,6 +2,7 @@ package pt.up.fe.comp2023.Analysis;
 
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
+import pt.up.fe.comp.jmm.ast.JmmNode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,9 +16,12 @@ public class Method {
 
     private final List<Map.Entry<Symbol, String>> parameters = new ArrayList<>();
     private final Map<Symbol, Boolean> localVariables = new HashMap<>();
-    public Method(String name, Type returnType) {
+    public Method(String name, Type returnType, List<Symbol> parameters) {
         this.name = name;
         this.returnType = returnType;
+        for (Symbol parameter : parameters) {
+            this.parameters.add(Map.entry(parameter, parameter.getName()));
+        }
     }
 
     public String getName() {

@@ -14,20 +14,22 @@ program : (importDeclaration)* (classDeclaration)+ EOF ;
 // import declaration that allows empty string
 importDeclaration : 'import' name=ID ('.' ID)* ';' ;
 
-classDeclaration : 'class' ID ( 'extends' ID )? '{' ( varDeclaration )* ( methodDeclaration )* '}' ;
+classDeclaration : 'class' name=ID ( 'extends' extendName=ID )? '{' ( varDeclaration )* ( methodDeclaration )* '}' ;
 
 varDeclaration : type ID ';' ;
 
-type : 'int' '[' ']'
-    | 'boolean'
-    | 'int'
-    | 'String'
-    | ID
+type : name = 'int' '[' ']' #array
+    | name = 'boolean' #boolean
+    | name = 'int' #int
+    | name = 'String' #string
+    | name = ID # class
     ;
 
+parameter : type name=ID ;
+
 methodDeclaration :
-    ('public' | 'private' | 'protected')? type ID '(' ( type ID ( ',' type ID )* )? ')' '{' ( varDeclaration )* ( statement )* ('return' expression)* ';' '}'
-    | ('public')? 'static' 'void' 'main' '(' 'String' '[' ']' ID ')' '{' ( varDeclaration )*? ( statement )*? '}'
+    ('public' | 'private' | 'protected')? type name=ID '(' ( parameter ( ',' parameter )* )? ')' '{' ( varDeclaration )* ( statement )* ('return' returnType=expression)* ';' '}'
+    | ('public')? 'static' 'void' 'main' '(' 'String' '[' ']' name=ID ')' '{' ( varDeclaration )*? ( statement )*? '}'
     ;
 
 statement :

@@ -1,11 +1,17 @@
 package pt.up.fe.comp2023.Analysis;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp.jmm.report.Report;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static pt.up.fe.comp2023.Analysis.MySymbolTable.getTypeFromAttr;
+import static pt.up.fe.comp2023.Analysis.MySymbolTable.getTypeFromNode;
 
 public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {
 
@@ -19,6 +25,8 @@ public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {
         this.reports = reports;
 
         addVisit("ImportDeclaration", this::dealWithImport);
+        addVisit("ClassDeclaration", this::dealWithClassDeclaration);
+        addVisit("MethodDeclaration", this::dealWithMethodDeclaration);
 //
         setDefaultVisit(this::defaultVisit);
     }
@@ -29,16 +37,33 @@ public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {
     }
 
 
-    /*private String dealWithClassDeclaration(JmmNode node, String space) {
-        st.setClassName(node.get("class"));
+    private String dealWithClassDeclaration(JmmNode node, String space) {
+        st.setClassName(node.get("name"));
         try {
-            st.setSuperClassName(node.get("extends"));
+            st.setSuperClassName(node.get("extendName"));
         } catch (NullPointerException ignored) {
 
         }
         scope = "CLASS";
         return space + "CLASS";
-    }*/
+    }
+
+    private String dealWithMethodDeclaration(JmmNode node, String space) {
+        scope = "METHOD";
+//        get all children of node that contains Parameter
+        List<JmmNode> parameters = node.getChildren().stream().filter(n -> n.getKind().equals("Parameter")).toList();
+        List<Symbol> parametersList = new ArrayList<>();
+        for (JmmNode parameter : parameters) {
+            JmmNode typeNode = parameter.getChildren().get(0);
+            parametersList.add(new Symbol(getTypeFromNode(typeNode), parameter.get("name")));
+        }
+
+        Type returnType = getTypeFromAttr(node, "returnType");
+        st.addMethod(node.get("name"), returnType, parametersList);
+        return space + "METHOD";
+
+
+    }
 
     /**
      * Prints node information and appends space
