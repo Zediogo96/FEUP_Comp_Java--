@@ -19,6 +19,7 @@ public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {
         this.reports = reports;
 
         addVisit("ImportDeclaration", this::dealWithImport);
+        addVisit("ClassDeclaration", this::dealWithClassDeclaration);
 //
         setDefaultVisit(this::defaultVisit);
     }
@@ -29,16 +30,16 @@ public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {
     }
 
 
-    /*private String dealWithClassDeclaration(JmmNode node, String space) {
-        st.setClassName(node.get("class"));
+    private String dealWithClassDeclaration(JmmNode node, String space) {
+        st.setClassName(node.get("className"));
         try {
-            st.setSuperClassName(node.get("extends"));
+            st.setSuperClassName(node.get("extendName"));
         } catch (NullPointerException ignored) {
 
         }
         scope = "CLASS";
         return space + "CLASS";
-    }*/
+    }
 
     /**
      * Prints node information and appends space

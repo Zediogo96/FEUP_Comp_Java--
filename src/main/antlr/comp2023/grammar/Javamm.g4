@@ -14,7 +14,7 @@ program : (importDeclaration)* (classDeclaration)+ EOF ;
 // import declaration that allows empty string
 importDeclaration : 'import' name=ID ('.' ID)* ';' ;
 
-classDeclaration : 'class' ID ( 'extends' ID )? '{' ( varDeclaration )* ( methodDeclaration )* '}' ;
+classDeclaration : 'class' className=ID ( 'extends' extendName=ID )? '{' ( varDeclaration )* ( methodDeclaration )* '}' ;
 
 varDeclaration : type ID ';' ;
 
