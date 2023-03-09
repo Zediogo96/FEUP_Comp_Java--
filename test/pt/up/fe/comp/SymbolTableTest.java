@@ -4,7 +4,6 @@ import org.junit.Test;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.specs.util.SpecsIo;
 
-
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -13,6 +12,7 @@ import static org.junit.Assert.assertEquals;
 public class SymbolTableTest {
 
     static JmmSemanticsResult getSemanticsResult(String filename) {
+		System.out.println("pt/up/fe/comp/jmm/"+filename);
         return TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/jmm/"+filename));
     }
     

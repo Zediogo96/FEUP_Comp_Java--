@@ -40,7 +40,9 @@ public class Launcher {
         // Check if there are parsing errors
         TestUtils.noErrors(parserResult.getReports());
 
-        // ... add remaining stages
+        AnalysisStage analysisStage = new AnalysisStage();
+
+        analysisStage.semanticAnalysis(parserResult);
     }
 
     private static Map<String, String> parseArgs(String[] args) {

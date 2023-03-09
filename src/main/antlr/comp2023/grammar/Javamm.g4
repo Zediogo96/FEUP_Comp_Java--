@@ -12,7 +12,7 @@ WS : [ \t\n\r\f]+ -> skip ;
 program : (importDeclaration)* (classDeclaration)+ EOF ;
 
 // import declaration that allows empty string
-importDeclaration : 'import' ID ('.' ID)* ';' ;
+importDeclaration : 'import' name=ID ('.' ID)* ';' ;
 
 classDeclaration : 'class' ID ( 'extends' ID )? '{' ( varDeclaration )* ( methodDeclaration )* '}' ;
 
