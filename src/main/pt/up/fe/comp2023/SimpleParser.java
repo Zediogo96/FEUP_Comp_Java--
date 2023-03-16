@@ -51,7 +51,7 @@ public class SimpleParser implements JmmParser {
                     .map(root -> new JmmParserResult(root, Collections.emptyList(), config))
                     // If there were errors, create an error JmmParserResult without root node
                     .orElseGet(() -> JmmParserResult.newError(new Report(ReportType.ERROR, Stage.SYNTATIC, -1,
-                            "There were syntax errors during parsing, terminating")));
+                            "There were syntax errors during parsing, terminating with " + parser.getNumberOfSyntaxErrors() + " syntatic error(s).")));
 
             parserResult.getReports().forEach(System.out::println);
 
