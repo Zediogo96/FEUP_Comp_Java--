@@ -18,6 +18,13 @@ class MethodsAndFields{
             a = 10;
             return field3;
         }
+        else if (10 < 5) {
+            a = 15;
+            return field3;
+        }
+        else {
+            a = 20;
+        }
 	}
 
 	public int[] all(int a, boolean b, MethodsAndFields maf){

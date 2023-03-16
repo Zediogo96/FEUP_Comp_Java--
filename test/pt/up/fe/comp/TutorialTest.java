@@ -19,7 +19,6 @@ import pt.up.fe.specs.util.SpecsSystem;
 
 public class TutorialTest {
 
-
     private static final String EXPRESSION = "expression";
     private static final String STATEMENT = "statement";
 

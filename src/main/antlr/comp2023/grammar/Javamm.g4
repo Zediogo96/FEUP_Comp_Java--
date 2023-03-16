@@ -35,7 +35,7 @@ methodDeclaration :
 returnStatement : 'return' expression ';' ;
 
 statement :
-    'if' '(' expression ')' '{' ( statement )* returnStatement? '}' ( 'else' '{' ( statement )* returnStatement? '}' )?
+    'if' '(' expression ')' '{' ( statement )* returnStatement? '}' ('else if' '(' expression ')' '{' ( statement )* returnStatement? '}')* ( 'else' '{' ( statement )* returnStatement? '}' )?
     | 'if' '(' expression ')' ( statement ) ( 'else' statement )?
     | 'while' '(' expression ')' '{' ( statement )* '}'
     | 'while' '(' expression ')' ( statement )
@@ -47,8 +47,6 @@ statement :
     | expression ';'
     | '{' ( statement )* '}'
     ;
-
-
 
 expression
     : expression op = ('*' | '/') expression
