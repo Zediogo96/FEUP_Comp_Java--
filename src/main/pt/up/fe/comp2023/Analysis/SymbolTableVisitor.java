@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static pt.up.fe.comp2023.Analysis.MySymbolTable.getTypeFromAttr;
 import static pt.up.fe.comp2023.Analysis.MySymbolTable.getTypeFromNode;
 
 public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {

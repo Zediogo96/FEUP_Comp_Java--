@@ -43,6 +43,8 @@ public class Launcher {
         AnalysisStage analysisStage = new AnalysisStage();
 
         analysisStage.semanticAnalysis(parserResult);
+
+        System.out.println(parserResult.getRootNode().toTree());
     }
 
     private static Map<String, String> parseArgs(String[] args) {
