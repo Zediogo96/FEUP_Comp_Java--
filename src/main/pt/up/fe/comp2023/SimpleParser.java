@@ -2,9 +2,7 @@ package pt.up.fe.comp2023;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
-import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.ast.antlr.AntlrParser;
-import pt.up.fe.comp.jmm.ast.antlr.ThrowingErrorListener;
 import pt.up.fe.comp.jmm.parser.JmmParser;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.comp.jmm.report.Report;
@@ -42,19 +40,23 @@ public class SimpleParser implements JmmParser {
             // Convert code string into a character stream
             var input = new ANTLRInputStream(jmmCode);
             // Transform characters into tokens using the lexer
-            var lex = new JavammLexer(input);
+            var lex = new pt.up.fe.comp2023.JavammLexer(input);
             // Wrap lexer around a token stream
             var tokens = new CommonTokenStream(lex);
-            // Transforms tokens into a parse tree
-            var parser = new JavammParser(tokens);
+            // Transforms tokens into a parse treeS
+            var parser = new pt.up.fe.comp2023.JavammParser(tokens);
 
-            // Convert ANTLR CST to JmmNode AST
-            return AntlrParser.parse(lex, parser, startingRule)
+            JmmParserResult parserResult = AntlrParser.parse(lex, parser, startingRule)
                     // If there were no errors and a root node was generated, create a JmmParserResult with the node
                     .map(root -> new JmmParserResult(root, Collections.emptyList(), config))
                     // If there were errors, create an error JmmParserResult without root node
                     .orElseGet(() -> JmmParserResult.newError(new Report(ReportType.WARNING, Stage.SYNTATIC, -1,
                             "There were syntax errors during parsing, terminating")));
+
+            parserResult.getReports().forEach(System.out::println);
+
+            // Convert ANTLR CST to JmmNode AST
+            return parserResult;
 
         } catch (Exception e) {
             // There was an uncaught exception during parsing, create an error JmmParserResult without root node
