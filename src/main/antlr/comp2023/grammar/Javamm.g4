@@ -13,7 +13,7 @@ COMMENT: '//' ~[\r\n]* -> skip ;
 
 MULTI_LINE_COMMENT : '/*' .*? '*/' -> skip ;
 
-program : (importDeclaration)* (classDeclaration)+ (mainMethodDeclaration)? EOF ;
+program : (importDeclaration)* (classDeclaration)+ EOF ;
 
 // import declaration that allows empty string
 importDeclaration : 'import' name+=ID ('.' name+=ID)* ';' ;
@@ -31,12 +31,12 @@ type : name = 'int' '[' ']' #array
 
 parameter : type name=ID ;
 
-mainMethodDeclaration : ('public')? 'static' 'void' 'main' '(' 'String' '[' ']' name=ID ')' '{' varDeclaration? statement? '}' ;
+mainMethodDeclaration : ('public')? 'static' 'void' 'main' '(' 'String' '[' ']' name=ID ')' '{' ( varDeclaration )* ( statement )* '}' ;
 
 methodDeclaration :
     ('public' | 'private' | 'protected')? type name=ID '(' ( parameter ( ',' parameter )* )? ')' '{' ( varDeclaration )* ( statement )* returnStatement? '}' ;
 
-returnStatement : 'return' statement;
+returnStatement : 'return' expression?;
 
 statement
     : '{' ( statement )* '}'

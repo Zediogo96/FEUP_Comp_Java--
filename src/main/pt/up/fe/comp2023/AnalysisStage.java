@@ -17,9 +17,8 @@ public class AnalysisStage implements JmmAnalysis {
 
     @Override
     public JmmSemanticsResult semanticAnalysis(JmmParserResult parserResult) {
-        if (parserResult.getRootNode() == null) {
-            System.out.println("No AST");
-        }
+
+
 
         JmmNode curr_node = parserResult.getRootNode();
 

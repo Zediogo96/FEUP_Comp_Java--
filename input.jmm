@@ -1,32 +1,32 @@
-import a.s.c;
+import io;
+class WhileAndIF {
 
-class MethodsAndFields{
-	int field1;
-	boolean field2;
-	MethodsAndFields field3;
-
-	public int getField1(){
-		return field1;
-	}
-
-	public boolean getField2(){
-		return field2;
-	}
-
-	public MethodsAndFields getField3(){
-        while(true){
-            if(true){
-                a = 1;
-                return a;
-            }
+    public static void main(String[] args){
+        int a;
+        int b;
+        int c;
+        int[] d;
+        a = 20;
+        b = 10;
+        d = new int[10];
+        if( a < b){
+            c  = a-1;
+        }else{
+            c = b-1;
         }
-	}
 
-	public int[] all(int a, boolean b, MethodsAndFields maf){
-		int[] c;
-		return c;
-	}
 
-	public static void main(String[] args){
-  	}
+        while((0-1) < c){
+            d[c] = a-b;
+            c= c-1;
+            a= a-1;
+            b= b-1;
+        }
+        c=0;
+        while(c < d.length){
+            io.println(d[c]);
+            c= c+1;
+        }
+    }
+
 }
