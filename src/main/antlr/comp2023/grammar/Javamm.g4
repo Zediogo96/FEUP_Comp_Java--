@@ -20,7 +20,7 @@ importDeclaration : 'import' name+=ID ('.' name+=ID)* ';' ;
 
 classDeclaration : 'class' className=ID ( 'extends' extendName=ID )? '{' ( varDeclaration )* ( methodDeclaration )* mainMethodDeclaration? ( methodDeclaration )* '}' ;
 
-varDeclaration : type name=ID ';' ;
+varDeclaration : (type name=ID ('=' expression)? ';' ) ;
 
 type : name = 'int' '[' ']' #array
     | name = 'boolean' #boolean
