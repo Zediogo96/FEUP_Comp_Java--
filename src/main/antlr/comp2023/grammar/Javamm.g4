@@ -9,6 +9,10 @@ ID : [a-zA-Z$_][a-zA-Z_0-9]* ;
 
 WS : [ \t\n\r\f]+ -> skip ;
 
+COMMENT: '//' ~[\r\n]* -> skip ;
+
+MULTI_LINE_COMMENT : '/*' .*? '*/' -> skip ;
+
 program : (importDeclaration)* (classDeclaration)+ (mainMethodDeclaration)? EOF ;
 
 // import declaration that allows empty string
@@ -34,18 +38,15 @@ methodDeclaration :
 
 returnStatement : 'return' expression ';' ;
 
-statement :
-    'if' '(' expression ')' '{' ( statement )* returnStatement? '}' ('else if' '(' expression ')' '{' ( statement )* returnStatement? '}')* ( 'else' '{' ( statement )* returnStatement? '}' )?
+statement
+    : '{' ( statement )* '}'
     | 'if' '(' expression ')' ( statement ) ( 'else' statement )?
-    | 'while' '(' expression ')' '{' ( statement )* '}'
     | 'while' '(' expression ')' ( statement )
     | 'System.out.println' '(' expression ')' ';'
     | ID '=' expression ';'
     | expression '[' expression ']' '=' expression ';'
     | expression '.' 'length' '=' expression ';'
-    | expression '.' ID '(' ( expression ( ',' expression )* )? ')' ';'
     | expression ';'
-    | '{' ( statement )* '}'
     ;
 
 expression
