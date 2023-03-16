@@ -36,11 +36,12 @@ mainMethodDeclaration : ('public')? 'static' 'void' 'main' '(' 'String' '[' ']' 
 methodDeclaration :
     ('public' | 'private' | 'protected')? type name=ID '(' ( parameter ( ',' parameter )* )? ')' '{' ( varDeclaration )* ( statement )* returnStatement? '}' ;
 
-returnStatement : 'return' expression ';' ;
+returnStatement : 'return' statement;
 
 statement
     : '{' ( statement )* '}'
-    | 'if' '(' expression ')' ( statement ) ( 'else' statement )?
+    | 'if' expression ( statement* ) ( 'else' ( statement* ) )?
+    | returnStatement ';'?
     | 'while' '(' expression ')' ( statement )
     | 'System.out.println' '(' expression ')' ';'
     | ID '=' expression ';'
