@@ -51,16 +51,16 @@ statement
     ;
 
 expression
-    : '(' expression ')'
+    : 'new' 'int' '[' expression ']'
+    | 'new' ID '(' ')'
+    | '!' expression
+    | '(' expression ')'
     | expression op = ('*' | '/') expression
     | expression op = ('+' | '-') expression
     | expression op = ('<' | '>' | '>=' | '<=' | '&&' | '||') expression
     | expression '[' expression ']'
     | expression '.' 'length'
     | expression '.' ID '(' ( expression ( ',' expression )* )? ')'
-    | 'new' 'int' '[' expression ']'
-    | 'new' ID '(' ')'
-    | '!' expression
     | value=INTEGER
     | value=ID
     | 'true'
