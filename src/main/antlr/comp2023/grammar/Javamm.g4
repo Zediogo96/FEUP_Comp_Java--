@@ -51,7 +51,8 @@ statement
     ;
 
 expression
-    : expression op = ('*' | '/') expression
+    : '(' expression ')'
+    | expression op = ('*' | '/') expression
     | expression op = ('+' | '-') expression
     | expression op = ('<' | '>' | '>=' | '<=' | '&&' | '||') expression
     | expression '[' expression ']'
@@ -60,7 +61,6 @@ expression
     | 'new' 'int' '[' expression ']'
     | 'new' ID '(' ')'
     | '!' expression
-    | '(' expression ')'
     | value=INTEGER
     | value=ID
     | 'true'
