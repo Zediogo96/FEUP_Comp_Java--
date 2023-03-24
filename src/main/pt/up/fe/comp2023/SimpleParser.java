@@ -40,11 +40,11 @@ public class SimpleParser implements JmmParser {
             // Convert code string into a character stream
             var input = new ANTLRInputStream(jmmCode);
             // Transform characters into tokens using the lexer
-            var lex = new JavammLexer(input);
+            var lex = new pt.up.fe.comp2023.JavammLexer(input);
             // Wrap lexer around a token stream
             var tokens = new CommonTokenStream(lex);
             // Transforms tokens into a parse treeS
-            var parser = new JavammParser(tokens);
+            var parser = new pt.up.fe.comp2023.JavammParser(tokens);
 
             JmmParserResult parserResult = AntlrParser.parse(lex, parser, startingRule)
                     // If there were no errors and a root node was generated, create a JmmParserResult with the node
