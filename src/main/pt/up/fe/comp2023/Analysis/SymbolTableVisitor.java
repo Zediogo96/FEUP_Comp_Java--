@@ -43,7 +43,7 @@ public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {
         try {
             st.setSuperClassName(node.get("extendName"));
         } catch (NullPointerException ignored) {
-
+            st.setSuperClassName("Object");
         }
         scope = "CLASS";
         return space + "CLASS";

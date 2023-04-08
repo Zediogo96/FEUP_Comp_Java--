@@ -169,10 +169,13 @@ public class MySymbolTable implements SymbolTable {
 
     @Override
     public List<Symbol> getLocalVariables(String s) {
+        for (Method m : methods) {
+            if (m.getName().equals(s)) {
+                return m.getLocalVariables();
+            }
+        }
         return null;
     }
-
-
 
     @Override
     public String toString() {
@@ -181,9 +184,17 @@ public class MySymbolTable implements SymbolTable {
         for (String imp : imports) {
             sb.append("\t-").append(imp).append("\n");
         }
-
-//        TODO
-//        TODO
+        sb.append("2) Class: ").append(className).append("\n");
+        sb.append("3) Super: ").append(superClassName).append("\n");
+        sb.append("4) Fields: \n");
+        for (Symbol field : fields.keySet()) {
+            sb.append("\t-").append(field.getName()).append(" : ").append(field.getType()).append(" (").append(fields.get(field) ? "static" : "non-static").append(")\n");
+        }
+        sb.append("5) Methods: \n");
+        for (Method m : methods) {
+            sb.append("\t-").append(m.getName()).append(" : ").append(m.getReturnType()).append(" (").append(m.getParameters().size()).append(" parameters)\n");
+        }
+        sb.append("------------------------------------------------\n");
 
         return sb.toString();
     }

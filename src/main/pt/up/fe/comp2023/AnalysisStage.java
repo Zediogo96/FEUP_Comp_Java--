@@ -18,8 +18,6 @@ public class AnalysisStage implements JmmAnalysis {
     @Override
     public JmmSemanticsResult semanticAnalysis(JmmParserResult parserResult) {
 
-
-
         JmmNode curr_node = parserResult.getRootNode();
 
         MySymbolTable st = new MySymbolTable();
@@ -30,5 +28,9 @@ public class AnalysisStage implements JmmAnalysis {
 
         return new JmmSemanticsResult(parserResult, st, reports);
 
+    }
+
+    public MySymbolTable getSymbolTable() {
+        return st;
     }
 }
