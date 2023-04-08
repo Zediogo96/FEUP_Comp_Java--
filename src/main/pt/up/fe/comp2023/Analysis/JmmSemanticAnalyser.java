@@ -31,6 +31,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
 //        addVisit("BinaryOp", this::dealWithBinaryOperator);
         addVisit("Assignment", this::dealWithAssignment);
+        addVisit("ArrayAssignment", this::dealWithArrayAssignment);
 
         addVisit("Variable", this::dealWithVariable);
 
@@ -69,7 +70,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
     private Map.Entry<String, String> dealWithAssignment(JmmNode node, Boolean space) {
 
-
         List<JmmNode> children = node.getChildren();
 
         if (children.size() == 1) {
@@ -105,6 +105,50 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         }
 
         return Map.entry("void", "null");
+    }
+
+    private Map.Entry<String, String> dealWithArrayAssignment(JmmNode node, Boolean space) {
+
+        List<JmmNode> children = node.getChildren();
+
+        JmmNode index = children.get(0);
+        JmmNode value = children.get(1);
+
+        System.out.println("Value: " + value.getKind());
+
+        Map.Entry<String, String> indexReturn = visit(index, true);
+
+        if (!indexReturn.getKey().equals("int")) {
+            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Array index must be of type int"));
+            return Map.entry("error", "null");
+        }
+
+        Map.Entry<String, String> valueReturn = visit(value, true);
+
+        if (valueReturn.getKey().equals("error")) {
+            return Map.entry("error", "null");
+        }
+
+        Map.Entry<Symbol, Boolean> variable;
+
+        if ((variable = currentMethod.getLocalVariable(node.get("id"))) == null) {
+            variable = st.getField(node.get("id"));
+        }
+
+        if (variable == null) {
+            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable not declared: " + node.get("id")));
+            return Map.entry("error", "null");
+        }
+
+        if (variable.getKey().getType().getName().equals("int[]") && valueReturn.getKey().equals("int")) {
+            st.initializeField(variable.getKey());
+        } else {
+            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types: '" + variable.getKey().getType().getName() + "' and '" + valueReturn.getKey() + "'"));
+            return null;
+        }
+
+        return Map.entry("void", "null");
+
     }
 
     private Map.Entry<String, String> dealWithMainDeclaration(JmmNode node, Boolean data) {

@@ -1,6 +1,6 @@
 class VarNotDeclared {
-    int a;
+    int[] a;
     public int foo() {
-        a = false;
+        a[2] = false;
     }
 }
