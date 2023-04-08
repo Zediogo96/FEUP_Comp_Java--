@@ -28,6 +28,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         addVisit("ClassDeclaration", this::dealWithClassDeclaration);
         addVisit("MainMethodDeclaration", this::dealWithMainDeclaration);
         addVisit("MethodDeclaration", this::dealWithMethodDeclaration);
+        addVisit("MethodCall", this::dealWithMethodCall);
 
 //        addVisit("BinaryOp", this::dealWithBinaryOperator);
         addVisit("Assignment", this::dealWithAssignment);
@@ -198,12 +199,25 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         if (currentSCOPE.equals("CLASS")) {
             field = st.getField(node.get("id"));
         } else if (currentSCOPE.equals("METHOD") && currentMethod != null) {
-            Symbol localVar = currentMethod.getLocalVariable(node.get("id")).getKey();
-            if (localVar == null) {
+
+            Map.Entry<Symbol, Boolean> tmp = currentMethod.getLocalVariable(node.get("id"));
+            Symbol localVar = null;
+            if (tmp != null) localVar = tmp.getKey();
+
+            Map.Entry<Symbol, Boolean> tmp2 = st.getField(node.get("id"));
+            Symbol fieldVar = null;
+            if (tmp2 != null) fieldVar = tmp2.getKey();
+
+            if (localVar == null && fieldVar == null) {
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable not found: " + node.get("id")));
                 return Map.entry("error", "null");
             }
-            else field = Map.entry(localVar, true);
+
+            else{
+                if (localVar != null) return Map.entry(localVar.getType().getName(), "true");
+                else return Map.entry(fieldVar.getType().getName(), "true");
+
+            }
         }
 
         if (field == null && st.getImports().contains(node.get("name"))) {
@@ -276,6 +290,19 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         return dataReturn;
     }
+
+    private Map.Entry<String, String> dealWithMethodCall(JmmNode node, Boolean space) {
+        if (node.getKind().equals("Length")) {
+            return Map.entry("length", "null");
+        }
+
+        String methodName = node.get("name");
+
+        System.out.println("Method name: " + methodName);
+
+        return Map.entry("method", "true");
+    }
+
 
     @Override
     protected void buildVisitor() {
