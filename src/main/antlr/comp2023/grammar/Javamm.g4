@@ -43,7 +43,7 @@ mainParam
     : type_='String' '['']' var=ID
     ;
 
-ret : 'return' ( expression )? ';' ;
+ret : 'return' ( expression )? ;
 
 methodDeclaration
     : ('public' | 'private' | 'protected' | 'default')? type name=ID '(' (parameter (',' parameter)*)? ')' '{' (varDeclaration)* (statement)*'}'
@@ -67,17 +67,17 @@ statement
     | expression ';' #Stmt
     | id=ID '=' expression ';' #Assign
     | id=ID '[' expression ']' '=' expression ';' #ArrayAssign
-    | ret #returnStmt
     ;
 
 expression
     : value=('true' | 'false') #Boolean
+    | ret #returnStmt
     | value=INTEGER #Integer
     | id=ID #Identifier
-    | 'this' #This
+    | 'this' (('.' expression)*)? #This
     | PAR_OPEN expression PAR_CLOSE #Parenthesis
     | expression '[' expression ']' #ArrayAccess
-    | expression '.' method=ID '(' ( expression (',' expression)* )? ')' #MethodCall
+    | expression ('.' method=ID)? '(' ( expression (',' expression)* )? ')' #MethodCall
     | expression '.' 'length' #ArrayLength
     | 'new' id=ID '(' ')' #NewObject
     | 'new' 'int' '[' size=expression ']' #NewIntArray
