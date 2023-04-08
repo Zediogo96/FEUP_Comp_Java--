@@ -26,30 +26,27 @@ program
     ;
 
 importDeclaration
-    : 'import' library+=ID ('.' library+=ID)* ';'
+    : 'import' name+=ID ('.' name+=ID)* ';'
     ;
 
 classDeclaration : 'class' className=ID ( 'extends' extendName=ID )? '{' ( varDeclaration )* ( methodDeclaration )* mainMethodDeclaration? ( methodDeclaration )* '}' ;
 
 varDeclaration
-    : type var=ID ('=' expression)? ';'
+    : type name=ID ('=' expression)? ';'
     ;
 
 parameter
-    : type var=ID
+    : type name=ID
     ;
 
 mainParam
     : type_='String' '['']' var=ID
     ;
 
-ret
-    : 'return' expression ';'
-    | 'return' ';'
-    ;
+ret : 'return' ( expression )? ';' ;
 
 methodDeclaration
-    : ('public' | 'private' | 'protected' | 'default')? type name=ID '(' (parameter (',' parameter)*)? ')' '{' (varDeclaration)* (statement)* ret '}'
+    : ('public' | 'private' | 'protected' | 'default')? type name=ID '(' (parameter (',' parameter)*)? ')' '{' (varDeclaration)* (statement)*'}'
     ;
 
 mainMethodDeclaration
@@ -70,6 +67,7 @@ statement
     | expression ';' #Stmt
     | id=ID '=' expression ';' #Assign
     | id=ID '[' expression ']' '=' expression ';' #ArrayAssign
+    | ret #returnStmt
     ;
 
 expression
