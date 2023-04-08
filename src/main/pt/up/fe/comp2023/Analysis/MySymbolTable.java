@@ -31,7 +31,6 @@ public class MySymbolTable implements SymbolTable {
 
         return type;
     }
-
     public static Type getTypeFromNode(JmmNode node) {
         Type type;
         String temp = node.getKind();
@@ -84,19 +83,10 @@ public class MySymbolTable implements SymbolTable {
         return false;
     }
 
-    public Method getMethod(String methodName, List<Type> parameters, Type returnType) {
-        for (Method m : methods) {
-            if (m.getName().equals(methodName) && m.getParameters().size() == parameters.size() && m.getReturnType().equals(returnType)) {
-                boolean equal = true;
-                for (int i = 0; i < parameters.size(); i++) {
-                    if (!m.getParameters().get(i).getType().equals(parameters.get(i))) {
-                        equal = false;
-                        break;
-                    }
-                }
-                if (equal) {
-                    return m;
-                }
+    public Method getMethod(String methodName) {
+        for (Method method : methods) {
+            if (method.getName().equals(methodName)) {
+                return method;
             }
         }
         return null;
@@ -111,6 +101,14 @@ public class MySymbolTable implements SymbolTable {
         for (Symbol field : fields.keySet()) {
             if (field.getName().equals(name)) {
                 return field;
+            }
+        }
+
+        for (Method method : methods) {
+            for (Symbol var: method.getLocalVariables()) {
+                if (var.getName().equals(name)) {
+                    return var;
+                }
             }
         }
         return null;

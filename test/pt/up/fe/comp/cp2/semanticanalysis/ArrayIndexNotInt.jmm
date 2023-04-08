@@ -10,7 +10,5 @@ class ArrayIndexNotInt {
 
         a = new int[2];
         b = true;
-
-        return a[b];
     }
 }

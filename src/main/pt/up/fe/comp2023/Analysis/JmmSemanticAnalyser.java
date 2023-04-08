@@ -1,12 +1,14 @@
 package pt.up.fe.comp2023.Analysis;
 
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -23,6 +25,9 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         this.reports = reports;
 
         addVisit("ClassDeclaration", this::dealWithClassDeclaration);
+        addVisit("MainMethodDeclaration", this::dealWithMainDeclaration);
+        addVisit("MethodDeclaration", this::dealWithMethodDeclaration);
+
 
         addVisit("Variable", this::dealWithVariable);
 
@@ -34,11 +39,40 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         addVisit("Boolean", this::dealWithPrimitive);
 
         setDefaultVisit(this::defaultVisit);
+
+        System.out.println(currentMethod);
+    }
+
+    private Map.Entry<String, String> dealWithMainDeclaration(JmmNode node, Boolean data) {
+        currentSCOPE = "METHOD";
+
+        try {
+            currentMethod = st.getMethod("main");
+            System.out.println(currentMethod);
+        } catch (Exception e) {
+            currentMethod = null;
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     private Map.Entry<String, String> dealWithClassDeclaration(JmmNode node, Boolean data) {
         currentSCOPE = "CLASS";
         return Map.entry("class", "true");
+    }
+
+    private Map.Entry<String, String> dealWithMethodDeclaration(JmmNode node, Boolean data) {
+        currentSCOPE = "METHOD";
+
+        try {
+            currentMethod = st.getMethod(node.get("name"));
+        } catch (Exception e) {
+            currentMethod = null;
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     private Map.Entry<String, String> dealWithPrimitive(JmmNode node, Boolean data) {
@@ -77,18 +111,19 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         JmmNode index = node.getChildren().get(1);
 
         Map.Entry<String, String> indexReturn = visit(index, true);
-        System.out.println(indexReturn.getValue());
+
+        System.out.println(indexReturn);
 
         Symbol arraySymbol = st.getField(array.get("id"));
 
         if (arraySymbol == null) {
-            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(array.get("lineStart")), Integer.parseInt(array.get("colStart")), "Array not found: " + array.get("name")));
+            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(array.get("lineStart")), Integer.parseInt(array.get("colStart")), "Array not found: " + array.get("id")));
             return Map.entry("error", "null");
         } else if (!arraySymbol.getType().getName().equals("int[]")) {
             reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(array.get("lineStart")), Integer.parseInt(array.get("colStart")), "Variable is not an array: " + array.get("id")));
             return Map.entry("error", "null");
         } else if (!indexReturn.getKey().equals("int")) {
-            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(index.get("lineStart")), Integer.parseInt(index.get("colStart")), "Array index is not an Integer: " + index));
+            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(index.get("lineStart")), Integer.parseInt(index.get("colStart")), "Array index is not an Integer: " + index.get("id")));
             return Map.entry("error", "null");
         }
 

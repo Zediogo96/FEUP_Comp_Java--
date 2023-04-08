@@ -1,9 +1,14 @@
+class ArrayIndexNotInt {
 
-class MethodsAndFields{
-	int[] a = new int[10];
-	int b = false;
+    public static void main(String[] args) {
 
-	public static void main(String[] args){
-	    return a[b];
-  	}
+    }
+
+    public int foo() {
+        int[] a;
+        boolean b;
+
+        a = new int[2];
+        b = true;
+    }
 }

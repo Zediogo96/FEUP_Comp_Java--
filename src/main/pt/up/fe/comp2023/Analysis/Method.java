@@ -24,6 +24,8 @@ public class Method {
         }
     }
 
+
+
     public String getName() {
         return name;
     }
@@ -86,7 +88,6 @@ public class Method {
     public void addLocalVariable(Symbol localVariable, boolean isStatic) {
         localVariables.put(localVariable, isStatic);
     }
-
     @Override
     public String toString() {
         StringBuilder returnString = new StringBuilder("Method {\n" +

@@ -33,7 +33,6 @@ public class AnalysisStage implements JmmAnalysis {
         System.out.println("\nSemantic Analysis Finished\n");
 
         return new JmmSemanticsResult(parserResult, st, reports);
-
     }
 
     public MySymbolTable getSymbolTable() {

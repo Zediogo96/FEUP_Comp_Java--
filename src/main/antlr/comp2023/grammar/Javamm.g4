@@ -46,11 +46,11 @@ mainParam
 ret : 'return' ( expression )? ;
 
 methodDeclaration
-    : ('public' | 'private' | 'protected' | 'default')? type name=ID '(' (parameter (',' parameter)*)? ')' '{' (varDeclaration)* (statement)*'}'
+    : ('public' | 'private' | 'protected' | 'default')? typeReturn=type name=ID '(' (parameter (',' parameter)*)? ')' '{' (varDeclaration)* (statement)* (ret)?'}'
     ;
 
 mainMethodDeclaration
-    :  ('public')? 'static' 'void' name='main' '(' mainParam ')' '{' (varDeclaration)* (statement)* '}' #MainDeclaration
+    :  ('public')? 'static' 'void' name='main' '(' mainParam ')' '{' (varDeclaration)* (statement)* '}'
     ;
 
 type locals[boolean isArray=false]
