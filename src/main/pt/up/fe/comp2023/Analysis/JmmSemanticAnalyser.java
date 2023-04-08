@@ -21,6 +21,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
     private Method currentMethod;
 
     public JmmSemanticAnalyser(MySymbolTable st, List<Report> reports) {
+
         this.st = st;
         this.reports = reports;
 
@@ -38,9 +39,11 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         addVisit("Integer", this::dealWithPrimitive);
         addVisit("Boolean", this::dealWithPrimitive);
 
+        addVisit("Ret", this::dealWithReturn);
+
         setDefaultVisit(this::defaultVisit);
 
-        System.out.println(currentMethod);
+
     }
 
     private Map.Entry<String, String> dealWithMainDeclaration(JmmNode node, Boolean data) {
@@ -48,7 +51,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         try {
             currentMethod = st.getMethod("main");
-            System.out.println(currentMethod);
         } catch (Exception e) {
             currentMethod = null;
             e.printStackTrace();
@@ -90,18 +92,28 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         if (currentSCOPE.equals("CLASS")) {
             field = Map.entry(st.getField(node.get("id")), false);
-        } else if (currentSCOPE.equals("METHOD")) {
-            field = Map.entry(currentMethod.getLocalVariable(node.get("id")), false);
+        } else if (currentSCOPE.equals("METHOD") && currentMethod != null) {
+            Symbol localVar = currentMethod.getLocalVariable(node.get("id"));
+            if (localVar == null) {
+                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable not found: " + node.get("id")));
+                return Map.entry("error", "null");
+            }
+            else field = Map.entry(localVar, false);
         }
+
+        if (field == null && st.getImports().contains(node.get("name"))) {
+            return Map.entry("access", "true");
+        } else if (field == null && node.get("name").equals("this")) {
+            return Map.entry("method", "true");
+        }
+
         if (field == null) {
-            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable not found: " + node.get("id")));
             return Map.entry("error", "null");
         }
         else {
             return Map.entry(field.getKey().getType().getName(), "true");
         }
     }
-
 
     private Map.Entry<String, String> visitArrayAccess(JmmNode node, Boolean data) {
 
@@ -140,6 +152,13 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         }
 
         return Map.entry("int []", "null");
+    }
+
+    private Map.Entry<String, String> dealWithReturn(JmmNode node, Boolean space) {
+        String returnType = visit(node.getChildren().get(0), true).getKey();
+
+
+        return Map.entry(returnType, "true");
     }
 
     private Map.Entry<String, String> defaultVisit(JmmNode node, Boolean data) {

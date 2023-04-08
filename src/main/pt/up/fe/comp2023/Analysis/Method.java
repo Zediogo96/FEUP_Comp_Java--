@@ -69,6 +69,7 @@ public class Method {
 
     public Symbol getLocalVariable(String name) {
         for (Symbol localVariable : localVariables.keySet()) {
+            System.out.println(localVariable.getName());
             if (localVariable.getName().equals(name)) {
                 return localVariable;
             }

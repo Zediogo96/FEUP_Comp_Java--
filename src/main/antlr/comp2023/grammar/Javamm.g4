@@ -78,7 +78,7 @@ expression
     | 'this' ('.' expression)* #This
     | PAR_OPEN expression PAR_CLOSE #Parenthesis
     | expression '[' expression ']' #ArrayAccess
-    | expression ('.' method=ID)? '(' ( param=expression (',' param=expression)* )? ')' #MethodCall
+    | expression ('.' method=ID)? '(' ( expression (',' expression)* )? ')' #MethodCall
     | expression '.' 'length' #ArrayLength
     | 'new' id=ID '(' ')' #NewObject
     | 'new' 'int' '[' size=expression ']' #ArrayInit
