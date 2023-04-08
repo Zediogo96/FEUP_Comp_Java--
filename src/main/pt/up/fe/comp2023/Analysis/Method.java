@@ -67,10 +67,9 @@ public class Method {
         return new ArrayList<>(this.localVariables.keySet());
     }
 
-    public Symbol getLocalVariable(String name) {
-        for (Symbol localVariable : localVariables.keySet()) {
-            System.out.println(localVariable.getName());
-            if (localVariable.getName().equals(name)) {
+    public Map.Entry<Symbol, Boolean> getLocalVariable(String name) {
+        for (Map.Entry<Symbol, Boolean> localVariable : localVariables.entrySet()) {
+            if (localVariable.getKey().getName().equals(name)) {
                 return localVariable;
             }
         }
@@ -82,6 +81,14 @@ public class Method {
             if (localVariable.getName().equals(name)) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    public boolean initializeField(Symbol field) {
+        if (localVariables.containsKey(field)) {
+            localVariables.put(field, true);
+            return true;
         }
         return false;
     }

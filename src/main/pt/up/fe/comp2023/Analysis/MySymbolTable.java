@@ -76,7 +76,6 @@ public class MySymbolTable implements SymbolTable {
     public boolean fieldIsArray(String name) {
         for (Symbol field : fields.keySet()) {
             if (field.getName().equals(name)) {
-                System.out.println(field.getType());
                 return field.getType().isArray();
             }
         }
@@ -97,20 +96,19 @@ public class MySymbolTable implements SymbolTable {
         methods.add(currentMethod);
     }
 
-    public Symbol getField(String name) {
-        for (Symbol field : fields.keySet()) {
-            if (field.getName().equals(name)) {
+    public Map.Entry<Symbol, Boolean> getField(String name) {
+        for (Map.Entry<Symbol, Boolean> field : this.fields.entrySet()) {
+            if (field.getKey().getName().equals(name))
                 return field;
-            }
         }
-
         for (Method method : methods) {
-            for (Symbol var: method.getLocalVariables()) {
-                if (var.getName().equals(name)) {
-                    return var;
+            for (Symbol parameter : method.getParameters()) {
+                if (parameter.getName().equals(name)) {
+                    return new HashMap.SimpleEntry<>(parameter, false);
                 }
             }
         }
+
         return null;
     }
 

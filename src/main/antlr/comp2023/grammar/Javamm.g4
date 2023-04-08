@@ -66,7 +66,7 @@ statement
     | 'if' '(' expression ')' statement ('else' statement)? #IfElse
     | 'while' '(' expression ')' statement #While
     | expression ';' #Stmt
-    | id=ID '=' expression ';' #Assign
+    | id=ID '=' expression ';' #Assignment
     | id=ID '[' expression ']' '=' expression ';' #ArrayAssign
     ;
 
