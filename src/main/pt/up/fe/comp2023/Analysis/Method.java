@@ -65,6 +65,15 @@ public class Method {
         return new ArrayList<>(this.localVariables.keySet());
     }
 
+    public Symbol getLocalVariable(String name) {
+        for (Symbol localVariable : localVariables.keySet()) {
+            if (localVariable.getName().equals(name)) {
+                return localVariable;
+            }
+        }
+        return null;
+    }
+
     public boolean localVariableExists(String name) {
         for (Symbol localVariable : localVariables.keySet()) {
             if (localVariable.getName().equals(name)) {

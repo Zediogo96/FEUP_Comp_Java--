@@ -37,10 +37,11 @@ public class MySymbolTable implements SymbolTable {
         String temp = node.getKind();
 
         type = switch (temp) {
-            case "Int" -> new Type("int", false);
-            case "Array" -> new Type("int", true);
-            case "Boolean" -> new Type("boolean", false);
-            case "Class" -> new Type(node.get("name"), false);
+            case "IntType" -> new Type("int", false);
+            case "IntArrayType" -> new Type("int[]", true);
+            case "StringType" -> new Type("String", true);
+            case "BooleanType" -> new Type("boolean", false);
+            case "ObjectType" -> new Type(node.get("type_"), false);
             default -> new Type(temp, false);
         };
 
@@ -67,6 +68,17 @@ public class MySymbolTable implements SymbolTable {
         for (Symbol field : fields.keySet()) {
             if (field.getName().equals(name)) {
                 return true;
+            }
+        }
+        return false;
+    }
+
+//    check if field is array from name
+    public boolean fieldIsArray(String name) {
+        for (Symbol field : fields.keySet()) {
+            if (field.getName().equals(name)) {
+                System.out.println(field.getType());
+                return field.getType().isArray();
             }
         }
         return false;
@@ -193,6 +205,9 @@ public class MySymbolTable implements SymbolTable {
         sb.append("5) Methods: (").append("Size: ").append(methods.size()).append(")\n");
         for (Method m : methods) {
             sb.append("\t-").append(m.getName()).append(" : ").append(m.getReturnType()).append(" (").append(m.getParameters().size()).append(" parameters)\n");
+            for (Symbol local : m.getLocalVariables()) {
+                sb.append("\t\t-").append(local.getName()).append(" : ").append(local.getType()).append("\n");
+            }
         }
         sb.append("------------------------------------------------\n");
 

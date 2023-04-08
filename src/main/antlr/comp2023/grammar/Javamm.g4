@@ -40,7 +40,7 @@ parameter
     ;
 
 mainParam
-    : type_='String' '['']' var=ID
+    : type_='String[]' var=ID
     ;
 
 ret : 'return' ( expression )? ;
@@ -50,13 +50,14 @@ methodDeclaration
     ;
 
 mainMethodDeclaration
-    :  ('public')? 'static' 'void' name='main' '(' mainParam ')' '{' (varDeclaration)* (statement)* '}'
+    :  ('public')? 'static' 'void' name='main' '(' mainParam ')' '{' (varDeclaration)* (statement)* '}' #MainDeclaration
     ;
 
 type locals[boolean isArray=false]
-    : type_='int'('['']' {$isArray=true;})? #IntType
+    : type_='int' #IntType
+    | type_='int[]' {$isArray=true;} #IntArrayType
     | type_='boolean' #BooleanType
-    | type_='String' ('['']' {$isArray=true;})? #StringType
+    | type_='String[]' {$isArray=true;} #StringType
     | type_=ID #ObjectType
     ;
 
@@ -73,14 +74,14 @@ expression
     : value=('true' | 'false') #Boolean
     | ret #ReturnStmt
     | value=INTEGER #Integer
-    | id=ID #Identifier
+    | id=ID #Variable
     | 'this' ('.' expression)* #This
     | PAR_OPEN expression PAR_CLOSE #Parenthesis
     | expression '[' expression ']' #ArrayAccess
     | expression ('.' method=ID)? '(' ( param=expression (',' param=expression)* )? ')' #MethodCall
     | expression '.' 'length' #ArrayLength
     | 'new' id=ID '(' ')' #NewObject
-    | 'new' 'int' '[' size=expression ']' #NewIntArray
+    | 'new' 'int' '[' size=expression ']' #ArrayInit
     | '!'expression #UnaryOp
     | expression op=MULTDIV expression #BinaryOp
     | expression op=PLUSMINUS expression #BinaryOp
