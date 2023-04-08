@@ -201,28 +201,15 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         } else if (currentSCOPE.equals("METHOD") && currentMethod != null) {
 
             Map.Entry<Symbol, Boolean> tmp = currentMethod.getLocalVariable(node.get("id"));
-            Symbol localVar = null;
-            if (tmp != null) localVar = tmp.getKey();
+            if (tmp != null) field = tmp;
 
             Map.Entry<Symbol, Boolean> tmp2 = st.getField(node.get("id"));
-            Symbol fieldVar = null;
-            if (tmp2 != null) fieldVar = tmp2.getKey();
-
-            if (localVar == null && fieldVar == null) {
-                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable not found: " + node.get("id")));
-                return Map.entry("error", "null");
-            }
-
-            else{
-                if (localVar != null) return Map.entry(localVar.getType().getName(), "true");
-                else return Map.entry(fieldVar.getType().getName(), "true");
-
-            }
+            if (tmp2 != null) field = tmp2;
         }
 
-        if (field == null && st.getImports().contains(node.get("name"))) {
+        if (field == null && st.getImports().contains(node.get("id"))) {
             return Map.entry("access", "true");
-        } else if (field == null && node.get("name").equals("this")) {
+        } else if (field == null && node.get("id").equals("this")) {
             return Map.entry("method", "true");
         }
 
@@ -296,11 +283,20 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             return Map.entry("length", "null");
         }
 
-        String methodName = node.get("name");
+        String methodName = node.get("method");
 
-        System.out.println("Method name: " + methodName);
-
-        return Map.entry("method", "true");
+        if(st.getMethod(methodName) != null) {
+            return Map.entry("method", "true");
+        } else {
+            if (st.getSuper() != null) {
+                System.out.println("here 2");
+                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method not found: " + methodName));
+                return Map.entry("error", "noSuchMethod");
+            } else {
+                System.out.println("here 3");
+                return Map.entry("method", "access");
+            }
+        }
     }
 
 

@@ -72,13 +72,13 @@ statement
 
 expression
     : value=('true' | 'false') #Boolean
+    | expression '.' method=ID '(' ( expression (',' expression)* )? ')' #MethodCall
     | ret #ReturnStmt
     | value=INTEGER #Integer
     | id=ID #Variable
     | 'this' ('.' expression)* #This
     | PAR_OPEN expression PAR_CLOSE #Parenthesis
     | expression '[' expression ']' #ArrayAccess
-    | expression ('.' method=ID)? '(' ( expression (',' expression)* )? ')' #MethodCall
     | expression '.' 'length' #ArrayLength
     | 'new' id=ID '(' ')' #NewObject
     | 'new' 'int' '[' size=expression ']' #ArrayInit
