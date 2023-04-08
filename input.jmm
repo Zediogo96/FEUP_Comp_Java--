@@ -4,10 +4,14 @@ import c;
 
 class MethodsAndFields{
 	int field1;
+
 	boolean field2;
 	MethodsAndFields field3;
 
 	public int getField1(){
+	    int a;
+	    int a;
+
 	    if (field1 == 0){
 	        return this.x(a);
         }

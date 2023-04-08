@@ -33,4 +33,5 @@ public class AnalysisStage implements JmmAnalysis {
     public MySymbolTable getSymbolTable() {
         return st;
     }
+
 }

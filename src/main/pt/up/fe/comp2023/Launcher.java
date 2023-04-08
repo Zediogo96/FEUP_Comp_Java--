@@ -41,15 +41,29 @@ public class Launcher {
         // Check if there are parsing errors
         TestUtils.noErrors(parserResult.getReports());
 
+        /* SEMANTIC ANALYSIS STAGE */
         AnalysisStage analysisStage = new AnalysisStage();
 
         JmmSemanticsResult semanticsResult = analysisStage.semanticAnalysis(parserResult);
+
+        if (semanticsResult.getReports().size() > 0) {
+            System.out.println("\nSemantic Analysis failed with " + semanticsResult.getReports().size() + " error(s):\n");
+            for (var report : semanticsResult.getReports()) {
+                System.out.println("\t- " + report);
+            }
+            System.out.println("\n");
+
+            throw new RuntimeException("Semantic analysis failed.");
+        }
+
+        /* END OF SEMANTIC ANALYSIS */
 
         System.out.println(parserResult.getRootNode().toTree());
 
         System.out.println(semanticsResult.getSymbolTable().toString());
 
-        parserResult.getReports().forEach(System.out::println);
+
+
     }
 
     private static Map<String, String> parseArgs(String[] args) {

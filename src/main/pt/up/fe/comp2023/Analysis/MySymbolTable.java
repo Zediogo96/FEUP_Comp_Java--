@@ -186,11 +186,11 @@ public class MySymbolTable implements SymbolTable {
         }
         sb.append("2) Class: ").append(className).append("\n");
         sb.append("3) Super: ").append(superClassName).append("\n");
-        sb.append("4) Fields: \n");
+        sb.append("4) Fields: (").append("Size: ").append(fields.size()).append(")\n");
         for (Symbol field : fields.keySet()) {
             sb.append("\t-").append(field.getName()).append(" : ").append(field.getType()).append(" (").append(fields.get(field) ? "static" : "non-static").append(")\n");
         }
-        sb.append("5) Methods: \n");
+        sb.append("5) Methods: (").append("Size: ").append(methods.size()).append(")\n");
         for (Method m : methods) {
             sb.append("\t-").append(m.getName()).append(" : ").append(m.getReturnType()).append(" (").append(m.getParameters().size()).append(" parameters)\n");
         }
