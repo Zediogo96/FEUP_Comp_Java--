@@ -71,13 +71,13 @@ statement
 
 expression
     : value=('true' | 'false') #Boolean
-    | ret #returnStmt
+    | ret #ReturnStmt
     | value=INTEGER #Integer
     | id=ID #Identifier
-    | 'this' (('.' expression)*)? #This
+    | 'this' ('.' expression)* #This
     | PAR_OPEN expression PAR_CLOSE #Parenthesis
     | expression '[' expression ']' #ArrayAccess
-    | expression ('.' method=ID)? '(' ( expression (',' expression)* )? ')' #MethodCall
+    | expression ('.' method=ID)? '(' ( param=expression (',' param=expression)* )? ')' #MethodCall
     | expression '.' 'length' #ArrayLength
     | 'new' id=ID '(' ')' #NewObject
     | 'new' 'int' '[' size=expression ']' #NewIntArray

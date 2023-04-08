@@ -1,4 +1,6 @@
 import a;
+import b;
+import c;
 
 class MethodsAndFields{
 	int field1;
@@ -7,7 +9,7 @@ class MethodsAndFields{
 
 	public int getField1(){
 	    if (field1 == 0){
-	        return this.x();
+	        return this.x(a);
         }
         else{
             return 0;
