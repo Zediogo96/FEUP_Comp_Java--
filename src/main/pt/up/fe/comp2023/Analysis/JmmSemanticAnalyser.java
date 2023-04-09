@@ -31,6 +31,8 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         addVisit("MethodCall", this::dealWithMethodCall);
 
         addVisit("BinaryOp", this::dealWithBinaryOperator);
+        addVisit("IfElse", this::dealWithConditionalExpression);
+
         addVisit("Assignment", this::dealWithAssignment);
         addVisit("ArrayAssignment", this::dealWithArrayAssignment);
 
@@ -48,6 +50,20 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         setDefaultVisit(this::defaultVisit);
     }
 
+    private Map.Entry<String, String> dealWithConditionalExpression(JmmNode node, Boolean data) {
+        JmmNode condition = node.getChildren().get(0);
+        Map.Entry<String, String> conditionReturn = visit(condition, true);
+
+        Map.Entry<String, String> dataReturn = Map.entry("boolean", "null");
+
+        if (!conditionReturn.getKey().equals("boolean")) {
+            dataReturn = Map.entry("error", "null");
+            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(condition.get("lineStart")), Integer.parseInt(condition.get("colStart")), "Conditional expression not boolean"));
+        }
+
+        return dataReturn;
+    }
+
     private Map.Entry<String, String> dealWithBinaryOperator(JmmNode node, Boolean data) {
 
         JmmNode left = node.getChildren().get(0);
@@ -55,9 +71,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         Map.Entry<String, String> leftReturn = visit(left, true);
         Map.Entry<String, String> rightReturn = visit(right, true);
-
-        System.out.println("Left: " + leftReturn.getKey() + " " + leftReturn.getValue());
-        System.out.println("Right: " + rightReturn.getKey() + " " + rightReturn.getValue());
 
         Map.Entry<String, String> dataReturn = Map.entry("int", "null");
 
