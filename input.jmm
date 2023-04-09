@@ -1,4 +1,4 @@
-class ArrayAccessOnInt {
+class BoolTimesInt {
 
     public static void main(String[] args) {
 
@@ -6,8 +6,10 @@ class ArrayAccessOnInt {
 
     public int foo() {
         int a;
-        a = 0;
+        boolean b;
 
-        return a[10];
+        a = 10;
+        b = true;
+        return b * a;
     }
 }
