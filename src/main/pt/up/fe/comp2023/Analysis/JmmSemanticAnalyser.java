@@ -33,6 +33,8 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         addVisit("BinaryOp", this::dealWithBinaryOperator);
         addVisit("RelationalOp", this::dealWithRelationalOperator);
 
+        addVisit("UnaryOp", this::dealWithUnaryOperator);
+
         addVisit("IfElse", this::dealWithConditionalExpression);
         addVisit("While", this::dealWithConditionalExpression);
 
@@ -47,10 +49,31 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         addVisit("Integer", this::dealWithPrimitive);
         addVisit("Boolean", this::dealWithPrimitive);
+        addVisit("Parenthesis", this::dealWithParenthesis);
 
         addVisit("Ret", this::dealWithReturn);
 
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private Map.Entry<String, String> dealWithUnaryOperator(JmmNode node, Boolean data) {
+
+        JmmNode condition = node.getChildren().get(0);
+
+        System.out.println(condition);
+
+        Map.Entry<String, String> conditionReturn = visit(condition, true);
+
+        System.out.println(conditionReturn);
+
+        Map.Entry<String, String> dataReturn = Map.entry("boolean", "null");
+
+        if (!conditionReturn.getKey().equals("boolean")) {
+            dataReturn = Map.entry("error", "null");
+            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(condition.get("lineStart")), Integer.parseInt(condition.get("colStart")), "Unary expression not boolean"));
+        }
+
+        return dataReturn;
     }
 
     private Map.Entry<String, String> dealWithConditionalExpression(JmmNode node, Boolean data) {
@@ -384,6 +407,10 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
                 return Map.entry("method", "access");
             }
         }
+    }
+
+    private Map.Entry<String, String> dealWithParenthesis(JmmNode node, Boolean data) {
+        return visit(node.getChildren().get(0), data);
     }
 
     @Override

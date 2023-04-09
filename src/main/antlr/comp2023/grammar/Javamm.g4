@@ -13,9 +13,6 @@ COMP_OP : '==' | '!=' | '<' | '>' | '<=' | '>=';
 
 MULTDIV : '*' | '/';
 PLUSMINUS : '+' | '-';
-PAR_OPEN : '(';
-PAR_CLOSE : ')';
-
 
 WS : [ \t\n\r\f]+ -> skip ;
 COMMENT : '/*' (COMMENT|.)*? '*/' -> skip ;
@@ -78,7 +75,7 @@ expression
     | value=INTEGER #Integer
     | id=ID #Variable
     | 'this' ('.' expression)* #This
-    | PAR_OPEN expression PAR_CLOSE #Parenthesis
+    | '(' expression ')' #Parenthesis
     | expression '.' 'length' #ArrayLength
     | 'new' id=ID '(' ')' #NewObject
     | 'new' 'int' '[' size=expression ']' #ArrayInit
