@@ -77,8 +77,9 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             Map.Entry<String, String> assignment = visit(node.getChildren().get(0), true);
 
             boolean variableDeclared = st.getField(node.get("id")) != null;
+            boolean variableOnScope = currentMethod.getLocalVariable(node.get("id")) != null;
 
-            if (!variableDeclared) {
+            if (!variableDeclared && !variableOnScope) {
                 System.out.println("Variable not declared: " + node.get("id"));
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable not declared: " + node.get("id")));
                 return Map.entry("error", "null");
@@ -231,12 +232,15 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         Map.Entry<String, String> indexReturn = visit(index, true);
 
-        Symbol arraySymbol = st.getField(array.get("id")).getKey();
+        Map.Entry<Symbol, Boolean> temp1 = st.getField(array.get("id"));
+        Map.Entry<Symbol, Boolean> temp2 = currentMethod.getLocalVariable(array.get("id"));
 
-        if (arraySymbol == null) {
-            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(array.get("lineStart")), Integer.parseInt(array.get("colStart")), "Array not found: " + array.get("id")));
-            return Map.entry("error", "null");
-        } else if (!arraySymbol.getType().getName().equals("int[]")) {
+        Symbol arraySymbol = null;
+
+        if (temp1 != null) arraySymbol = temp1.getKey();
+        else if (temp2 != null) arraySymbol = temp2.getKey();
+
+        if (!arraySymbol.getType().getName().equals("int[]")) {
             reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(array.get("lineStart")), Integer.parseInt(array.get("colStart")), "Variable is not an array: " + array.get("id")));
             return Map.entry("error", "null");
         } else if (!indexReturn.getKey().equals("int")) {
@@ -262,9 +266,8 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         JmmNode child = node.getChildren().get(0);
         String returnType = visit(child, true).getKey();
 
-
         if (returnType.equals("error")) {
-            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Return statement is not valid: missing '" + child.get("id") + "' variable."));
+            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Return statement is not valid"));
             return Map.entry("error", "null");
         }
         if (!returnType.equals(currentMethod.getReturnType().getName())) {
