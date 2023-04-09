@@ -79,6 +79,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             boolean variableDeclared = st.getField(node.get("id")) != null;
 
             if (!variableDeclared) {
+                System.out.println("Variable not declared: " + node.get("id"));
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable not declared: " + node.get("id")));
                 return Map.entry("error", "null");
             }
@@ -257,10 +258,19 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         return Map.entry("int []", "null");
     }
-
     private Map.Entry<String, String> dealWithReturn(JmmNode node, Boolean space) {
-        String returnType = visit(node.getChildren().get(0), true).getKey();
+        JmmNode child = node.getChildren().get(0);
+        String returnType = visit(child, true).getKey();
 
+
+        if (returnType.equals("error")) {
+            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Return statement is not valid: missing '" + child.get("id") + "' variable."));
+            return Map.entry("error", "null");
+        }
+        if (!returnType.equals(currentMethod.getReturnType().getName())) {
+            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types: '" + currentMethod.getReturnType().getName() + "' and '" + returnType + "'"));
+            return Map.entry("error", "null");
+        }
 
         return Map.entry(returnType, "true");
     }
@@ -289,16 +299,13 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             return Map.entry("method", "true");
         } else {
             if (st.getSuper() != null) {
-                System.out.println("here 2");
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method not found: " + methodName));
                 return Map.entry("error", "noSuchMethod");
             } else {
-                System.out.println("here 3");
                 return Map.entry("method", "access");
             }
         }
     }
-
 
     @Override
     protected void buildVisitor() {
