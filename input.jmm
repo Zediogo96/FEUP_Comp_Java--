@@ -5,10 +5,13 @@ class IntInIfCondition {
     }
 
     public int foo() {
-        while(true) {
+        boolean a;
+        int b;
+        a = false;
+        b = 2;
 
+        if (a > b) {
         }
 
-        return 0;
     }
 }

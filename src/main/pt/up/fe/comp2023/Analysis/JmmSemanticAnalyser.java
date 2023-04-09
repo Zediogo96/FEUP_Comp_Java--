@@ -31,9 +31,11 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         addVisit("MethodCall", this::dealWithMethodCall);
 
         addVisit("BinaryOp", this::dealWithBinaryOperator);
+        addVisit("RelationalOp", this::dealWithRelationalOperator);
 
         addVisit("IfElse", this::dealWithConditionalExpression);
         addVisit("While", this::dealWithConditionalExpression);
+
 
         addVisit("Assignment", this::dealWithAssignment);
         addVisit("ArrayAssignment", this::dealWithArrayAssignment);
@@ -53,6 +55,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
     private Map.Entry<String, String> dealWithConditionalExpression(JmmNode node, Boolean data) {
         JmmNode condition = node.getChildren().get(0);
+
         Map.Entry<String, String> conditionReturn = visit(condition, true);
 
         Map.Entry<String, String> dataReturn = Map.entry("boolean", "null");
@@ -62,6 +65,40 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(condition.get("lineStart")), Integer.parseInt(condition.get("colStart")), "Conditional expression not boolean"));
         }
 
+        return dataReturn;
+    }
+
+    private Map.Entry<String, String> dealWithRelationalOperator(JmmNode node, Boolean data) {
+        JmmNode left = node.getChildren().get(0);
+        JmmNode right = node.getChildren().get(1);
+
+        Map.Entry<String, String> leftReturn = visit(left, true);
+        Map.Entry<String, String> rightReturn = visit(right, true);
+
+        Map.Entry<String, String> dataReturn = Map.entry("boolean", "null");
+
+        if (!leftReturn.getValue().equals("true") && left.getKind().equals("Variable")) {
+            dataReturn = Map.entry("error", "null");
+            if (data != null) {
+                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(left.get("lineStart")), Integer.parseInt(left.get("colStart")), "Left Member not initialized: " + left));
+            }
+        }
+        else if (!rightReturn.getValue().equals("true") && right.getKind().equals("Variable")) {
+            dataReturn = Map.entry("error", "null");
+            if (data != null) {
+                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(right.get("lineStart")), Integer.parseInt(right.get("colStart")), "Right Member not initialized: " + right));
+            }
+        }
+        else if (leftReturn.getKey() != null && rightReturn.getKey() != null) {
+            if (leftReturn.getKey().equals("int") && rightReturn.getKey().equals("int")) {
+                dataReturn = Map.entry("boolean", "true");
+            } else {
+                dataReturn = Map.entry("error", "null");
+                if (data != null) {
+                    reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types on Relational Operator: '" + leftReturn.getKey() + "' and '" + rightReturn.getKey() + "'"));
+                }
+            }
+        }
         return dataReturn;
     }
 
@@ -113,7 +150,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
             if (assignment.getKey().equals("error")) {
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable for assignment not declared: " + node.get("id")));
-                return null;
+                return Map.entry("error", "null");
             }
 
             Map.Entry<Symbol, Boolean> variable;
@@ -124,18 +161,26 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             // IF assignment is related to access to an imported static method
             if (assignment.getKey().equals("access")) {
                 variable.setValue(true);
-                return null;
+                return Map.entry("void", "null");
             }
 
             String[] parts = assignment.getKey().split(" ");
 
-            // Matching Types
-            if (variable.getKey().getType().getName().equals(parts[0])) {
-                if (!currentMethod.initializeField(variable.getKey())) st.initializeField(variable.getKey());
-            } else {
-                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types: '" + variable.getKey().getType().getName() + "' and '" + assignment.getKey() + "'"));
-                return null;
+
+
+            if (variable != null) {
+                if (variable.getKey().getType().getName().equals(parts[0])) {
+                    if (!currentMethod.initializeField(variable.getKey())) st.initializeField(variable.getKey());
+                } else {
+                    reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types: '" + variable.getKey().getType().getName() + "' and '" + assignment.getKey() + "'"));
+                    return null;
+                }
             }
+            else {
+                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable for assignment not declared: " + node.get("id")));
+                return Map.entry("error", "null");
+            }
+
         }
 
         return Map.entry("void", "null");

@@ -85,7 +85,7 @@ expression
     | '!'expression #UnaryOp
     | expression op=MULTDIV expression #BinaryOp
     | expression op=PLUSMINUS expression #BinaryOp
-    | expression op=COMP_OP expression #BinaryOp
-    | expression op=AND_OP expression #BinaryOp
-    | expression op=OR_OP expression #BinaryOp
+    | expression op=COMP_OP expression #RelationalOp
+    | expression op=AND_OP expression #RelationalOp
+    | expression op=OR_OP expression #RelationalOp
     ;
