@@ -31,7 +31,9 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         addVisit("MethodCall", this::dealWithMethodCall);
 
         addVisit("BinaryOp", this::dealWithBinaryOperator);
+
         addVisit("IfElse", this::dealWithConditionalExpression);
+        addVisit("While", this::dealWithConditionalExpression);
 
         addVisit("Assignment", this::dealWithAssignment);
         addVisit("ArrayAssignment", this::dealWithArrayAssignment);
@@ -40,7 +42,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         addVisit("ArrayAccess", this::visitArrayAccess);
         addVisit("ArrayInit", this::dealWithArrayInit);
-
 
         addVisit("Integer", this::dealWithPrimitive);
         addVisit("Boolean", this::dealWithPrimitive);

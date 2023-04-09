@@ -5,8 +5,8 @@ class IntInIfCondition {
     }
 
     public int foo() {
-        if (1 + 2) {
-        } else {
+        while(true) {
+
         }
 
         return 0;
