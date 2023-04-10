@@ -4,12 +4,11 @@ class ArrayIndexNotInt {
 
     }
 
-    public int foo() {
-        int[] a;
-        boolean b;
-        b = true;
+    public int foo(int a, int b) {
 
-        a = new int[b];
+    }
 
+    public int bar() {
+        foo(a);
     }
 }

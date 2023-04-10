@@ -71,6 +71,7 @@ expression
     : value=('true' | 'false') #Boolean
     | expression '[' expression ']' #ArrayAccess
     | expression '.' method=ID '(' ( expression (',' expression)* )? ')' #MethodCall
+    | method=ID '(' ( expression (',' expression)* )? ')' #MethodCall
     | ret #ReturnStmt
     | value=INTEGER #Integer
     | id=ID #Variable

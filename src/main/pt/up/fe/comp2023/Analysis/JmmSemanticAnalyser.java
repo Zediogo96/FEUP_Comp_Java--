@@ -8,6 +8,7 @@ import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -402,8 +403,22 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         String methodName = node.get("method");
 
+        /* GET ALL THE PARAMETERS NAMES OF THE METHOD BEING CALLED, FROM THE SYMBOL TABLE */
+        List<String> parametersNames = st.getMethod(methodName).getParameters().stream().map(Symbol::getName).toList();
+        /* GET ALL THE ARGUMENTS NAMES OF THE METHOD BEING CALLED, FROM THE AST */
+        List<String> argumentsNames = node.getChildren().stream().map(child -> child.get("id")).toList();
+        /* GET RETURN TYPE FOR METHOD */
+        String returnType = st.getMethod(methodName).getReturnType().getName();
+        boolean isArray = returnType.contains("[]");
+
         if(st.getMethod(methodName) != null) {
-            return Map.entry("method", "true");
+            if (parametersNames.equals(argumentsNames))
+                return Map.entry("method", returnType + (isArray ? "[]" : ""));
+            else {
+                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method found but arguments are incorrect: "
+                        + methodName + "\n\t\t" + "- Parameters required: " + parametersNames + "\n\t\t" + "- Arguments used: " + argumentsNames));
+                return Map.entry("error", "noSuchMethod");
+            }
         } else {
             if (st.getSuper() != null) {
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method not found: " + methodName));
