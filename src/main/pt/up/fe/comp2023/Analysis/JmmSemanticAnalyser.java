@@ -382,7 +382,42 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         return Map.entry(returnType, "true");
     }
+    private Map.Entry<String, String> dealWithMethodCall(JmmNode node, Boolean space) {
+        if (node.getKind().equals("Length")) {
+            return Map.entry("length", "null");
+        }
 
+        String methodName = node.get("method");
+
+        if (st.getMethod(methodName) != null) {
+            /* GET ALL THE PARAMETERS NAMES OF THE METHOD BEING CALLED, FROM THE SYMBOL TABLE */
+            List<String> parametersNames = st.getMethod(methodName).getParameters().stream().map(Symbol::getName).toList();
+            /* GET ALL THE ARGUMENTS NAMES OF THE METHOD BEING CALLED, FROM THE AST */
+            List<String> argumentsNames = node.getChildren().stream().map(child -> child.get("id")).toList();
+            /* GET RETURN TYPE FOR METHOD */
+            String returnType = st.getMethod(methodName).getReturnType().getName();
+            boolean isArray = returnType.contains("[]");
+
+            if (parametersNames.equals(argumentsNames))
+                return Map.entry("method", returnType + (isArray ? "[]" : ""));
+            else {
+                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method found but arguments are incorrect: "
+                        + methodName + "\n\t\t" + "- Parameters required: " + parametersNames + "\n\t\t" + "- Arguments used: " + argumentsNames));
+                return Map.entry("error", "noSuchMethod");
+
+            }
+        } else {
+            if (st.getSuper() != null) {
+                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method not found: " + methodName));
+                return Map.entry("error", "noSuchMethod");
+            } else {
+                return Map.entry("method", "access");
+            }
+        }
+    }
+    private Map.Entry<String, String> dealWithParenthesis(JmmNode node, Boolean data) {
+        return visit(node.getChildren().get(0), data);
+    }
     private Map.Entry<String, String> defaultVisit(JmmNode node, Boolean data) {
         Map.Entry<String, String> dataReturn = Map.entry("int", "null");
 
@@ -395,44 +430,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         return dataReturn;
     }
-
-    private Map.Entry<String, String> dealWithMethodCall(JmmNode node, Boolean space) {
-        if (node.getKind().equals("Length")) {
-            return Map.entry("length", "null");
-        }
-
-        String methodName = node.get("method");
-
-        /* GET ALL THE PARAMETERS NAMES OF THE METHOD BEING CALLED, FROM THE SYMBOL TABLE */
-        List<String> parametersNames = st.getMethod(methodName).getParameters().stream().map(Symbol::getName).toList();
-        /* GET ALL THE ARGUMENTS NAMES OF THE METHOD BEING CALLED, FROM THE AST */
-        List<String> argumentsNames = node.getChildren().stream().map(child -> child.get("id")).toList();
-        /* GET RETURN TYPE FOR METHOD */
-        String returnType = st.getMethod(methodName).getReturnType().getName();
-        boolean isArray = returnType.contains("[]");
-
-        if(st.getMethod(methodName) != null) {
-            if (parametersNames.equals(argumentsNames))
-                return Map.entry("method", returnType + (isArray ? "[]" : ""));
-            else {
-                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method found but arguments are incorrect: "
-                        + methodName + "\n\t\t" + "- Parameters required: " + parametersNames + "\n\t\t" + "- Arguments used: " + argumentsNames));
-                return Map.entry("error", "noSuchMethod");
-            }
-        } else {
-            if (st.getSuper() != null) {
-                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method not found: " + methodName));
-                return Map.entry("error", "noSuchMethod");
-            } else {
-                return Map.entry("method", "access");
-            }
-        }
-    }
-
-    private Map.Entry<String, String> dealWithParenthesis(JmmNode node, Boolean data) {
-        return visit(node.getChildren().get(0), data);
-    }
-
     @Override
     protected void buildVisitor() {
 
