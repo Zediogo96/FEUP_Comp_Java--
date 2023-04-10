@@ -17,20 +17,6 @@ public class MySymbolTable implements SymbolTable {
     private final List<Method> methods = new ArrayList<>();
     private Method currentMethod;
 
-    public static Type getTypeFromAttr(JmmNode node, String attribute) {
-        Type type;
-        String temp = node.get(attribute);
-
-        type = switch (temp) {
-            case "int" -> new Type("int", false);
-            case "int[]" -> new Type("int[]", true);
-            case "boolean" -> new Type("boolean", false);
-            case "String" -> new Type("String", false);
-            default -> new Type(temp, false);
-        };
-
-        return type;
-    }
     public static Type getTypeFromNode(JmmNode node) {
         Type type;
         String temp = node.getKind();
@@ -56,7 +42,11 @@ public class MySymbolTable implements SymbolTable {
     }
 
     public void addImport(String importName) {
+        if (importName.contains("[")) {
+            importName = importName.substring(1, importName.length() - 1);
+        }
         imports.add(importName);
+
     }
 
     public void addField(Symbol field, boolean isStatic) {
@@ -185,24 +175,28 @@ public class MySymbolTable implements SymbolTable {
         return null;
     }
 
+    public Boolean isPrimitiveType(String type) {
+        return type.equals("int") || type.equals("boolean") || type.equals("int[]");
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("---------------- Symbol Table ----------------\n");
         sb.append("1) Imports: \n");
         for (String imp : imports) {
-            sb.append("\t-").append(imp).append("\n");
+            sb.append("\t> ").append(imp).append("\n");
         }
         sb.append("2) Class: ").append(className).append("\n");
         sb.append("3) Super: ").append(superClassName).append("\n");
         sb.append("4) Fields: (").append("Size: ").append(fields.size()).append(")\n");
         for (Symbol field : fields.keySet()) {
-            sb.append("\t-").append(field.getName()).append(" : ").append(field.getType()).append(" (").append(fields.get(field) ? "static" : "non-static").append(")\n");
+            sb.append("\t> ").append(field.getName()).append(" : ").append(field.getType()).append(" (").append(fields.get(field) ? "static" : "non-static").append(")\n");
         }
         sb.append("5) Methods: (").append("Size: ").append(methods.size()).append(")\n");
         for (Method m : methods) {
-            sb.append("\t-").append(m.getName()).append(" : ").append(m.getReturnType()).append(" (").append(m.getParameters().size()).append(" parameters)\n");
+            sb.append("\t> ").append(m.getName()).append(" : ").append(m.getReturnType()).append(" (").append(m.getParameters().size()).append(" parameters)\n");
             for (Symbol local : m.getLocalVariables()) {
-                sb.append("\t\t-").append(local.getName()).append(" : ").append(local.getType()).append("\n");
+                sb.append("\t\t> ").append(local.getName()).append(" : ").append(local.getType()).append("\n");
             }
         }
         sb.append("------------------------------------------------\n");

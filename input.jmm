@@ -1,15 +1,21 @@
-class CallToUndeclaredMethod {
+import B;
+
+class ObjectAssignmentFail {
 
     public static void main(String[] args) {
 
     }
 
-    public int foo() {
-        CallToUndeclaredMethod a;
-        a = new CallToUndeclaredMethod();
+    public ObjectAssignmentFail foo() {
+        ObjectAssignmentFail a;
+        B b;
 
-        a.bar();
+        a = new ObjectAssignmentFail();
+        b = new B();
 
-        return 0;
+        // ObjectAssignmentFail does not extend B
+        a = b;
+
+        return a;
     }
 }

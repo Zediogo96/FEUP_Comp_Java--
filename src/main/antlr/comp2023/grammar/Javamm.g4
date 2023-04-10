@@ -70,7 +70,7 @@ statement
 expression
     : value=('true' | 'false') #Boolean
     | expression '[' expression ']' #ArrayAccess
-    | expression '.' method=ID '(' ( expression (',' expression)* )? ')' #MethodCall
+    | expression '.' expression '(' ( expression (',' expression)* )? ')' #AccessMethod
     | method=ID '(' ( expression (',' expression)* )? ')' #MethodCall
     | ret #ReturnStmt
     | value=INTEGER #Integer
