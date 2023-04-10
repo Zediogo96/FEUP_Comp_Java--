@@ -1,18 +1,21 @@
-import A;
+import B;
 
-class AssumeArguments {
+class ObjectAssignmentFail {
 
     public static void main(String[] args) {
 
     }
 
-    public int bar() {
-        A a;
-        boolean b;
+    public ObjectAssignmentFail foo() {
+        ObjectAssignmentFail a;
+        B b;
 
-        a = new A();
-        b = true;
+        a = new ObjectAssignmentFail();
+        b = new B();
 
-        return a.foo(b);
+        // ObjectAssignmentFail does not extend B
+        a = b;
+
+        return a;
     }
 }

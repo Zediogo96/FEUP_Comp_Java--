@@ -68,7 +68,8 @@ statement
     ;
 
 expression
-    : value=('true' | 'false') #Boolean
+    : 'new' id=ID '(' ')' #NewObject
+    | value=('true' | 'false') #Boolean
     | expression '[' expression ']' #ArrayAccess
     | expression '.' expression '(' ( expression (',' expression)* )? ')' #AccessMethod
     | method=ID '(' ( expression (',' expression)* )? ')' #MethodCall
@@ -78,7 +79,6 @@ expression
     | 'this' ('.' expression)* #This
     | '(' expression ')' #Parenthesis
     | expression '.' 'length' #ArrayLength
-    | 'new' id=ID '(' ')' #NewObject
     | 'new' 'int' '[' size=expression ']' #ArrayInit
     | '!'expression #UnaryOp
     | expression op=MULTDIV expression #BinaryOp

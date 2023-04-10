@@ -63,8 +63,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         JmmNode object = node.getChildren().get(0);
         JmmNode method = node.getChildren().get(1);
 
-        System.out.println("Object: " + object.getKind());
-
         Map.Entry<String, String> objectReturn = visit(object, true);
         Map.Entry<String, String> methodReturn = visit(method, true);
 
@@ -200,53 +198,58 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         List<JmmNode> children = node.getChildren();
 
-        if (children.size() == 1) {
-            Map.Entry<String, String> assignment = visit(node.getChildren().get(0), true);
+        Map.Entry<String, String> assignment = visit(node.getChildren().get(0), true);
+        Map.Entry<Symbol, Boolean> fieldToAssign;
 
-            if (assignment.getKey().equals("error")) {
-                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable for assignment not declared: " + node.get("id")));
-                return Map.entry("error", "null");
-            }
+        if (currentSCOPE == "CLASS") fieldToAssign = st.getField(node.get("id"));
+        else fieldToAssign = currentMethod.getLocalVariable(node.get("id"));
 
-            Map.Entry<Symbol, Boolean> variable;
-            if ((variable = currentMethod.getLocalVariable(node.get("id"))) == null) {
-                variable = st.getField(node.get("id"));
-            }
+        if (assignment.getKey().equals("error")) {
+            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable for assignment not declared: " + node.get("id")));
+            return Map.entry("error", "null");
+        }
 
-            // IF assignment is related to access to an imported static method
-            if (assignment.getKey().equals("access")) {
-                variable.setValue(true);
-                return null;
-            }
+        Map.Entry<Symbol, Boolean> variable;
+        if ((variable = currentMethod.getLocalVariable(node.get("id"))) == null) {
+            variable = st.getField(node.get("id"));
+        }
 
-            String[] parts = assignment.getKey().split(" ");
+        // IF assignment is related to access to an imported static method
+        if (assignment.getKey().equals("access")) {
+            variable.setValue(true);
+            return null;
+        }
 
-            if (!(st.isPrimitiveType(parts[0]))) {
-                boolean wasExtended = st.getSuper().contains(parts[0]);
-                boolean wasImported = st.getImports().contains(parts[0]);
-                boolean isClass = st.getClassName().equals(parts[0]);
+        String[] parts = assignment.getKey().split(" ");
 
-                if (!isClass) {
-                    if (!wasExtended) {
-                        reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Class trying to be assigned was not imported / extended: " + parts[0]));
-                    }
+        if (!(st.isPrimitiveType(parts[0]))) {
+            boolean wasExtended = st.getSuper().contains(parts[0]);
+            boolean wasImported = st.getImports().contains(parts[0]);
+            boolean isCurrentClassObject = fieldToAssign.getKey().getType().getName().equals(st.getClassName());
 
-                }
-            }
-
-            if (variable != null) {
-                if (variable.getKey().getType().getName().equals(parts[0])) {
-                    if (!currentMethod.initializeField(variable.getKey())) st.initializeField(variable.getKey());
-                } else {
-                    reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types on Assignment: '" + variable.getKey().getType().getName() + "' and '" + assignment.getKey() + "'"));
-                    return null;
+            if (isCurrentClassObject) {
+                if (!wasExtended) {
+                    reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Class trying to be assigned was not extended: " + parts[0]));
                 }
             }
             else {
-                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable for assignment not declared: " + node.get("id")));
-                return Map.entry("error", "null");
+                if (!wasImported) {
+                    reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Class trying to be assigned was not imported: " + parts[0]));
+                }
             }
+        }
 
+        if (variable != null) {
+            if (variable.getKey().getType().getName().equals(parts[0])) {
+                if (!currentMethod.initializeField(variable.getKey())) st.initializeField(variable.getKey());
+            } else {
+                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types on Assignment: '" + variable.getKey().getType().getName() + "' and '" + assignment.getKey() + "'"));
+                return null;
+            }
+        }
+        else {
+            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable for assignment not declared: " + node.get("id")));
+            return Map.entry("error", "null");
         }
 
         return Map.entry("void", "null");
