@@ -189,8 +189,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
             String[] parts = assignment.getKey().split(" ");
 
-
-
             if (variable != null) {
                 if (variable.getKey().getType().getName().equals(parts[0])) {
                     if (!currentMethod.initializeField(variable.getKey())) st.initializeField(variable.getKey());
@@ -359,7 +357,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             return Map.entry("error", "null");
         }
 
-        return Map.entry("int []", "null");
+        return Map.entry("int[]", "null");
     }
     private Map.Entry<String, String> dealWithReturn(JmmNode node, Boolean space) {
         JmmNode child = node.getChildren().get(0);

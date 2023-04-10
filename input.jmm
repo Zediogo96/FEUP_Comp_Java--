@@ -5,15 +5,11 @@ class IntInIfCondition {
     }
 
     public int foo() {
-        int a;
-        int b;
-        a = 1;
-        b = 2;
-        if (!(1 > 2)) {
-            return 1;
-        } else {
-            return 2;
-        }
+        int[] a;
+        int[] b;
+
+        b = new int[10];
+        a = new int[10];
 
     }
 }
