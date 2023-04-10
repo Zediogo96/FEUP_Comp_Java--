@@ -81,7 +81,6 @@ public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {
         Symbol field = new Symbol(getTypeFromNode(typeNode), node.get("name"));
         if (scope.equals("CLASS")) {
             if (st.fieldExists(field.getName())) {
-
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Field '" + field.getName() + "' already exists in class " + st.getClassName()));
                 return space + "ERROR";
             }

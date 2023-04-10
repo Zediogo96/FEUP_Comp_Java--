@@ -1,4 +1,4 @@
-class IntInIfCondition {
+class ArrayIndexNotInt {
 
     public static void main(String[] args) {
 
@@ -6,10 +6,10 @@ class IntInIfCondition {
 
     public int foo() {
         int[] a;
-        int[] b;
+        boolean b;
+        b = true;
 
-        b = new int[10];
-        a = new int[10];
+        a = new int[b];
 
     }
 }

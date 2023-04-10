@@ -135,6 +135,9 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         Map.Entry<String, String> dataReturn = Map.entry("int", "null");
 
+        System.out.println(leftReturn);
+        System.out.println(rightReturn);
+
         if (!leftReturn.getValue().equals("true") && left.getKind().equals("Variable")) {
             dataReturn = Map.entry("error", "null");
             if (data != null) {
@@ -152,7 +155,11 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         else if (leftReturn.getKey() != null && rightReturn.getKey() != null) {
             if (leftReturn.getKey().equals("int") && rightReturn.getKey().equals("int")) {
                 dataReturn = Map.entry("int", "true");
-            } else {
+            } else if (leftReturn.getKey().equals("int[]") && rightReturn.getKey().equals("int[]")) {
+                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Array Variables cannot be used directly with an Binary Operator: '"
+                        + left.get("id") + "' " + node.get("op") + " '" + right.get("id") + "'"));
+            }
+            else {
                 dataReturn = Map.entry("error", "null");
                 if (data != null) {
                     reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types on Binary Operator: '" + leftReturn.getKey() + " " + node.get("op") + " " + rightReturn.getKey() + "'"));
@@ -184,7 +191,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             // IF assignment is related to access to an imported static method
             if (assignment.getKey().equals("access")) {
                 variable.setValue(true);
-                return Map.entry("void", "null");
+                return Map.entry("acess", "null");
             }
 
             String[] parts = assignment.getKey().split(" ");
