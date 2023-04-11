@@ -67,8 +67,8 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         Map.Entry<String, String> methodReturn = visit(method, true);
 
         if (methodReturn.getKey().equals("error")) {
-            if (objectReturn.getKey().equals("access")) {
 
+            if (objectReturn.getKey().contains("imported") || objectReturn.getKey().contains("extended")) {
                 return Map.entry("access", "null");
             }
             else {
@@ -214,29 +214,45 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             variable = st.getField(node.get("id"));
         }
 
-        // IF assignment is related to access to an imported static method
-        if (assignment.getKey().equals("access")) {
-            variable.setValue(true);
-            return null;
-        }
-
         String[] parts = assignment.getKey().split(" ");
 
         if (!(st.isPrimitiveType(parts[0]))) {
-            boolean wasExtended = st.getSuper().contains(parts[0]);
-            boolean wasImported = st.getImports().contains(parts[0]);
-            boolean isCurrentClassObject = fieldToAssign.getKey().getType().getName().equals(st.getClassName());
 
-            if (isCurrentClassObject) {
-                if (!wasExtended) {
-                    reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Class trying to be assigned was not extended: " + parts[0]));
+            boolean wasExtendedAsAssignment = st.getSuper().contains(fieldToAssign.getKey().getType().getName());
+            boolean wasExtendedAsVariable = st.getSuper().contains(parts[0]);
+
+            String fieldType = fieldToAssign.getKey().getType().getName();
+
+            boolean wasImportedLeftPart = st.getImports().contains(fieldType) || fieldType.equals(st.getClassName());
+            boolean wasImportedRightPart = st.getImports().contains(parts[0]) || parts[0].equals(st.getClassName());
+            boolean isCurrentClassObject = fieldType.equals(st.getClassName()) && parts[0].equals(st.getClassName());
+
+            if (!isCurrentClassObject) {
+                if (fieldType.equals(st.getClassName())) {
+                    if (!wasExtendedAsVariable) {
+                        reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Trying to assign the current Class Object " + st.getClassName()));
+                        return Map.entry("error", "null");
+                    }
+                }
+                else if (parts[0].equals(st.getClassName())) {
+                    if (!wasExtendedAsAssignment) {
+                        reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Trying to assign the current Class Object " + st.getClassName()));
+                        return Map.entry("error", "null");
+                    }
+                    else return null;
+                }
+
+                else if (!wasImportedLeftPart && !wasImportedRightPart) {
+                    reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Class Not Imported!"));
+                    return Map.entry("error", "null");
                 }
             }
-            else {
-                if (!wasImported) {
-                    reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Class trying to be assigned was not imported: " + parts[0]));
-                }
-            }
+        }
+
+        // IF assignment is related to access to an imported static method
+        if (assignment.getKey().contains("imported") || assignment.getKey().contains("extended")) {
+            variable.setValue(true);
+            return null;
         }
 
         if (variable != null) {
@@ -269,10 +285,10 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         }
 
         if (field != null && st.getImports().contains(field.getKey().getType().getName())) {
-            return Map.entry("access", "true");
+            return Map.entry(field.getKey().getType().getName() + "(imported)", "true");
         }
         else if (field != null && st.getSuper().contains(field.getKey().getType().getName())) {
-            return Map.entry("access", "true");
+            return Map.entry(field.getKey().getType().getName() + "(extended)", "true");
         } else if (node.get("id").equals("this")) {
             return Map.entry("method", "true");
         }
@@ -284,7 +300,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             return Map.entry(field.getKey().getType().getName(), field.getValue() ? "true" : "false");
         }
     }
-
     private Map.Entry<String, String> dealWithArrayAssignment(JmmNode node, Boolean space) {
 
         List<JmmNode> children = node.getChildren();
@@ -326,7 +341,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         return Map.entry("void", "null");
 
     }
-
     private Map.Entry<String, String> dealWithMainDeclaration(JmmNode node, Boolean data) {
         currentSCOPE = "METHOD";
 
@@ -339,12 +353,10 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         return null;
     }
-
     private Map.Entry<String, String> dealWithClassDeclaration(JmmNode node, Boolean data) {
         currentSCOPE = "CLASS";
         return Map.entry("class", "true");
     }
-
     private Map.Entry<String, String> dealWithMethodDeclaration(JmmNode node, Boolean data) {
         currentSCOPE = "METHOD";
 
@@ -357,7 +369,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         return null;
     }
-
     private Map.Entry<String, String> dealWithPrimitive(JmmNode node, Boolean data) {
         String return_type = switch (node.getKind()) {
             case "Integer" -> "int";
@@ -367,7 +378,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         return Map.entry(return_type, "true");
     }
-
     private Map.Entry<String, String> visitArrayAccess(JmmNode node, Boolean data) {
 
         Map.Entry<String, String> dataReturn = Map.entry("int", "null");
@@ -395,7 +405,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         return Map.entry("int", "true");
     }
-
     private Map.Entry<String, String> dealWithArrayInit(JmmNode node, Boolean data) {
         JmmNode size = node.getChildren().get(0);
         Map.Entry<String, String> sizeReturn = visit(size, true);
@@ -411,7 +420,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         JmmNode child = node.getChildren().get(0);
         String returnType = visit(child, true).getKey();
 
-        if (returnType.equals("access")) {
+        if (returnType.contains("access")) {
             return Map.entry("access", "null");
         }
 
@@ -420,7 +429,10 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             return Map.entry("error", "null");
         }
 
-        if (!returnType.equals(currentMethod.getReturnType().getName())) {
+        returnType = returnType.replace("(imported)", "");
+
+        if (!returnType.equals(currentMethod.getReturnType().getName().replace("(imported)", ""))) {
+
             reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types on return statement: '" + currentMethod.getReturnType().getName() + "' and '" + returnType + "'"));
             return Map.entry("error", "null");
         }
