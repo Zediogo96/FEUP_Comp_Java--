@@ -39,7 +39,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         addVisit("IfElse", this::dealWithConditionalExpression);
         addVisit("While", this::dealWithConditionalExpression);
 
-
         addVisit("Assignment", this::dealWithAssignment);
         addVisit("ArrayAssignment", this::dealWithArrayAssignment);
 
@@ -68,7 +67,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         if (methodReturn.getKey().equals("error")) {
 
-            if (objectReturn.getKey().contains("imported") || objectReturn.getKey().contains("extended")) {
+            if (objectReturn.getKey().contains("imported") || (st.getSuper() != null && st.getImports().contains(st.getSuper()))) {
                 return Map.entry("access", "null");
             }
             else {
@@ -230,7 +229,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             if (!isCurrentClassObject) {
                 if (fieldType.equals(st.getClassName())) {
                     if (!wasExtendedAsVariable) {
-                        reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Trying to assign the current Class Object " + st.getClassName()));
+                        reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Trying to assign the current Class Object: " + st.getClassName() + " but '" + parts[0].replace("(imported)", "") + "' was not extended'"));
                         return Map.entry("error", "null");
                     }
                 }

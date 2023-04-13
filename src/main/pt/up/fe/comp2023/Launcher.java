@@ -1,13 +1,13 @@
 package pt.up.fe.comp2023;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import pt.up.fe.comp.TestUtils;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
+import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.specs.util.SpecsIo;
 import pt.up.fe.specs.util.SpecsLogs;
 import pt.up.fe.specs.util.SpecsSystem;
@@ -46,9 +46,15 @@ public class Launcher {
 
         JmmSemanticsResult semanticsResult = analysisStage.semanticAnalysis(parserResult);
 
-        if (semanticsResult.getReports().size() > 0) {
-            System.out.println("\nSemantic Analysis failed with " + semanticsResult.getReports().size() + " error(s):\n");
-            for (var report : semanticsResult.getReports()) {
+        /* CONVERTS ALL ELEMENTS TO STRING, READY TO BE MORE EASILY PRINTED */
+        List<String> reports = semanticsResult.getReports().stream().map(Report::toString).toList();
+
+        /* REMOVE DUPLICATE STRINGS FROM REPORTS */
+        reports = reports.stream().distinct().collect(Collectors.toList());
+
+        if (reports.size() > 0) {
+            System.out.println("\nSemantic Analysis failed with " + reports.size() + " error(s):\n");
+            for (var report : reports) {
                 System.out.println("\t- " + report);
             }
             System.out.println("\n");
@@ -61,9 +67,6 @@ public class Launcher {
         System.out.println(parserResult.getRootNode().toTree());
 
         System.out.println(semanticsResult.getSymbolTable().toString());
-
-
-
     }
 
     private static Map<String, String> parseArgs(String[] args) {

@@ -70,7 +70,7 @@ public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {
     private String dealWithMainMethodDeclaration(JmmNode node, String space) {
         scope = "MAIN";
         var parametersList = new ArrayList<Symbol>();
-        parametersList.add(new Symbol(new Type("String[]", true), "args"));
+        parametersList.add(new Symbol(new Type("String", true), "args"));
         st.addMethod("main", new Type("void", false), parametersList);
 
         return space + "MAIN";
