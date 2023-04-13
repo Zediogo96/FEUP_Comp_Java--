@@ -44,6 +44,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         addVisit("Variable", this::dealWithVariable);
         addVisit("NewObject", this::dealWithNewObject);
+        addVisit("This", this::dealWithThis);
 
         addVisit("ArrayAccess", this::visitArrayAccess);
         addVisit("ArrayInit", this::dealWithArrayInit);
@@ -78,6 +79,25 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         return Map.entry("null", "null");
 
+    }
+
+    private Map.Entry<String, String> dealWithThis(JmmNode node, Boolean data) {
+
+        if (node.getChildren().size() == 0) {
+            return Map.entry(st.getClassName(), "true");
+        }
+        else {
+            JmmNode method = node.getChildren().get(0);
+            Map.Entry<String, String> methodReturn = visit(method, true);
+
+            System.out.println(methodReturn);
+
+            if (methodReturn.getValue().equals("access")) {
+                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method not found in class " + st.getClassName()));
+                return Map.entry("error", "null");
+            }
+            return Map.entry("null", "null");
+        }
     }
 
     private Map.Entry<String, String> dealWithUnaryOperator(JmmNode node, Boolean data) {
@@ -197,6 +217,8 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         List<JmmNode> children = node.getChildren();
 
+        System.out.println("CURRENT SCOPE " + currentSCOPE);
+
         Map.Entry<String, String> assignment = visit(node.getChildren().get(0), true);
         Map.Entry<Symbol, Boolean> fieldToAssign;
 
@@ -235,7 +257,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
                 }
                 else if (parts[0].equals(st.getClassName())) {
                     if (!wasExtendedAsAssignment) {
-                        reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Trying to assign the current Class Object " + st.getClassName()));
+                        reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Trying to assign the current Class to an Object that was not extended"));
                         return Map.entry("error", "null");
                     }
                     else return null;

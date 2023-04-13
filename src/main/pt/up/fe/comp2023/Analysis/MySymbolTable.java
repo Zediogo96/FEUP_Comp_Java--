@@ -62,16 +62,6 @@ public class MySymbolTable implements SymbolTable {
         return false;
     }
 
-//    check if field is array from name
-    public boolean fieldIsArray(String name) {
-        for (Symbol field : fields.keySet()) {
-            if (field.getName().equals(name)) {
-                return field.getType().isArray();
-            }
-        }
-        return false;
-    }
-
     public Method getMethod(String methodName) {
         for (Method method : methods) {
             if (method.getName().equals(methodName)) {
@@ -83,6 +73,7 @@ public class MySymbolTable implements SymbolTable {
 
     public void addMethod(String methodName, Type returnType, List<Symbol> parameters) {
         currentMethod = new Method(methodName, returnType, parameters);
+        System.out.println("CURRENT METHOD: " + currentMethod.getName());
         methods.add(currentMethod);
     }
 
@@ -102,12 +93,10 @@ public class MySymbolTable implements SymbolTable {
         return null;
     }
 
-    public boolean initializeField(Symbol field) {
+    public void initializeField(Symbol field) {
         if (fields.containsKey(field)) {
             fields.put(field, true);
-            return true;
         }
-        return false;
     }
 
     public Method getCurrentMethod() {
@@ -194,10 +183,16 @@ public class MySymbolTable implements SymbolTable {
         }
         sb.append("5) Methods: (").append("Size: ").append(methods.size()).append(")\n");
         for (Method m : methods) {
-            sb.append("\t> ").append(m.getName()).append(" : ").append(m.getReturnType()).append(" (").append(m.getParameters().size()).append(" parameters)\n");
-            for (Symbol local : m.getLocalVariables()) {
-                sb.append("\t\t> ").append(local.getName()).append(" : ").append(local.getType()).append("\n");
+            sb.append("\t> ").append(m.getName()).append(":").append(" (").append(m.getParameters().size()).append(" parameters)\n");
+            sb.append("\t\t> Parameters: \n");
+            for (Symbol parameter : m.getParameters()) {
+                sb.append("\t\t\t- ").append(parameter.getType().getName()).append(" ").append(parameter.getName()).append("\n");
             }
+            sb.append("\t\t> Local Variables: \n");
+            for (Symbol local : m.getLocalVariables()) {
+                sb.append("\t\t\t- ").append(local.getType().getName()).append(" ").append(local.getName()).append("\n");
+            }
+            sb.append("\t\t> Return Type: ").append(m.getReturnType().getName()).append("\n");
         }
         sb.append("------------------------------------------------\n");
 

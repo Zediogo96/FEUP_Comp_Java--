@@ -1,24 +1,14 @@
-import B;
+import C;
 
-class ObjectAssignmentFail {
+class ObjectAssignmentFail extends C {
 
     public static void main(String[] args) {
-
-    }
-
-    public ObjectAssignmentFail foo() {
-
         int a;
-        int b;
-
-        a = 1;
-        b = 3;
-
-        if (2 + 3) {
-
-        }
-
-
-
+        a = 10;
     }
+
+    public int foo(int a, int c) {
+        int b;
+    }
+
 }
