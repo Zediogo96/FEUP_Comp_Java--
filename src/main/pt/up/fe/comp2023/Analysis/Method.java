@@ -2,7 +2,6 @@ package pt.up.fe.comp2023.Analysis;
 
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
-import pt.up.fe.comp.jmm.ast.JmmNode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,11 +10,12 @@ import java.util.Map;
 
 public class Method {
 
-    private String name;
-    private Type returnType;
+    private final String name;
+    private final Type returnType;
 
     private final List<Map.Entry<Symbol, String>> parameters = new ArrayList<>();
     private final Map<Symbol, Boolean> localVariables = new HashMap<>();
+
     public Method(String name, Type returnType, List<Symbol> parameters) {
         this.name = name;
         this.returnType = returnType;
@@ -25,20 +25,12 @@ public class Method {
     }
 
 
-
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
     public Type getReturnType() {
         return returnType;
-    }
-
-    public void setReturnType(Type returnType) {
-        this.returnType = returnType;
     }
 
     public List<Symbol> getParameters() {
@@ -48,19 +40,6 @@ public class Method {
             parameters.add(parameter.getKey());
         }
         return parameters;
-    }
-
-    public void addParameter(Symbol parameter, String parameterName) {
-        parameters.add(Map.entry(parameter, parameterName));
-    }
-
-    public boolean parameterExists(String name) {
-        for (Map.Entry<Symbol, String> parameter : parameters) {
-            if (parameter.getValue().equals(name)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public List<Symbol> getLocalVariables() {
@@ -96,6 +75,7 @@ public class Method {
     public void addLocalVariable(Symbol localVariable, boolean isStatic) {
         localVariables.put(localVariable, isStatic);
     }
+
     @Override
     public String toString() {
         StringBuilder returnString = new StringBuilder("Method {\n" +

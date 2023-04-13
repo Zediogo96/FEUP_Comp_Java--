@@ -73,7 +73,6 @@ public class MySymbolTable implements SymbolTable {
 
     public void addMethod(String methodName, Type returnType, List<Symbol> parameters) {
         currentMethod = new Method(methodName, returnType, parameters);
-        System.out.println("CURRENT METHOD: " + currentMethod.getName());
         methods.add(currentMethod);
     }
 
