@@ -5,6 +5,8 @@ import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp.jmm.report.ReportType;
+import pt.up.fe.comp.jmm.report.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +53,7 @@ public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {
 
     private String dealWithMethodDeclaration(JmmNode node, String space) {
         scope = "METHOD";
-//        get all children of node that contains Parameter
+
         List<JmmNode> parameters = node.getChildren().stream().filter(n -> n.getKind().equals("Parameter")).toList();
         List<Symbol> parametersList = new ArrayList<>();
         for (JmmNode parameter : parameters) {
@@ -66,9 +68,9 @@ public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {
     }
 
     private String dealWithMainMethodDeclaration(JmmNode node, String space) {
-        scope = "MAIN";
+        scope = "METHOD";
         var parametersList = new ArrayList<Symbol>();
-        parametersList.add(new Symbol(new Type("String[]", true), "args"));
+        parametersList.add(new Symbol(new Type("String", true), "args"));
         st.addMethod("main", new Type("void", false), parametersList);
 
         return space + "MAIN";
@@ -77,10 +79,17 @@ public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {
     private String dealWithVarDeclaration(JmmNode node, String space) {
         JmmNode typeNode = node.getChildren().get(0);
         Symbol field = new Symbol(getTypeFromNode(typeNode), node.get("name"));
-
         if (scope.equals("CLASS")) {
+            if (st.fieldExists(field.getName())) {
+                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Field '" + field.getName() + "' already exists in class " + st.getClassName()));
+                return space + "ERROR";
+            }
             st.addField(field, false);
         } else if (scope.equals("METHOD")) {
+            if (st.getCurrentMethod().localVariableExists(field.getName())) {
+                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable '" + field.getName() + "' already exists in method " + st.getCurrentMethod().getName()));
+                return space + "ERROR";
+            }
             st.getCurrentMethod().addLocalVariable(field, false);
         }
 

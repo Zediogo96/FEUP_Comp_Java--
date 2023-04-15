@@ -13,9 +13,6 @@ COMP_OP : '==' | '!=' | '<' | '>' | '<=' | '>=';
 
 MULTDIV : '*' | '/';
 PLUSMINUS : '+' | '-';
-PAR_OPEN : '(';
-PAR_CLOSE : ')';
-
 
 WS : [ \t\n\r\f]+ -> skip ;
 COMMENT : '/*' (COMMENT|.)*? '*/' -> skip ;
@@ -40,13 +37,13 @@ parameter
     ;
 
 mainParam
-    : type_='String' '['']' var=ID
+    : type_='String[]' var=ID
     ;
 
 ret : 'return' ( expression )? ;
 
 methodDeclaration
-    : ('public' | 'private' | 'protected' | 'default')? type name=ID '(' (parameter (',' parameter)*)? ')' '{' (varDeclaration)* (statement)*'}'
+    : ('public' | 'private' | 'protected' | 'default')? typeReturn=type name=ID '(' (parameter (',' parameter)*)? ')' '{' (varDeclaration)* (statement)* (ret)?'}'
     ;
 
 mainMethodDeclaration
@@ -54,9 +51,10 @@ mainMethodDeclaration
     ;
 
 type locals[boolean isArray=false]
-    : type_='int'('['']' {$isArray=true;})? #IntType
+    : type_='int' #IntType
+    | type_='int[]' {$isArray=true;} #IntArrayType
     | type_='boolean' #BooleanType
-    | type_='String' ('['']' {$isArray=true;})? #StringType
+    | type_='String[]' {$isArray=true;} #StringType
     | type_=ID #ObjectType
     ;
 
@@ -65,26 +63,27 @@ statement
     | 'if' '(' expression ')' statement ('else' statement)? #IfElse
     | 'while' '(' expression ')' statement #While
     | expression ';' #Stmt
-    | id=ID '=' expression ';' #Assign
-    | id=ID '[' expression ']' '=' expression ';' #ArrayAssign
+    | id=ID '=' expression ';' #Assignment
+    | id=ID '[' expression ']' '=' expression ';' #ArrayAssignment
     ;
 
 expression
-    : value=('true' | 'false') #Boolean
+    : 'new' id=ID '(' ')' #NewObject
+    | value=('true' | 'false') #Boolean
+    | expression '[' expression ']' #ArrayAccess
+    | expression '.' expression '(' ( expression (',' expression)* )? ')' #AccessMethod
+    | method=ID '(' ( expression (',' expression)* )? ')' #MethodCall
     | ret #ReturnStmt
     | value=INTEGER #Integer
-    | id=ID #Identifier
+    | id=ID #Variable
     | 'this' ('.' expression)* #This
-    | PAR_OPEN expression PAR_CLOSE #Parenthesis
-    | expression '[' expression ']' #ArrayAccess
-    | expression ('.' method=ID)? '(' ( param=expression (',' param=expression)* )? ')' #MethodCall
+    | '(' expression ')' #Parenthesis
     | expression '.' 'length' #ArrayLength
-    | 'new' id=ID '(' ')' #NewObject
-    | 'new' 'int' '[' size=expression ']' #NewIntArray
+    | 'new' 'int' '[' size=expression ']' #ArrayInit
     | '!'expression #UnaryOp
     | expression op=MULTDIV expression #BinaryOp
     | expression op=PLUSMINUS expression #BinaryOp
-    | expression op=COMP_OP expression #BinaryOp
-    | expression op=AND_OP expression #BinaryOp
-    | expression op=OR_OP expression #BinaryOp
+    | expression op=COMP_OP expression #RelationalOp
+    | expression op=AND_OP expression #RelationalOp
+    | expression op=OR_OP expression #RelationalOp
     ;
