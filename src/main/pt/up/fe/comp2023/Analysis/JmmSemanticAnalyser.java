@@ -325,7 +325,8 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         if (variable != null) {
             if (currentMethod != null && !currentMethod.initializeField(variable.getKey()))
-                st.initializeField(variable.getKey());
+                currentMethod.initializeField(variable.getKey());
+            else st.initializeField(variable.getKey());
         }
         return null;
     }
@@ -340,7 +341,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
                     return Map.entry(s, "null");
                 }
             }
-            
+
             if (st.getImports().contains(node.get("type_"))) return Map.entry(node.get("type_"), "null");
             if (!st.getImports().contains(node.get("type_")) && !st.getSuper().contains(node.get("type_")) && !node.get("type_").equals(st.getClassName())) {
                 return Map.entry("error", "null");
