@@ -284,10 +284,8 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
     private Map.Entry<String, String> dealWithVarDeclaration(JmmNode node, Boolean space) {
 
-
         Map.Entry<String, String> type = visit(node.getChildren().get(0), true);
         Map.Entry<String, String> value = null;
-
 
         boolean inLineDeclaration = node.getChildren().size() > 1;
 
@@ -326,7 +324,8 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
 
         if (variable != null) {
-            if (!currentMethod.initializeField(variable.getKey())) st.initializeField(variable.getKey());
+            if (currentMethod != null && !currentMethod.initializeField(variable.getKey()))
+                st.initializeField(variable.getKey());
         }
         return null;
     }
@@ -334,6 +333,15 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
     private Map.Entry<String, String> dealWithType(JmmNode node, Boolean space) {
 
         if (node.getKind().equals("ObjectType")) {
+
+            for (String s : st.getImports()) {
+//                CHECK TYPE OF node.get("type_")
+                if (s.contains(node.get("type_"))) {
+                    return Map.entry(s, "null");
+                }
+            }
+            
+            if (st.getImports().contains(node.get("type_"))) return Map.entry(node.get("type_"), "null");
             if (!st.getImports().contains(node.get("type_")) && !st.getSuper().contains(node.get("type_")) && !node.get("type_").equals(st.getClassName())) {
                 return Map.entry("error", "null");
             }
@@ -344,15 +352,15 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
     private Map.Entry<String, String> dealWithVariable(JmmNode node, Boolean data) {
         Map.Entry<Symbol, Boolean> field = null;
 
-
         if (currentSCOPE.equals("CLASS")) {
             field = st.getField(node.get("id"));
         } else if (currentSCOPE.equals("METHOD") && currentMethod != null) {
 
-            /* CHECK IF THE node.get("id)" is equal to any parameter name in the current method */
-            for (Symbol s : currentMethod.getParameters()) {
-                if (s.getName().equals(node.get("id"))) {
-                    reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Cannot create a variable with the same name as a parameter: " + node.get("id")));
+            if (!node.getJmmParent().toString().equals("ReturnStmt")) {
+                for (Symbol s : currentMethod.getParameters()) {
+                    if (s.getName().equals(node.get("id"))) {
+                        reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Cannot create a variable with the same name as a parameter: " + node.get("id")));
+                    }
                 }
             }
 
@@ -361,6 +369,15 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
             Map.Entry<Symbol, Boolean> tmp2 = st.getField(node.get("id"));
             if (tmp2 != null) field = tmp2;
+
+            else {
+                for (Symbol s : currentMethod.getParameters()) {
+                    if (s.getName().equals(node.get("id"))) {
+                        field = Map.entry(new Symbol(s.getType(), s.getName()), true);
+                    }
+                }
+            }
+
         }
 
         if (field != null && st.getImports().contains(field.getKey().getType().getName())) {
