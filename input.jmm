@@ -4,6 +4,7 @@ class Input {
     }
 
     public int foo() {
-        return 1;
+        int a;
+        a = b[10];
     }
 }
