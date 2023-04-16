@@ -149,7 +149,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(right.get("lineStart")), Integer.parseInt(right.get("colStart")), "Right Member not initialized: " + right));
             }
         } else if (leftReturn.getKey() != null && rightReturn.getKey() != null) {
-            if (leftReturn.getKey().equals("int") && rightReturn.getKey().equals("int")) {
+            if (leftReturn.getKey().equals("boolean") && rightReturn.getKey().equals("boolean")) {
                 dataReturn = Map.entry("boolean", "true");
             } else {
                 dataReturn = Map.entry("error", "null");
@@ -168,6 +168,8 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         Map.Entry<String, String> leftReturn = visit(left, true);
         Map.Entry<String, String> rightReturn = visit(right, true);
+
+        System.out.println("RIGHT: " + rightReturn.getKey() + " " + rightReturn.getValue());
 
         Map.Entry<String, String> dataReturn;
 
@@ -280,7 +282,15 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
     private Map.Entry<String, String> dealWithVarDeclaration(JmmNode node, Boolean space) {
 
+
         Map.Entry<String, String> type = visit(node.getChildren().get(0), true);
+        Map.Entry<String, String> value = null;
+
+        boolean inLineDeclaration = node.getChildren().size() > 1;
+
+        if (inLineDeclaration) {
+            value = visit(node.getChildren().get(1), true);
+        }
 
         /* CHECK IF node.get("name") already exists in current method */
         if (currentMethod != null) {
@@ -294,6 +304,24 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         if (type.getKey().equals("error")) {
             reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable type declared for variable '" + node.get("name") + "' not declared"));
             return Map.entry("error", "null");
+        }
+
+        Map.Entry<Symbol, Boolean> variable;
+        if (currentMethod != null) {
+            variable = currentMethod.getLocalVariable(node.get("name"));
+        } else {
+            variable = st.getField(node.get("name"));
+        }
+
+
+        if (variable != null) {
+            if (variable.getKey().getType().getName().equals(type.getKey())) {
+                if (currentMethod != null && !currentMethod.initializeField(variable.getKey()))
+                    st.initializeField(variable.getKey());
+            } else {
+                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types on Variable Declaration: '" + variable.getKey().getType().getName() + "' and '" + type.getKey() + "'"));
+                return null;
+            }
         }
 
         return null;

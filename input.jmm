@@ -1,9 +1,14 @@
-import A;
+class Input {
+    public static void main(String[] args) {
 
-class IntPlusObject {
+    }
 
-    public int foo(int a) {
-        int a;
+    public int foo() {
+        int a = 10 + 2;
+        boolean b = true && false;
+        int c = 10 - 2;
+        int d = 10 * 2;
 
+        return a + c + d;
     }
 }
