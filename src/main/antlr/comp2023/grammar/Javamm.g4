@@ -40,14 +40,15 @@ mainParam
     : type_='String[]' var=ID
     ;
 
-ret : 'return' ( expression )? ;
+ret : 'return' ( expression )? ';' #ReturnStmt
+    ;
 
 methodDeclaration
     : ('public' | 'private' | 'protected' | 'default')? typeReturn=type name=ID '(' (parameter (',' parameter)*)? ')' '{' (varDeclaration)* (statement)* (ret)?'}'
     ;
 
 mainMethodDeclaration
-    :  ('public')? 'static' 'void' name='main' '(' mainParam ')' '{' (varDeclaration)* (statement)* '}'
+    :  ('public')? 'static' 'void' name='main' '(' mainParam ')' '{' (varDeclaration)* (statement)* (ret)?'}'
     ;
 
 type locals[boolean isArray=false]
@@ -73,7 +74,6 @@ expression
     | expression '[' expression ']' #ArrayAccess
     | expression '.' expression '(' ( expression (',' expression)* )? ')' #AccessMethod
     | method=ID '(' ( expression (',' expression)* )? ')' #MethodCall
-    | ret #ReturnStmt
     | value=INTEGER #Integer
     | id=ID #Variable
     | 'this' ('.' expression)* #This

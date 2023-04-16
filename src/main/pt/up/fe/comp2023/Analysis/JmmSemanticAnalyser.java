@@ -288,6 +288,8 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         boolean inLineDeclaration = node.getChildren().size() > 1;
 
+        System.out.println("INLINE: " + inLineDeclaration);
+
         if (inLineDeclaration) {
             value = visit(node.getChildren().get(1), true);
         }
@@ -313,14 +315,12 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             variable = st.getField(node.get("name"));
         }
 
+        if (inLineDeclaration) {
 
-        if (variable != null) {
-            if (variable.getKey().getType().getName().equals(type.getKey())) {
-                if (currentMethod != null && !currentMethod.initializeField(variable.getKey()))
-                    st.initializeField(variable.getKey());
-            } else {
-                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types on Variable Declaration: '" + variable.getKey().getType().getName() + "' and '" + type.getKey() + "'"));
-                return null;
+            System.out.println("ARE EQUAL? " + type.getKey().equals(value.getKey()));
+            if (!type.getKey().equals(value.getKey())) {
+                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types on Variable Declaration: '" + type.getKey() + "' and '" + value.getKey() + "'"));
+                return Map.entry("error", "null");
             }
         }
 
