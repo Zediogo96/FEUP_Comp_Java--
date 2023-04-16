@@ -1,10 +1,16 @@
-class Input {
+import A;
+
+class Input extends A{
     public static void main(String[] args) {
-        int a = this.foo();
+        A a = new A();
+        a.print();
     }
 
-    public int foo() {
-        int a;
-        a = b[10];
+    public boolean foo() {
+        int a = 10 + 40;
+        int b = 30;
+
+        boolean isTrue = true;
+        boolean check = (a == 10) && (a > b);
     }
 }

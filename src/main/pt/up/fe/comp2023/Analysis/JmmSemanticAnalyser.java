@@ -90,7 +90,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         } else if (node.getChildren().get(0).getKind().equals("MethodCall")) {
             JmmNode method = node.getChildren().get(0);
             Map.Entry<String, String> methodReturn = visit(method, true);
-            System.out.println(methodReturn.getKey() + " " + methodReturn.getValue());
 
             if (methodReturn.getValue().equals("access")) {
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method not found in class " + st.getClassName()));
@@ -152,7 +151,9 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(right.get("lineStart")), Integer.parseInt(right.get("colStart")), "Right Member not initialized: " + right));
             }
         } else if (leftReturn.getKey() != null && rightReturn.getKey() != null) {
-            if (leftReturn.getKey().equals("boolean") && rightReturn.getKey().equals("boolean")) {
+            if (leftReturn.getKey().equals("boolean") && rightReturn.getKey().equals("boolean") && (node.get("op").equals("&&") || node.get("op").equals("||"))) {
+                dataReturn = Map.entry("boolean", "true");
+            } else if (leftReturn.getKey().equals("int") && rightReturn.getKey().equals("int")) {
                 dataReturn = Map.entry("boolean", "true");
             } else {
                 dataReturn = Map.entry("error", "null");
@@ -290,8 +291,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         boolean inLineDeclaration = node.getChildren().size() > 1;
 
-        System.out.println("IN LINE DECLARATION: " + inLineDeclaration);
-
         if (inLineDeclaration) {
             value = visit(node.getChildren().get(1), true);
         }
@@ -317,6 +316,18 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             }
         }
 
+        Map.Entry<Symbol, Boolean> variable;
+
+        if (currentMethod != null && currentSCOPE.equals("METHOD")) {
+            variable = currentMethod.getLocalVariable(node.get("name"));
+        } else {
+            variable = st.getField(node.get("name"));
+        }
+
+
+        if (variable != null) {
+            if (!currentMethod.initializeField(variable.getKey())) st.initializeField(variable.getKey());
+        }
         return null;
     }
 
@@ -532,12 +543,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             String returnType = st.getMethod(methodName).getReturnType().getName();
             boolean isArray = returnType.contains("[]");
 
-            System.out.println("PARAMETER NAMES: " + parametersNames);
-            System.out.println("ARGUMENT NAMES: " + argumentsNames);
-
-            System.out.println("ARE EQUAL " + parametersNames.equals(argumentsNames));
-
-            System.out.println("RETURN TYPE: " + returnType + (isArray ? "[]" : ""));
 
             if (parametersNames.equals(argumentsNames)) return Map.entry("method", returnType + (isArray ? "[]" : ""));
             else {
