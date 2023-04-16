@@ -1,9 +1,9 @@
 class Input {
     public static void main(String[] args) {
-
+        int a = this.foo();
     }
 
     public int foo() {
-        int a = false;
+        return 1;
     }
 }
