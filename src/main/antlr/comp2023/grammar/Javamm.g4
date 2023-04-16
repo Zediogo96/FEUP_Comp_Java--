@@ -60,7 +60,7 @@ type locals[boolean isArray=false]
     ;
 
 statement
-    : '{' (statement)* '}' #Block
+    : '{' (statement)* (ret)?'}'? #Block
     | 'if' '(' expression ')' statement ('else' statement)? #IfElse
     | 'while' '(' expression ')' statement #While
     | expression ';' #Stmt
