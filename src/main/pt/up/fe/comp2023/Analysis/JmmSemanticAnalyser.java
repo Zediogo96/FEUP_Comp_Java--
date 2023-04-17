@@ -75,7 +75,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         if (node.getChildren().size() > 2) {
             for (JmmNode child : node.getChildren().subList(2, node.getChildren().size())) {
                 Map.Entry<String, String> res = visit(child, true);
-                parametersTypeNames.add(res.getKey());
+                parametersTypeNames.add(res.getKey().replace("(imported)", ""));
             }
         }
 
@@ -87,6 +87,11 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             } else if (objectReturn.getKey().equals(st.getClassName()) && (st.getMethod(method.get("id")) != null)) {
                 List<Type> argumentsNames = st.getMethod(method.get("id")).getParameters().stream().map(Symbol::getType).toList();
                 List<String> argumentsTypeNames = argumentsNames.stream().map(Type::getName).toList();
+
+                System.out.println("ARGUMENT TYPE NAMES: " + argumentsTypeNames);
+                System.out.println("PARAMETERS TYPE NAMES: " + parametersTypeNames);
+
+                System.out.println("ARE EQUALS: " + argumentsTypeNames.equals(parametersTypeNames));
 
                 if (argumentsTypeNames.equals(parametersTypeNames)) {
                     return Map.entry("access", "null");

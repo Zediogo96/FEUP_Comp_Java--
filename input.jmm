@@ -14,7 +14,7 @@ class Other_Class_Method_Call_Simple {
 
     }
 
-    public int foo(List l, int b){
+    public int foo(List l){
         return l.add(20);
     }
 
