@@ -1,13 +1,14 @@
-class Method_Call_Missing {
-    int k;
+import io;
 
-    public static void main(String[] a) {
+class CompileAssignment {
 
+    int z;
+
+    public static void main(String[] args) {
+        int x;
     }
 
-    public int m(int i) {
-        this.k = 1;
+    public int foo() {
+        io.println();
     }
-
-
 }

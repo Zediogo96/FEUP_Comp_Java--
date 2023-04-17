@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-
 public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<String, String>> {
 
     private final MySymbolTable st;
@@ -81,9 +80,14 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         if (methodReturn.getKey().equals("error")) {
 
+            System.out.println(objectReturn.getKey());
+
             if (objectReturn.getKey().contains("imported") || (st.getSuper() != null && st.getImports().contains(st.getSuper()))) {
                 return Map.entry("access", "null");
+            } else if (st.getImports().contains(object.get("id"))) {
+                return Map.entry("access", "null");
             } else if (objectReturn.getKey().equals(st.getClassName()) && (st.getMethod(method.get("id")) != null)) {
+
                 List<Type> argumentsNames = st.getMethod(method.get("id")).getParameters().stream().map(Symbol::getType).toList();
                 List<String> argumentsTypeNames = argumentsNames.stream().map(Type::getName).toList();
 
@@ -97,6 +101,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method not found: " + method.get("id") + "() in class " + st.getClassName()));
                 return Map.entry("error", "null");
             }
+
         }
 
         return Map.entry("null", "null");
@@ -379,7 +384,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         if (node.getKind().equals("ObjectType")) {
 
             for (String s : st.getImports()) {
-//                CHECK TYPE OF node.get("type_")
                 if (s.contains(node.get("type_"))) {
                     return Map.entry(s, "null");
                 }
@@ -413,7 +417,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
                     }
                 }
             }
-
         }
 
         if (field != null && st.getImports().contains(field.getKey().getType().getName())) {
@@ -604,7 +607,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
             }
         } else {
-            if (st.getSuper() == null) {
+            if (st.getSuper() == null || st.getSuper().equals("Object")) {
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method not found: " + methodName));
                 return Map.entry("error", "noSuchMethod");
             } else {
