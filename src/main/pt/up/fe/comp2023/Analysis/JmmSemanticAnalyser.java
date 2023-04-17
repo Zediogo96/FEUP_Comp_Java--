@@ -598,21 +598,31 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         String methodName = node.get("method");
 
         if (st.getMethod(methodName) != null) {
-            /* GET ALL THE PARAMETERS NAMES OF THE METHOD BEING CALLED, FROM THE SYMBOL TABLE */
-            List<String> parametersNames = st.getMethod(methodName).getParameters().stream().map(Symbol::getName).toList();
-            /* GET ALL THE ARGUMENTS NAMES OF THE METHOD BEING CALLED, FROM THE AST */
-            List<String> argumentsNames = node.getChildren().stream().map(child -> child.get("id")).toList();
+
+
+            List<Type> argumentsNames = st.getMethod(methodName).getParameters().stream().map(Symbol::getType).toList();
+            List<String> argumentsTypeNames = argumentsNames.stream().map(Type::getName).toList();
+
+            List<String> parametersNames = new ArrayList<>();
+
+            for (JmmNode child : node.getChildren()) {
+                String parameterName = visit(child, true).getKey();
+                parametersNames.add(parameterName);
+            }
+
+
             /* GET RETURN TYPE FOR METHOD */
             String returnType = st.getMethod(methodName).getReturnType().getName();
             boolean isArray = returnType.contains("[]");
 
 
-            if (parametersNames.equals(argumentsNames)) return Map.entry("method", returnType + (isArray ? "[]" : ""));
+            if (parametersNames.equals(argumentsTypeNames))
+                return Map.entry("method", returnType + (isArray ? "[]" : ""));
             else {
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method found but arguments are incorrect: " + methodName + "\n\t\t" + "- Parameters required: " + parametersNames + "\n\t\t" + "- Arguments used: " + argumentsNames));
                 return Map.entry("error", "noSuchMethod");
-
             }
+
         } else {
             if (st.getSuper() == null || st.getSuper().equals("Object")) {
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method not found: " + methodName));
