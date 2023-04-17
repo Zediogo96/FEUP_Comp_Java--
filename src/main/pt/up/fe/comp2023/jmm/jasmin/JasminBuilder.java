@@ -37,7 +37,7 @@ public class JasminBuilder implements JasminBackend {
 
         String code = builder();
 
-        if (ollirResult.getConfig().getOrDefault("debug", "false").equals("true")) {
+        if (ollirResult.getConfig().getOrDefault("debug", "true").equals("true")) {
             System.out.println("JASMIN CODE:");
             System.out.println(code);
         }
@@ -132,7 +132,7 @@ public class JasminBuilder implements JasminBackend {
 
         if (method.isStaticMethod()) met.append("static ");
         if (method.isFinalMethod()) met.append("final ");
-        if (method.isConstructMethod()) met.append("<init>");
+        if (method.isConstructMethod()) met.append("public <init>");
         else met.append(method.getMethodName());
 
         met.append("(");

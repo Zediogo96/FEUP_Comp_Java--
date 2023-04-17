@@ -4,7 +4,6 @@ class CallToMethodAssumedInImport extends A {
 
     public static void main(String[] args) {
         this.foo();
-        this.bar();
     }
 
     public int foo() {
