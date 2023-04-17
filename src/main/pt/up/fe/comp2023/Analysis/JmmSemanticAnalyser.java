@@ -84,6 +84,10 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
     private Map.Entry<String, String> dealWithThis(JmmNode node, Boolean data) {
 
+        if (currentSCOPE.equals("MAIN")) {
+            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Cannot use this in main method"));
+            return Map.entry("error", "null");
+        }
 
         if (node.getChildren().size() == 0) {
             return Map.entry(st.getClassName(), "true");
@@ -316,7 +320,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         Map.Entry<Symbol, Boolean> variable;
 
-        if (currentMethod != null && currentSCOPE.equals("METHOD")) {
+        if (currentMethod != null && (currentSCOPE.equals("METHOD") || currentSCOPE.equals("MAIN"))) {
             variable = currentMethod.getLocalVariable(node.get("name"));
         } else {
             variable = st.getField(node.get("name"));
@@ -355,7 +359,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         if (currentSCOPE.equals("CLASS")) {
             field = st.getField(node.get("id"));
-        } else if (currentSCOPE.equals("METHOD") && currentMethod != null) {
+        } else if ((currentSCOPE.equals("METHOD") || currentSCOPE.equals("MAIN")) && currentMethod != null) {
 
             if (!node.getJmmParent().toString().equals("ReturnStmt")) {
                 for (Symbol s : currentMethod.getParameters()) {
@@ -439,7 +443,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
     }
 
     private Map.Entry<String, String> dealWithMainDeclaration(JmmNode node, Boolean data) {
-        currentSCOPE = "METHOD";
+        currentSCOPE = "MAIN";
 
         try {
             currentMethod = st.getMethod("main");
