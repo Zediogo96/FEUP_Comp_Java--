@@ -68,7 +68,7 @@ public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {
     }
 
     private String dealWithMainMethodDeclaration(JmmNode node, String space) {
-        scope = "METHOD";
+        scope = "MAIN";
         var parametersList = new ArrayList<Symbol>();
         parametersList.add(new Symbol(new Type("String", true), "args"));
         st.addMethod("main", new Type("void", false), parametersList);
@@ -85,7 +85,7 @@ public class SymbolTableVisitor extends PreorderJmmVisitor<String, String> {
                 return space + "ERROR";
             }
             st.addField(field, false);
-        } else if (scope.equals("METHOD")) {
+        } else if (scope.equals("METHOD") || scope.equals("MAIN")) {
             if (st.getCurrentMethod().localVariableExists(field.getName())) {
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable '" + field.getName() + "' already exists in method " + st.getCurrentMethod().getName()));
                 return space + "ERROR";

@@ -65,11 +65,20 @@ public class Launcher {
             throw new RuntimeException("Semantic analysis failed.");
         }
 
+
         /* END OF SEMANTIC ANALYSIS */
 
         System.out.println(parserResult.getRootNode().toTree());
 
         System.out.println(semanticsResult.getSymbolTable().toString());
+
+ /*       String ollirCode = SpecsIo.read("test/pt/up/fe/comp/cp2/apps/example_ollir/Simple.ollir");
+        OllirResult ollirResult = new OllirResult(ollirCode, Collections.emptyMap());
+        JasminBuilder jasminBuilder = new JasminBuilder();
+        JasminResult jasminResult = jasminBuilder.toJasmin(ollirResult);
+
+        TestUtils.noErrors(jasminResult);*/
+
     }
 
     private static Map<String, String> parseArgs(String[] args) {
