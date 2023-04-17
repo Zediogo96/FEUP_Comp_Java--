@@ -417,13 +417,12 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             Map.Entry<Symbol, Boolean> tmp2 = st.getField(node.get("id"));
             if (tmp2 != null) field = tmp2;
 
-            else {
-                for (Symbol s : currentMethod.getParameters()) {
-                    if (s.getName().equals(node.get("id"))) {
-                        field = Map.entry(new Symbol(s.getType(), s.getName()), true);
-                    }
+            for (Symbol s : currentMethod.getParameters()) {
+                if (s.getName().equals(node.get("id"))) {
+                    field = Map.entry(new Symbol(s.getType(), s.getName()), true);
                 }
             }
+
         }
 
         if (field != null && st.getImports().contains(field.getKey().getType().getName())) {
