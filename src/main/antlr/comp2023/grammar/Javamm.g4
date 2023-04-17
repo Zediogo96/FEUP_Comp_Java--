@@ -64,7 +64,6 @@ statement
     | 'if' '(' expression ')' statement ('else' statement)? #IfElse
     | 'while' '(' expression ')' statement #While
     | expression ';' #Stmt
-    | 'this' '.' id=ID '=' expression ';' #Assignment
     | id=ID '=' expression ';' #Assignment
     | id=ID '[' expression ']' '=' expression ';' #ArrayAssignment
     ;
@@ -77,7 +76,7 @@ expression
     | method=ID '(' ( expression (',' expression)* )? ')' #MethodCall
     | value=INTEGER #Integer
     | id=ID #Variable
-    | 'this' ('.' expression)* #This
+    | 'this' ('.' expression)* ('=' expression)? #This
     | '(' expression ')' #Parenthesis
     | expression '.' 'length' #ArrayLength
     | 'new' 'int' '[' size=expression ']' #ArrayInit
