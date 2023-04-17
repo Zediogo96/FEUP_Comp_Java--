@@ -44,11 +44,11 @@ ret : 'return' ( expression )? ';' #ReturnStmt
     ;
 
 methodDeclaration
-    : ('public' | 'private' | 'protected' | 'default')? typeReturn=type name=ID '(' (parameter (',' parameter)*)? ')' '{' (varDeclaration)* (statement)* (ret)?'}'
+    : ('public' | 'private' | 'protected' | 'default')? typeReturn=type name=ID '(' (parameter (',' parameter)*)? ')' '{' (varDeclaration)* (statement)* (varDeclaration)* (statement)* (ret)?'}'
     ;
 
 mainMethodDeclaration
-    :  ('public')? 'static' 'void' name='main' '(' mainParam ')' '{' (varDeclaration)* (statement)* (ret)?'}'
+    :  ('public')? 'static' 'void' name='main' '(' mainParam ')' '{' (varDeclaration)* (statement)* (varDeclaration)* (statement)* (ret)?'}'
     ;
 
 type locals[boolean isArray=false]
@@ -64,6 +64,7 @@ statement
     | 'if' '(' expression ')' statement ('else' statement)? #IfElse
     | 'while' '(' expression ')' statement #While
     | expression ';' #Stmt
+    | 'this' '.' id=ID '=' expression ';' #Assignment
     | id=ID '=' expression ';' #Assignment
     | id=ID '[' expression ']' '=' expression ';' #ArrayAssignment
     ;

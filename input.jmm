@@ -1,21 +1,19 @@
-import io;
-import foo.Bar;
-import comp.Table;
+import A;
 
-class Test extends Table {
+class CallToMethodAssumedInImport extends A {
 
     public static void main(String[] args) {
         this.foo();
+        this.bar();
     }
 
-    public boolean foo() {
-        int i = 0;
-        int j = 10;
-        if (i < j) {
-            return true;
-        }
-        else {
-            return false;
-        }
+    public int foo() {
+        A a;
+        a = new A();
+
+        // Assume bar() is in A
+        a.bar();
+
+        return 0;
     }
 }
