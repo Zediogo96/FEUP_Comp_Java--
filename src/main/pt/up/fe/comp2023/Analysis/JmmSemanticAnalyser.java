@@ -118,7 +118,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
             String methodName = node.getChildren().get(0).get("method");
 
-            if (!methodReturn.getValue().equals("access") && st.getMethod(methodName) == null) {
+            if (methodReturn.getValue().equals("access") && st.getMethod(methodName) == null) {
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method not found in class " + st.getClassName()));
                 return Map.entry("error", "null");
             }
