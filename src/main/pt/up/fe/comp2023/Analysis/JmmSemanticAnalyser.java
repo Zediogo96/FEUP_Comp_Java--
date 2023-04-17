@@ -79,7 +79,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             }
         }
 
-
         if (methodReturn.getKey().equals("error")) {
 
             if (objectReturn.getKey().contains("imported") || (st.getSuper() != null && st.getImports().contains(st.getSuper()))) {
@@ -87,11 +86,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             } else if (objectReturn.getKey().equals(st.getClassName()) && (st.getMethod(method.get("id")) != null)) {
                 List<Type> argumentsNames = st.getMethod(method.get("id")).getParameters().stream().map(Symbol::getType).toList();
                 List<String> argumentsTypeNames = argumentsNames.stream().map(Type::getName).toList();
-
-                System.out.println("ARGUMENT TYPE NAMES: " + argumentsTypeNames);
-                System.out.println("PARAMETERS TYPE NAMES: " + parametersTypeNames);
-
-                System.out.println("ARE EQUALS: " + argumentsTypeNames.equals(parametersTypeNames));
 
                 if (argumentsTypeNames.equals(parametersTypeNames)) {
                     return Map.entry("access", "null");
@@ -122,7 +116,9 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             JmmNode method = node.getChildren().get(0);
             Map.Entry<String, String> methodReturn = visit(method, true);
 
-            if (methodReturn.getValue().equals("access")) {
+            String methodName = node.getChildren().get(0).get("method");
+
+            if (!methodReturn.getValue().equals("access") && st.getMethod(methodName) == null) {
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method not found in class " + st.getClassName()));
                 return Map.entry("error", "null");
             }
