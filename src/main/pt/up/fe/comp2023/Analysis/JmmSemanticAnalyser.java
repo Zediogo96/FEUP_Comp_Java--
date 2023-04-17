@@ -68,10 +68,14 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         Map.Entry<String, String> objectReturn = visit(object, true);
         Map.Entry<String, String> methodReturn = visit(method, true);
 
+        System.out.println("OBJECT RETURN " + objectReturn.getKey());
+
         if (methodReturn.getKey().equals("error")) {
 
             if (objectReturn.getKey().contains("imported") || (st.getSuper() != null && st.getImports().contains(st.getSuper()))) {
                 return Map.entry("access", "null");
+            } else if (objectReturn.getKey().equals(st.getClassName()) && (st.getMethod(method.get("id")) != null)) {
+                return Map.entry(objectReturn.getKey(), "access");
             } else {
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method not found: " + method.get("id") + "() in class " + st.getClassName()));
                 return Map.entry("error", "null");
@@ -247,6 +251,13 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             boolean wasImportedRightPart = st.getImports().contains(parts[0]) || parts[0].equals(st.getClassName());
             boolean isCurrentClassObject = fieldType.equals(st.getClassName()) && parts[0].equals(st.getClassName());
 
+            System.out.println("wasImportedLeftPart: " + wasImportedLeftPart);
+            System.out.println("wasImportedRightPart: " + wasImportedRightPart);
+            System.out.println("isCurrentClassObject: " + isCurrentClassObject + "\n");
+
+            System.out.println("FIELD TYPE: " + fieldType);
+            System.out.println("PARTS[0]: " + parts[0] + "\n");
+
             if (!isCurrentClassObject) {
                 if (fieldType.equals(st.getClassName())) {
                     if (!wasExtendedAsVariable) {
@@ -258,7 +269,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
                         reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Trying to assign the current Class to an Object that was not extended"));
                         return Map.entry("error", "null");
                     } else return null;
-                } else if (!wasImportedLeftPart && !wasImportedRightPart) {
+                } else if (!wasImportedLeftPart && !wasImportedRightPart && !parts[0].equals("access")) {
                     reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Class Not Imported!"));
                     return Map.entry("error", "null");
                 }
@@ -274,7 +285,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         if (variable != null) {
             if (variable.getKey().getType().getName().equals(parts[0])) {
                 if (!currentMethod.initializeField(variable.getKey())) st.initializeField(variable.getKey());
-            } else {
+            } else if (!assignment.getKey().equals("access")) {
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types on Assignment: '" + variable.getKey().getType().getName() + "' and '" + assignment.getKey() + "'"));
                 return null;
             }
@@ -360,14 +371,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         if (currentSCOPE.equals("CLASS")) {
             field = st.getField(node.get("id"));
         } else if ((currentSCOPE.equals("METHOD") || currentSCOPE.equals("MAIN")) && currentMethod != null) {
-
-            if (!node.getJmmParent().toString().equals("ReturnStmt")) {
-                for (Symbol s : currentMethod.getParameters()) {
-                    if (s.getName().equals(node.get("id"))) {
-                        reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Cannot create a variable with the same name as a parameter: " + node.get("id")));
-                    }
-                }
-            }
 
             Map.Entry<Symbol, Boolean> tmp = currentMethod.getLocalVariable(node.get("id"));
             if (tmp != null) field = tmp;
