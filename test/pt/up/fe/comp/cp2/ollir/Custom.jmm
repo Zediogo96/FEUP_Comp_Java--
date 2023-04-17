@@ -1,0 +1,28 @@
+import io;
+import lalala;
+
+class CompileMethodInvocation {
+    int x;
+
+    public static void main(String[] args) {
+        int compemerda = 1;
+        int compishit;
+    }
+
+    public int println(int a) {
+
+    }
+
+    public int foo(int z) {
+
+        int a;
+
+        a = 2 * 3 + 5;
+
+        a = 1;
+
+        io.println(a);
+
+        return a;
+    }
+}

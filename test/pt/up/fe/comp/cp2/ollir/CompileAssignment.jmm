@@ -1,7 +1,9 @@
 class CompileAssignment {
 
-    public static void main(String[] args) {
+    int z;
 
+    public static void main(String[] args) {
+        int x;
     }
 
     public int foo() {
