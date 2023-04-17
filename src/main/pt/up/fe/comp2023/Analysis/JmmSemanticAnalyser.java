@@ -123,6 +123,22 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
                 return Map.entry("error", "null");
             }
             return Map.entry(methodReturn.getValue(), "null");
+        } else if (node.getChildren().get(0).getKind().equals("Variable")) {
+            Map.Entry<Symbol, Boolean> variable = st.getField(node.getChildren().get(0).get("id"));
+            if (variable == null) {
+                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable not found in class " + st.getClassName()));
+                return Map.entry("error", "null");
+            } else {
+                Map.Entry<String, String> rightAssignment = visit(node.getChildren().get(1), true);
+                if (!rightAssignment.getKey().equals(variable.getKey().getType().getName())) {
+                    reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable type mismatch"));
+                    return Map.entry("error", "null");
+                }
+
+                st.initializeField(variable.getKey());
+                return Map.entry(variable.getKey().getType().getName(), "true");
+            }
+
         }
         return null;
     }
