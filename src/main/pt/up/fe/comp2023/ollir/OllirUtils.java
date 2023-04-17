@@ -20,10 +20,10 @@ public class OllirUtils {
             case "void" -> {
                 return ".V";
             }
-            case "ObjectType" -> {  //boolean
+            case "boolean" -> {
                 return ".bool";
             }
-            case "IntType" -> {
+            case "int" -> {
                 if (jmmType.isArray()) {
                     return ".array.i32";
                 } else {

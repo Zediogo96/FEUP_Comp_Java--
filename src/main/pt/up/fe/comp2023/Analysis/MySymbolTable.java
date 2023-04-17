@@ -163,6 +163,20 @@ public class MySymbolTable implements SymbolTable {
         return null;
     }
 
+    public Symbol getLocalVariableFromMethod(String methodName, String varName) {
+        for (Method m : methods) {
+            if (m.getName().equals(methodName)) {
+                var localvars = m.getLocalVariables();
+                for (Symbol localvar : localvars) {
+                    if (localvar.getName().equals(varName)) {
+                        return localvar;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     public Boolean isPrimitiveType(String type) {
         return type.equals("int") || type.equals("boolean") || type.equals("int[]");
     }

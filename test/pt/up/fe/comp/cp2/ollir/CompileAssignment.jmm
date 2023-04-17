@@ -1,6 +1,8 @@
+import io;
+
 class CompileAssignment {
 
-    int z;
+    boolean z;
 
     public static void main(String[] args) {
         int x;

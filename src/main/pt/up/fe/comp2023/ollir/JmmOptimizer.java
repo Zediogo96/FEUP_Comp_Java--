@@ -5,6 +5,7 @@ package pt.up.fe.comp2023.ollir;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
+import pt.up.fe.comp2023.Analysis.MySymbolTable;
 
 import java.util.Collections;
 
@@ -19,7 +20,7 @@ public class JmmOptimizer implements JmmOptimization {
 
         System.out.println("Generating OLLIR code...");
 
-        var ollirGenerator = new OllirGenerator(semanticsResult.getSymbolTable(), optimize);
+        var ollirGenerator = new OllirGenerator((MySymbolTable) semanticsResult.getSymbolTable(), optimize);
         ollirGenerator.visit(semanticsResult.getRootNode());
 
         var ollirCode = ollirGenerator.getOllirCode();
