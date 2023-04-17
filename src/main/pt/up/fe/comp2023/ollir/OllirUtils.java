@@ -118,4 +118,20 @@ public class OllirUtils {
 
         return "invokevirtual";
     }
+
+    public static String getDefaultVarDecl(Type jmmType) {
+        //System.out.println(jmmType.getName());
+        switch (jmmType.getName()) {
+            case "int" -> {
+                return " :=.i32 0.i32";
+            }
+            case "boolean" -> {
+                return " :=.bool 1.bool";
+            }
+
+            default -> {
+                return "." + jmmType.getName();
+            }
+        }
+    }
 }

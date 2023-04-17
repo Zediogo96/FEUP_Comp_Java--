@@ -1,11 +1,7 @@
-import io;
-
 class CompileAssignment {
 
-    boolean z;
-
     public static void main(String[] args) {
-        int x;
+
     }
 
     public int foo() {
