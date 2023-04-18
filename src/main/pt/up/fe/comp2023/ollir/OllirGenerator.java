@@ -241,7 +241,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         for (var child : methodDeclChildren) {
             counter++;
             System.out.println("Child of method declaration number: " + counter + " is: " + child);
-            if (counter == 6) {var type = child.getKind(); System.out.println("Type of child is: " + type); System.out.println("Children of child are: " + child.getChildren());}
+            if (counter == 7) {var type = child.getKind(); System.out.println("Type of child is: " + type); System.out.println("Children of child are: " + child.getChildren());}
             visit(child);
 //            if (counter == 6) {
 //                var childofStmt = child.getJmmChild(0);
@@ -290,6 +290,23 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             }
             //System.out.println("VAR SYMBOL: " + varSymbol);
             type = OllirUtils.getOllirType(varSymbol.getType());
+        }
+
+        else if (assignmentNode.getJmmChild(0).getKind().equals("BinaryOp")) {
+
+            String retstr = visit(assignmentNode.getJmmChild(0));
+//            String varid = assignmentNode.getJmmChild(0).get("id");
+//            var localvars = st.getLocalVariables(getCurrentMethodName(assignmentNode));
+//
+//            Symbol varSymbol = null;
+//            for (var localvar : localvars) {
+//                if (localvar.getName().equals(varid)) {
+//                    varSymbol = localvar;
+//                }
+//            }
+//            //System.out.println("VAR SYMBOL: " + varSymbol);
+//            type = OllirUtils.getOllirType(varSymbol.getType());
+            return retstr;
         }
 
         ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" ");  //.append(str_assigned).append(";\n");  //append generally the assignment  structure, then each visitor will append the rhs
@@ -573,12 +590,18 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         String op = binaryOperator.get("op");
         String opstring = OllirUtils.getOperator(op);
+        var assignmentType = OllirUtils.getOperatorType(op);
 
-        String left = visit(binaryOperator.getJmmChild(0));
-        String right = visit(binaryOperator.getJmmChild(1));;
+        String left = visit(binaryOperator.getJmmChild(0), new OllirInference(assignmentType, true));
+        String right = visit(binaryOperator.getJmmChild(1), new OllirInference(assignmentType, true));
 
         String result = left + " " + opstring + " " + right;
 
+        if (inference == null || inference.getIsAssignedToTempVar()) {
+            int tempVar = getAndAddTempVarCount(binaryOperator);
+            ollirCode.append(getIndent()).append("t").append(tempVar).append(assignmentType).append(" :=").append(assignmentType).append(" ").append(result).append(";\n");
+            return "t" + tempVar + assignmentType;
+        }
 
         return result;
     }
