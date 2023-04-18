@@ -121,18 +121,24 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
     }
 
     private String visitProgram(JmmNode programNode, OllirInference inference) {
-        //System.out.println(st.getImports());
-        for (var importStr : st.getImports()) {
-            List<String> list1 = List.of(importStr.split(","));
-            for (var importLower : list1) {
-                String intstr = importLower.replaceAll("[]]", "");
-                String outstr = intstr.replaceAll("\\[", "");
-                //System.out.println(outstr);
-                ollirCode.append("import ").append(outstr).append(";").append("\n");
-            }
+        System.out.println("IMPORTS:" + st.getImports());
 
-            //ollirCode.append("import ").append(importStr).append(";").append("\n");
-    }
+        List<String> sublists = new ArrayList<String>();
+
+        for (var importStr : st.getImports()) {
+            System.out.println("IMPORTS SUBLIST:" + importStr);
+            sublists.add(importStr);
+
+        }
+
+        for (var importLower : sublists) {
+            String intstr = importLower.replaceAll("[]]", "");
+            String outstr = intstr.replaceAll("\\[", "");
+            String importstr = outstr.replaceAll(", ", ".");
+
+            ollirCode.append("import ").append(importstr).append(";").append("\n");
+        }
+
         ollirCode.append("\n");
 
         for (var child : programNode.getChildren()) {

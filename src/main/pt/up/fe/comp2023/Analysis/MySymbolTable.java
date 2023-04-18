@@ -42,9 +42,10 @@ public class MySymbolTable implements SymbolTable {
     }
 
     public void addImport(String importName) {
-        if (importName.contains("[")) {
-            importName = importName.substring(1, importName.length() - 1);
-        }
+        System.out.println(importName);
+//        if (importName.contains("[")) {
+//            importName = importName.substring(1, importName.length() - 1);
+//        }
         imports.add(importName);
 
     }
@@ -115,6 +116,19 @@ public class MySymbolTable implements SymbolTable {
     @Override
     public List<String> getImports() {
         return imports;
+    }
+
+    public List<String> getImportsAsList() {
+        List<String> temp = new ArrayList<>();
+        for (String anImport : this.imports) {
+            if (anImport.contains("[")) {
+                temp.add(anImport.substring(1, anImport.length() - 1));
+            } else {
+                temp.add(anImport);
+            }
+        }
+
+        return temp;
     }
 
     @Override
