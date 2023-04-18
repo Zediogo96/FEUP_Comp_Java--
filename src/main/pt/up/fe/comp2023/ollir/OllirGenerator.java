@@ -170,7 +170,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         //default constructor
 
-        ollirCode.append(getIndent()).append(".construct").append(st.getClassName()).append("().V {\n");
+        ollirCode.append(getIndent()).append(".construct ").append(st.getClassName()).append("().V {\n");
         this.addIndent();
         ollirCode.append(getIndent()).append("invokespecial(this, \"<init>\").V;\n");
         this.removeIndent();
