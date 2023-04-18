@@ -23,6 +23,12 @@ public class OllirUtils {
             case "boolean" -> {
                 return ".bool";
             }
+            case "int[]" -> {
+                if (jmmType.isArray())
+                    return ".array.i32";
+                else
+                    return " ";
+            }
             case "int" -> {
                 if (jmmType.isArray()) {
                     return ".array.i32";
