@@ -71,11 +71,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         List<String> parametersTypeNames = new ArrayList<>();
 
-        System.out.println("object => " + object.getKind());
-        System.out.println("method => " + method.getKind());
-
-        System.out.println("objectReturn => " + objectReturn);
-
         if (node.getChildren().size() > 2) {
             for (JmmNode child : node.getChildren().subList(2, node.getChildren().size())) {
                 Map.Entry<String, String> res = visit(child, true);
@@ -150,7 +145,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable not found in class " + st.getClassName()));
                 return Map.entry("error", "null");
             } else {
-                Map.Entry<String, String> rightAssignment = visit(node.getChildren().get(1), true);
+                Map.Entry<String, String> rightAssignment = visit(node.getChildren().get(0), true);
                 if (!rightAssignment.getKey().equals(variable.getKey().getType().getName())) {
                     reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable type mismatch"));
                     return Map.entry("error", "null");

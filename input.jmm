@@ -1,21 +1,13 @@
-import List;
+class A {
+    int a = 10;
 
-class Other_Class_Method_Call_Simple {
-    public static void main(String[] a) { 
-        int k;
-        List l;
-		Other_Class_Method_Call_Simple mc;
-
-        l = new List();
-		mc = new Other_Class_Method_Call_Simple();
-
-		k = l.add(10);
-        mc.foo(l);
+    public static void main(String[] args){
 
     }
 
-    public int foo(List l){
-        return l.add(20);
-    }
+    public int foo() {
+        int x;
 
+        x = this.a;
+    }
 }
