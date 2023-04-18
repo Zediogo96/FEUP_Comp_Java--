@@ -15,9 +15,7 @@ import static org.specs.comp.ollir.InstructionType.RETURN;
 
 public class JasminBuilder implements JasminBackend {
     ClassUnit classUnit = null;
-    int conditionalNumber = 0;
-    int methodStackLimit = 0;
-    int currentStack = 0;
+    int condNumber = 0;
     String superClass;
 
     @Override
@@ -32,12 +30,10 @@ public class JasminBuilder implements JasminBackend {
 
             System.out.println("Generating Jasmin code ...");
 
-            String jasminCode = buildJasminCode();
+            String jasminCode = buildJasmin();
             List<Report> reports = new ArrayList<>();
 
-            //if (ollirResult.getConfig().get("debug") != null && ollirResult.getConfig().get("debug").equals("true")) {
             System.out.println("JASMIN CODE : \n" + jasminCode);
-            //}
 
             return new JasminResult(ollirResult, jasminCode, reports);
 
@@ -49,200 +45,186 @@ public class JasminBuilder implements JasminBackend {
 
     }
 
-    private String buildJasminCode() {
-        StringBuilder stringBuilder = new StringBuilder();
+    private String buildJasmin() {
+        StringBuilder jasminBuilder = new StringBuilder();
 
-        // .class  <access-spec> <class-name>
-        stringBuilder.append(".class ").append(this.classUnit.getClassName()).append("\n");
-
+        jasminBuilder.append(".class ").append(this.classUnit.getClassName()).append("\n");
 
         this.superClass = this.classUnit.getSuperClass();
         if (this.superClass == null) {
             this.superClass = "java/lang/Object";
         }
 
-        // .super  <class-name>
-        stringBuilder.append(".super ").append(getClassFullName(this.superClass)).append("\n");
+        jasminBuilder.append(".super ").append(dealWithClassFullName(this.superClass)).append("\n");
 
-        // Fields
         for (Field field : this.classUnit.getFields()) {
-            // .field <access-spec> <field-name> <descriptor>
-            StringBuilder accessSpec = new StringBuilder();
+            StringBuilder access = new StringBuilder();
             if (field.getFieldAccessModifier() != AccessModifiers.DEFAULT) {
-                accessSpec.append(field.getFieldAccessModifier().name().toLowerCase()).append(" ");
+                access.append(field.getFieldAccessModifier().name().toLowerCase()).append(" ");
             }
 
             if (field.isStaticField()) {
-                accessSpec.append("static ");
+                access.append("static ");
             }
             if (field.isInitialized()) {
-                accessSpec.append("final ");
+                access.append("final ");
             }
 
-            stringBuilder.append(".field ").append(accessSpec).append(field.getFieldName())
-                    .append(" ").append(this.getFieldDescriptor(field.getFieldType())).append("\n");
+            jasminBuilder.append(".field ").append(access).append(field.getFieldName())
+                    .append(" ").append(this.dealWithFieldDescriptor(field.getFieldType())).append("\n");
         }
 
-        // Methods
         for (Method method : this.classUnit.getMethods()) {
-            // .method <access-spec> <method-spec>
-            //     <statements>
-            // .end method
-            stringBuilder.append(this.getMethodHeader(method));
-            stringBuilder.append(this.getMethodStatements(method));
-            stringBuilder.append(".end method\n");
+            jasminBuilder.append(this.dealWithMethodHeader(method));
+            jasminBuilder.append(this.dealWithMethodStatements(method));
+            jasminBuilder.append(".end method\n");
         }
 
-        return stringBuilder.toString();
+        return jasminBuilder.toString();
     }
 
-    private String getMethodHeader(Method method) {
-        StringBuilder stringBuilder = new StringBuilder("\n.method ");
+    private String dealWithMethodHeader(Method method) {
+        StringBuilder jasminBuilder = new StringBuilder("\n.method ");
 
         // <access-spec>
         if (method.getMethodAccessModifier() != AccessModifiers.DEFAULT) {
-            stringBuilder.append(method.getMethodAccessModifier().name().toLowerCase()).append(" ");
+            jasminBuilder.append(method.getMethodAccessModifier().name().toLowerCase()).append(" ");
         }
 
-        if (method.isStaticMethod()) stringBuilder.append("static ");
-        if (method.isFinalMethod()) stringBuilder.append("final ");
-
-        // <method-spec>
-        if (method.isConstructMethod()) stringBuilder.append("public <init>");
-        else stringBuilder.append(method.getMethodName());
-        stringBuilder.append("(");
-
-        for (Element param : method.getParams()) {
-            stringBuilder.append(this.getFieldDescriptor(param.getType()));
+        if (method.isStaticMethod()) {
+            jasminBuilder.append("static ");
         }
-        stringBuilder.append(")");
-        stringBuilder.append(this.getFieldDescriptor(method.getReturnType())).append("\n");
-
-        return stringBuilder.toString();
-    }
-
-    private String getMethodStatements(Method method) {
-        int limitLocals = calculateLimitLocals(method);
-
-        this.currentStack = 0;
-        this.methodStackLimit = 0;
-        String methodInstructions = this.getMethodInstructions(method);
+        if (method.isFinalMethod()) {
+            jasminBuilder.append("final ");
+        }
 
         if (method.isConstructMethod()) {
-            return methodInstructions;
+            jasminBuilder.append("public <init>");
+        } else jasminBuilder.append(method.getMethodName());
+        {
+            jasminBuilder.append("(");
+        }
+
+        for (Element param : method.getParams()) {
+            jasminBuilder.append(this.dealWithFieldDescriptor(param.getType()));
+        }
+        jasminBuilder.append(")");
+        jasminBuilder.append(this.dealWithFieldDescriptor(method.getReturnType())).append("\n");
+
+        return jasminBuilder.toString();
+    }
+
+    private String dealWithMethodStatements(Method method) {
+
+        String methodInst = this.dealWithMethodInst(method);
+
+        if (method.isConstructMethod()) {
+            return methodInst;
         } else {
             return "\t.limit stack 99" + "\n" +
                     "\t.limit locals 99" + "\n" +
-                    methodInstructions;
+                    methodInst;
         }
-
-
     }
 
-    private String getMethodInstructions(Method method) {
-        StringBuilder stringBuilder = new StringBuilder();
+    private String dealWithMethodInst(Method method) {
+        StringBuilder jasminBuilder = new StringBuilder();
 
-        List<Instruction> methodInstructions = method.getInstructions();
-        for (Instruction instruction : methodInstructions) {
-            // LABEL:
+        List<Instruction> methodInst = method.getInstructions();
+        for (Instruction inst : methodInst) {
             for (Map.Entry<String, Instruction> label : method.getLabels().entrySet()) {
-                if (label.getValue().equals(instruction)) {
-                    stringBuilder.append(label.getKey()).append(":\n");
+                if (label.getValue().equals(inst)) {
+                    jasminBuilder.append(label.getKey()).append(":\n");
                 }
             }
+            jasminBuilder.append(this.dealWithInst(inst, method.getVarTable()));
+            if (inst.getInstType() == InstructionType.CALL
+                    && ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID) {
 
-            stringBuilder.append(this.getInstruction(instruction, method.getVarTable()));
-            if (instruction.getInstType() == InstructionType.CALL
-                    && ((CallInstruction) instruction).getReturnType().getTypeOfElement() != ElementType.VOID) {
-
-                stringBuilder.append("\tpop\n");
-                this.changeStackLimits(-1);
+                jasminBuilder.append("\tpop\n");
             }
 
         }
 
-        boolean hasReturnInstruction = methodInstructions.size() > 0
-                && methodInstructions.get(methodInstructions.size() - 1).getInstType() == RETURN;
+        boolean hasReturnInstruction = methodInst.size() > 0
+                && methodInst.get(methodInst.size() - 1).getInstType() == RETURN;
 
         if (!hasReturnInstruction && method.getReturnType().getTypeOfElement() == ElementType.VOID) {
-            stringBuilder.append("\treturn\n");
+            jasminBuilder.append("\treturn\n");
         }
 
-        return stringBuilder.toString();
+        return jasminBuilder.toString();
     }
 
-    private String getInstruction(Instruction instruction, HashMap<String, Descriptor> varTable) {
-        return switch (instruction.getInstType()) {
-            case ASSIGN -> this.getAssignInstruction((AssignInstruction) instruction, varTable);
-            case CALL -> this.getCallInstruction((CallInstruction) instruction, varTable);
-            case GOTO -> this.getGotoInstruction((GotoInstruction) instruction);
-            case BRANCH -> this.getBranchInstruction((CondBranchInstruction) instruction, varTable);
-            case RETURN -> this.getReturnInstruction((ReturnInstruction) instruction, varTable);
-            case PUTFIELD -> this.getPutFieldInstruction((PutFieldInstruction) instruction, varTable);
-            case GETFIELD -> this.getGetFieldInstruction((GetFieldInstruction) instruction, varTable);
-            case UNARYOPER -> this.getUnaryOperationInstruction((UnaryOpInstruction) instruction, varTable);
-            case BINARYOPER -> this.getBinaryOperationInstruction((BinaryOpInstruction) instruction, varTable);
-            case NOPER -> this.getLoadToStack(((SingleOpInstruction) instruction).getSingleOperand(), varTable);
+    private String dealWithInst(Instruction inst, HashMap<String, Descriptor> varTable) {
+        return switch (inst.getInstType()) {
+            case ASSIGN -> this.dealWithAssign((AssignInstruction) inst, varTable);
+            case CALL -> this.dealWithCall((CallInstruction) inst, varTable);
+            case GOTO -> this.dealWithGoto((GotoInstruction) inst);
+            case BRANCH -> this.dealWithBranch((CondBranchInstruction) inst, varTable);
+            case RETURN -> this.dealWithReturn((ReturnInstruction) inst, varTable);
+            case PUTFIELD -> this.dealWithPutField((PutFieldInstruction) inst, varTable);
+            case GETFIELD -> this.dealWithGetField((GetFieldInstruction) inst, varTable);
+            case UNARYOPER -> this.dealWithUnaryOper((UnaryOpInstruction) inst, varTable);
+            case BINARYOPER -> this.dealWithBinaryOper((BinaryOpInstruction) inst, varTable);
+            case NOPER -> this.dealWithLoadToStack(((SingleOpInstruction) inst).getSingleOperand(), varTable);
         };
     }
 
-    private String getUnaryOperationInstruction(UnaryOpInstruction instruction, HashMap<String, Descriptor> varTable) {
-        StringBuilder stringBuilder = new StringBuilder();
+    private String dealWithUnaryOper(UnaryOpInstruction inst, HashMap<String, Descriptor> varTable) {
+        StringBuilder jasminBuilder = new StringBuilder();
 
-        stringBuilder.append(this.getLoadToStack(instruction.getOperand(), varTable))
-                .append("\t").append(this.getOperation(instruction.getOperation()));
+        jasminBuilder.append(this.dealWithLoadToStack(inst.getOperand(), varTable))
+                .append("\t").append(this.dealWithOper(inst.getOperation()));
 
-        boolean isBooleanOperation = instruction.getOperation().getOpType() == OperationType.NOTB;
+        boolean isBooleanOperation = inst.getOperation().getOpType() == OperationType.NOTB;
         if (isBooleanOperation) {
-            stringBuilder.append(this.getBooleanOperationResultToStack());
+            jasminBuilder.append(this.dealWithBoolOperResultToStack());
         } else {
-            stringBuilder.append("; Invalid UNARYOPER\n");
+            jasminBuilder.append("; Invalid UNARYOPER\n");
         }
 
-        stringBuilder.append("\n");
-        return stringBuilder.toString();
+        jasminBuilder.append("\n");
+        return jasminBuilder.toString();
     }
 
-    private String getBinaryOperationInstruction(BinaryOpInstruction instruction, HashMap<String, Descriptor> varTable) {
-        StringBuilder stringBuilder = new StringBuilder();
+    private String dealWithBinaryOper(BinaryOpInstruction inst, HashMap<String, Descriptor> varTable) {
+        StringBuilder jasminBuilder = new StringBuilder();
 
-        Element leftElement = instruction.getLeftOperand();
-        Element rightElement = instruction.getRightOperand();
+        Element leftElement = inst.getLeftOperand();
+        Element rightElement = inst.getRightOperand();
 
-        stringBuilder.append(this.getLoadToStack(leftElement, varTable))
-                .append(this.getLoadToStack(rightElement, varTable))
-                .append("\t").append(this.getOperation(instruction.getOperation()));
+        jasminBuilder.append(this.dealWithLoadToStack(leftElement, varTable))
+                .append(this.dealWithLoadToStack(rightElement, varTable))
+                .append("\t").append(this.dealWithOper(inst.getOperation()));
 
-        OperationType opType = instruction.getOperation().getOpType();
-        boolean isBooleanOperation =
-                opType == OperationType.EQ
-                        || opType == OperationType.GTH
-                        || opType == OperationType.GTE
-                        || opType == OperationType.LTH
-                        || opType == OperationType.LTE
-                        || opType == OperationType.NEQ;
+        OperationType operType = inst.getOperation().getOpType();
+        boolean isBoolOper =
+                operType == OperationType.EQ
+                        || operType == OperationType.GTH
+                        || operType == OperationType.GTE
+                        || operType == OperationType.LTH
+                        || operType == OperationType.LTE
+                        || operType == OperationType.NEQ;
 
-        if (isBooleanOperation) {
-            stringBuilder.append(this.getBooleanOperationResultToStack());
+        if (isBoolOper) {
+            jasminBuilder.append(this.dealWithBoolOperResultToStack());
         }
 
-        stringBuilder.append("\n");
+        jasminBuilder.append("\n");
 
-        this.changeStackLimits(-1);
-        return stringBuilder.toString();
+        return jasminBuilder.toString();
     }
 
-    private String getBranchInstruction(CondBranchInstruction instruction, HashMap<String, Descriptor> varTable) {
-        StringBuilder stringBuilder = new StringBuilder();
+    private String dealWithBranch(CondBranchInstruction inst, HashMap<String, Descriptor> varTable) {
+        StringBuilder jasminBuilder = new StringBuilder();
 
         Instruction condition;
-        if (instruction instanceof SingleOpCondInstruction) {
-            SingleOpCondInstruction singleOpCondInstruction = (SingleOpCondInstruction) instruction;
-            condition = singleOpCondInstruction.getCondition();
+        if (inst instanceof SingleOpCondInstruction singleOperCond) {
+            condition = singleOperCond.getCondition();
 
-        } else if (instruction instanceof OpCondInstruction) {
-            OpCondInstruction opCondInstruction = (OpCondInstruction) instruction;
-            condition = opCondInstruction.getCondition();
+        } else if (inst instanceof OpCondInstruction operCond) {
+            condition = operCond.getCondition();
 
         } else {
             return "; ERROR: invalid CondBranchInstruction instance\n";
@@ -251,6 +233,7 @@ public class JasminBuilder implements JasminBackend {
         String operation;
         switch (condition.getInstType()) {
             case BINARYOPER -> {
+                assert condition instanceof BinaryOpInstruction;
                 BinaryOpInstruction binaryOpInstruction = (BinaryOpInstruction) condition;
                 switch (binaryOpInstruction.getOperation().getOpType()) {
                     case LTH -> {
@@ -277,58 +260,53 @@ public class JasminBuilder implements JasminBackend {
                         }
 
                         if (parsedInt != null && parsedInt == 0) {
-                            stringBuilder.append(this.getLoadToStack(otherElement, varTable));
+                            jasminBuilder.append(this.dealWithLoadToStack(otherElement, varTable));
 
                         } else {
-                            stringBuilder.append(this.getLoadToStack(leftElement, varTable))
-                                    .append(this.getLoadToStack(rightElement, varTable));
+                            jasminBuilder.append(this.dealWithLoadToStack(leftElement, varTable))
+                                    .append(this.dealWithLoadToStack(rightElement, varTable));
 
                             operation = "if_icmplt";
                         }
 
                     }
                     case ANDB -> {
-                        stringBuilder.append(this.getInstruction(condition, varTable));
+                        jasminBuilder.append(this.dealWithInst(condition, varTable));
                         operation = "ifne";
                     }
                     default -> {
                         // not supposed to happen
-                        stringBuilder.append("; Invalid BINARYOPER\n");
-                        stringBuilder.append(this.getInstruction(condition, varTable));
+                        jasminBuilder.append("; Invalid BINARYOPER\n");
+                        jasminBuilder.append(this.dealWithInst(condition, varTable));
                         operation = "ifne";
                     }
                 }
             }
             case UNARYOPER -> {
-                UnaryOpInstruction unaryOpInstruction = (UnaryOpInstruction) condition;
-                if (unaryOpInstruction.getOperation().getOpType() == OperationType.NOTB) {
-                    stringBuilder.append(this.getLoadToStack(unaryOpInstruction.getOperand(), varTable));
+                assert condition instanceof UnaryOpInstruction;
+                UnaryOpInstruction unaryOper = (UnaryOpInstruction) condition;
+                if (unaryOper.getOperation().getOpType() == OperationType.NOTB) {
+                    jasminBuilder.append(this.dealWithLoadToStack(unaryOper.getOperand(), varTable));
                     operation = "ifeq";
                 } else {
                     // not supposed to happen
-                    stringBuilder.append("; Invalid UNARYOPER\n");
-                    stringBuilder.append(this.getInstruction(condition, varTable));
+                    jasminBuilder.append("; Invalid UNARYOPER\n");
+                    jasminBuilder.append(this.dealWithInst(condition, varTable));
                     operation = "ifne";
                 }
             }
             default -> {
-                stringBuilder.append(this.getInstruction(condition, varTable));
+                jasminBuilder.append(this.dealWithInst(condition, varTable));
                 operation = "ifne";
             }
         }
 
-        stringBuilder.append("\t").append(operation).append(" ").append(instruction.getLabel()).append("\n");
+        jasminBuilder.append("\t").append(operation).append(" ").append(inst.getLabel()).append("\n");
 
-        if (operation.equals("if_icmplt")) {
-            this.changeStackLimits(-2);
-        } else {
-            this.changeStackLimits(-1);
-        }
-
-        return stringBuilder.toString();
+        return jasminBuilder.toString();
     }
 
-    private String getOperation(Operation operation) {
+    private String dealWithOper(Operation operation) {
         return switch (operation.getOpType()) {
             case LTH -> "if_icmplt";
             case ANDB -> "iand";
@@ -343,65 +321,61 @@ public class JasminBuilder implements JasminBackend {
         };
     }
 
-    private String getPutFieldInstruction(PutFieldInstruction instruction, HashMap<String, Descriptor> varTable) {
-        String res = this.getLoadToStack(instruction.getFirstOperand(), varTable) +
-                this.getLoadToStack(instruction.getThirdOperand(), varTable) +
-                "\tputfield " + this.getClassFullName(((Operand) instruction.getFirstOperand()).getName()) +
-                "/" + ((Operand) instruction.getSecondOperand()).getName() +
-                " " + this.getFieldDescriptor(instruction.getSecondOperand().getType()) + "\n";
-
-        this.changeStackLimits(-2);
-        return res;
+    private String dealWithPutField(PutFieldInstruction inst, HashMap<String, Descriptor> varTable) {
+        return this.dealWithLoadToStack(inst.getFirstOperand(), varTable) +
+                this.dealWithLoadToStack(inst.getThirdOperand(), varTable) +
+                "\tputfield " + this.dealWithClassFullName(((Operand) inst.getFirstOperand()).getName()) +
+                "/" + ((Operand) inst.getSecondOperand()).getName() +
+                " " + this.dealWithFieldDescriptor(inst.getSecondOperand().getType()) + "\n";
     }
 
-    private String getGetFieldInstruction(GetFieldInstruction instruction, HashMap<String, Descriptor> varTable) {
-        return this.getLoadToStack(instruction.getFirstOperand(), varTable) +
-                "\tgetfield " + this.getClassFullName(((Operand) instruction.getFirstOperand()).getName()) +
-                "/" + ((Operand) instruction.getSecondOperand()).getName() +
-                " " + this.getFieldDescriptor(instruction.getSecondOperand().getType()) + "\n";
+    private String dealWithGetField(GetFieldInstruction inst, HashMap<String, Descriptor> varTable) {
+        return this.dealWithLoadToStack(inst.getFirstOperand(), varTable) +
+                "\tgetfield " + this.dealWithClassFullName(((Operand) inst.getFirstOperand()).getName()) +
+                "/" + ((Operand) inst.getSecondOperand()).getName() +
+                " " + this.dealWithFieldDescriptor(inst.getSecondOperand().getType()) + "\n";
     }
 
-    private String getReturnInstruction(ReturnInstruction instruction, HashMap<String, Descriptor> varTable) {
-        StringBuilder stringBuilder = new StringBuilder();
+    private String dealWithReturn(ReturnInstruction inst, HashMap<String, Descriptor> varTable) {
+        StringBuilder jasminBuilder = new StringBuilder();
 
-        if (instruction.hasReturnValue()) {
-            stringBuilder.append(this.getLoadToStack(instruction.getOperand(), varTable));
+        if (inst.hasReturnValue()) {
+            jasminBuilder.append(this.dealWithLoadToStack(inst.getOperand(), varTable));
         }
 
-        stringBuilder.append("\t");
-        if (instruction.getOperand() != null) {
-            ElementType elementType = instruction.getOperand().getType().getTypeOfElement();
+        jasminBuilder.append("\t");
+        if (inst.getOperand() != null) {
+            ElementType elementType = inst.getOperand().getType().getTypeOfElement();
 
             if (elementType == ElementType.INT32 || elementType == ElementType.BOOLEAN) {
-                stringBuilder.append("i");
+                jasminBuilder.append("i");
             } else {
-                stringBuilder.append("a");
+                jasminBuilder.append("a");
             }
         }
 
-        stringBuilder.append("return\n");
+        jasminBuilder.append("return\n");
 
-        return stringBuilder.toString();
+        return jasminBuilder.toString();
     }
 
-    private String getGotoInstruction(GotoInstruction instruction) {
-        return "\tgoto " + instruction.getLabel() + "\n";
+    private String dealWithGoto(GotoInstruction inst) {
+        return "\tgoto " + inst.getLabel() + "\n";
     }
 
-    private String getLoadToStack(Element element, HashMap<String, Descriptor> varTable) {
-        StringBuilder stringBuilder = new StringBuilder();
+    private String dealWithLoadToStack(Element element, HashMap<String, Descriptor> varTable) {
+        StringBuilder jasminBuilder = new StringBuilder();
 
         if (element instanceof Operand && !varTable.containsKey(((Operand) element).getName())) {
             Operand operand = (Operand) element;
-            if(operand.getName().equals("false")){
-                stringBuilder.append("\ticonst_0");
-                stringBuilder.append("\n");
-                return stringBuilder.toString();
-            }
-            else if (operand.getName().equals("true")){
-                stringBuilder.append("\ticonst_1");
-                stringBuilder.append("\n");
-                return stringBuilder.toString();
+            if (operand.getName().equals("false")) {
+                jasminBuilder.append("\ticonst_0");
+                jasminBuilder.append("\n");
+                return jasminBuilder.toString();
+            } else if (operand.getName().equals("true")) {
+                jasminBuilder.append("\ticonst_1");
+                jasminBuilder.append("\n");
+                return jasminBuilder.toString();
             }
         }
         if (element instanceof LiteralElement) {
@@ -413,192 +387,154 @@ public class JasminBuilder implements JasminBackend {
                 int parsedInt = Integer.parseInt(literal);
 
                 if (parsedInt >= -1 && parsedInt <= 5) { // [-1,5]
-                    stringBuilder.append("\ticonst_");
+                    jasminBuilder.append("\ticonst_");
                 } else if (parsedInt >= -128 && parsedInt <= 127) { // byte
-                    stringBuilder.append("\tbipush ");
+                    jasminBuilder.append("\tbipush ");
                 } else if (parsedInt >= -32768 && parsedInt <= 32767) { // short
-                    stringBuilder.append("\tsipush ");
+                    jasminBuilder.append("\tsipush ");
                 } else {
-                    stringBuilder.append("\tldc "); // int
+                    jasminBuilder.append("\tldc "); // int
                 }
 
                 if (parsedInt == -1) {
-                    stringBuilder.append("m1");
+                    jasminBuilder.append("m1");
                 } else {
-                    stringBuilder.append(parsedInt);
+                    jasminBuilder.append(parsedInt);
                 }
-
             } else {
-                stringBuilder.append("\tldc ").append(literal);
+                jasminBuilder.append("\tldc ").append(literal);
             }
-
-            this.changeStackLimits(+1);
-
         } else if (element instanceof ArrayOperand) {
             ArrayOperand operand = (ArrayOperand) element;
-
-            stringBuilder.append("\taload").append(this.getVariableNumber(operand.getName(), varTable)).append("\n"); // load array (ref)
-            this.changeStackLimits(+1);
-
-            stringBuilder.append(getLoadToStack(operand.getIndexOperands().get(0), varTable)); // load index
-            stringBuilder.append("\tiaload"); // load array[index]
-
-            this.changeStackLimits(-1);
+            jasminBuilder.append("\taload").append(this.dealWithVariableNumber(operand.getName(), varTable)).append("\n"); // load array (ref)
+            jasminBuilder.append(dealWithLoadToStack(operand.getIndexOperands().get(0), varTable)); // load index
+            jasminBuilder.append("\tiaload");
         } else if (element instanceof Operand) {
             Operand operand = (Operand) element;
             switch (operand.getType().getTypeOfElement()) {
-                case INT32, BOOLEAN -> stringBuilder.append("\tiload").append(this.getVariableNumber(operand.getName(), varTable));
-                case OBJECTREF, STRING, ARRAYREF -> stringBuilder.append("\taload").append(this.getVariableNumber(operand.getName(), varTable));
-                case THIS -> stringBuilder.append("\taload_0");
-                default -> stringBuilder.append("; ERROR: getLoadToStack() operand ").append(operand.getType().getTypeOfElement()).append("\n");
+                case INT32, BOOLEAN ->
+                        jasminBuilder.append("\tiload").append(this.dealWithVariableNumber(operand.getName(), varTable));
+                case OBJECTREF, STRING, ARRAYREF ->
+                        jasminBuilder.append("\taload").append(this.dealWithVariableNumber(operand.getName(), varTable));
+                case THIS -> jasminBuilder.append("\taload_0");
+                default ->
+                        jasminBuilder.append("; ERROR: getLoadToStack() operand ").append(operand.getType().getTypeOfElement()).append("\n");
             }
-
-            this.changeStackLimits(+1);
         } else {
-            stringBuilder.append("; ERROR: getLoadToStack() invalid element instance\n");
+            jasminBuilder.append("; ERROR: getLoadToStack() invalid element instance\n");
         }
-
-        stringBuilder.append("\n");
-        return stringBuilder.toString();
+        jasminBuilder.append("\n");
+        return jasminBuilder.toString();
     }
 
-    private String getCallInstruction(CallInstruction instruction, HashMap<String, Descriptor> varTable) {
-        StringBuilder stringBuilder = new StringBuilder();
+    private String dealWithCall(CallInstruction inst, HashMap<String, Descriptor> varTable) {
+        StringBuilder jasminBuilder = new StringBuilder();
 
-        int numToPop = 0;
-
-        switch (instruction.getInvocationType()) {
+        switch (inst.getInvocationType()) {
             case invokevirtual -> {
-                stringBuilder.append(this.getLoadToStack(instruction.getFirstArg(), varTable));
-                numToPop = 1;
+                jasminBuilder.append(this.dealWithLoadToStack(inst.getFirstArg(), varTable));
 
-                for (Element element : instruction.getListOfOperands()) {
-                    stringBuilder.append(this.getLoadToStack(element, varTable));
-                    numToPop++;
+                for (Element element : inst.getListOfOperands()) {
+                    jasminBuilder.append(this.dealWithLoadToStack(element, varTable));
                 }
 
-                stringBuilder.append("\tinvokevirtual ")
-                        .append(this.getClassFullName(((ClassType) instruction.getFirstArg().getType()).getName()))
-                        .append("/").append(((LiteralElement) instruction.getSecondArg()).getLiteral().replace("\"", ""))
+                jasminBuilder.append("\tinvokevirtual ")
+                        .append(this.dealWithClassFullName(((ClassType) inst.getFirstArg().getType()).getName()))
+                        .append("/").append(((LiteralElement) inst.getSecondArg()).getLiteral().replace("\"", ""))
                         .append("(");
 
-                for (Element element : instruction.getListOfOperands()) {
-                    stringBuilder.append(this.getFieldDescriptor(element.getType()));
+                for (Element element : inst.getListOfOperands()) {
+                    jasminBuilder.append(this.dealWithFieldDescriptor(element.getType()));
                 }
 
-                stringBuilder.append(")").append(this.getFieldDescriptor(instruction.getReturnType())).append("\n");
+                jasminBuilder.append(")").append(this.dealWithFieldDescriptor(inst.getReturnType())).append("\n");
 
-                if (instruction.getReturnType().getTypeOfElement() != ElementType.VOID) {
-                    numToPop--;
-                }
 
             }
             case invokespecial -> {
-                stringBuilder.append(this.getLoadToStack(instruction.getFirstArg(), varTable));
-                numToPop = 1;
+                jasminBuilder.append(this.dealWithLoadToStack(inst.getFirstArg(), varTable));
 
-                stringBuilder.append("\tinvokespecial ");
 
-                if (instruction.getFirstArg().getType().getTypeOfElement() == ElementType.THIS) {
-                    stringBuilder.append(this.superClass);
+                jasminBuilder.append("\tinvokespecial ");
+
+                if (inst.getFirstArg().getType().getTypeOfElement() == ElementType.THIS) {
+                    jasminBuilder.append(this.superClass);
                 } else {
-                    String className = this.getClassFullName(((ClassType) instruction.getFirstArg().getType()).getName());
-                    stringBuilder.append(className);
+                    String className = this.dealWithClassFullName(((ClassType) inst.getFirstArg().getType()).getName());
+                    jasminBuilder.append(className);
                 }
 
-                stringBuilder.append("/").append("<init>(");
+                jasminBuilder.append("/").append("<init>(");
 
-                for (Element element : instruction.getListOfOperands()) {
-                    stringBuilder.append(this.getFieldDescriptor(element.getType()));
+                for (Element element : inst.getListOfOperands()) {
+                    jasminBuilder.append(this.dealWithFieldDescriptor(element.getType()));
                 }
 
-                stringBuilder.append(")").append(this.getFieldDescriptor(instruction.getReturnType())).append("\n");
-
-                if (instruction.getReturnType().getTypeOfElement() != ElementType.VOID) {
-                    numToPop--;
-                }
-
+                jasminBuilder.append(")").append(this.dealWithFieldDescriptor(inst.getReturnType())).append("\n");
             }
             case invokestatic -> {
-                numToPop = 0;
 
-                for (Element element : instruction.getListOfOperands()) {
-                    stringBuilder.append(this.getLoadToStack(element, varTable));
-                    numToPop++;
+                for (Element element : inst.getListOfOperands()) {
+                    jasminBuilder.append(this.dealWithLoadToStack(element, varTable));
                 }
 
-                stringBuilder.append("\tinvokestatic ")
-                        .append(this.getClassFullName(((Operand) instruction.getFirstArg()).getName()))
-                        .append("/").append(((LiteralElement) instruction.getSecondArg()).getLiteral().replace("\"", ""))
+                jasminBuilder.append("\tinvokestatic ")
+                        .append(this.dealWithClassFullName(((Operand) inst.getFirstArg()).getName()))
+                        .append("/").append(((LiteralElement) inst.getSecondArg()).getLiteral().replace("\"", ""))
                         .append("(");
 
-                for (Element element : instruction.getListOfOperands()) {
-                    stringBuilder.append(this.getFieldDescriptor(element.getType()));
+                for (Element element : inst.getListOfOperands()) {
+                    jasminBuilder.append(this.dealWithFieldDescriptor(element.getType()));
                 }
 
-                stringBuilder.append(")").append(this.getFieldDescriptor(instruction.getReturnType())).append("\n");
-
-                if (instruction.getReturnType().getTypeOfElement() != ElementType.VOID) {
-                    numToPop--;
-                }
-
+                jasminBuilder.append(")").append(this.dealWithFieldDescriptor(inst.getReturnType())).append("\n");
             }
             case NEW -> {
-                numToPop = -1; // -1 already counting with the return of the new
-
-                ElementType elementType = instruction.getReturnType().getTypeOfElement();
+                ElementType elementType = inst.getReturnType().getTypeOfElement();
 
                 if (elementType == ElementType.OBJECTREF) {
-                    for (Element element : instruction.getListOfOperands()) {
-                        stringBuilder.append(this.getLoadToStack(element, varTable));
-                        numToPop++;
+                    for (Element element : inst.getListOfOperands()) {
+                        jasminBuilder.append(this.dealWithLoadToStack(element, varTable));
                     }
-
-                    stringBuilder.append("\tnew ").append(this.getClassFullName(((Operand) instruction.getFirstArg()).getName())).append("\n");
+                    jasminBuilder.append("\tnew ").append(this.dealWithClassFullName(((Operand) inst.getFirstArg()).getName())).append("\n");
                 } else if (elementType == ElementType.ARRAYREF) {
-                    for (Element element : instruction.getListOfOperands()) {
-                        stringBuilder.append(this.getLoadToStack(element, varTable));
-                        numToPop++;
+                    for (Element element : inst.getListOfOperands()) {
+                        jasminBuilder.append(this.dealWithLoadToStack(element, varTable));
                     }
 
-                    stringBuilder.append("\tnewarray ");
-                    if (instruction.getListOfOperands().get(0).getType().getTypeOfElement() == ElementType.INT32) {
-                        stringBuilder.append("int\n");
+                    jasminBuilder.append("\tnewarray ");
+
+                    if (inst.getListOfOperands().get(0).getType().getTypeOfElement() == ElementType.INT32) {
+                        jasminBuilder.append("int\n");
                     } else {
-                        stringBuilder.append("; only int arrays are implemented\n");
+                        jasminBuilder.append("; only int arrays are implemented\n");
                     }
-
                 } else {
-                    stringBuilder.append("; ERROR: NEW invocation type not implemented\n");
+                    jasminBuilder.append("; ERROR: NEW invocation type not implemented\n");
                 }
             }
             case arraylength -> {
-                stringBuilder.append(this.getLoadToStack(instruction.getFirstArg(), varTable));
-                stringBuilder.append("\tarraylength\n");
+                jasminBuilder.append(this.dealWithLoadToStack(inst.getFirstArg(), varTable));
+                jasminBuilder.append("\tarraylength\n");
             }
-            case ldc -> stringBuilder.append(this.getLoadToStack(instruction.getFirstArg(), varTable));
-            default -> stringBuilder.append("; ERROR: call instruction not implemented\n");
+            case ldc -> jasminBuilder.append(this.dealWithLoadToStack(inst.getFirstArg(), varTable));
+            default -> jasminBuilder.append("; ERROR: call instruction not implemented\n");
         }
 
-        this.changeStackLimits(-numToPop);
-
-        return stringBuilder.toString();
+        return jasminBuilder.toString();
     }
 
-    private String getAssignInstruction(AssignInstruction instruction, HashMap<String, Descriptor> varTable) {
-        StringBuilder stringBuilder = new StringBuilder();
+    private String dealWithAssign(AssignInstruction inst, HashMap<String, Descriptor> varTable) {
+        StringBuilder jasminBuilder = new StringBuilder();
 
-        Operand dest = (Operand) instruction.getDest();
-        if (dest instanceof ArrayOperand) {
-            ArrayOperand arrayOperand = (ArrayOperand) dest;
-            this.changeStackLimits(+1);
-            stringBuilder.append("\taload").append(this.getVariableNumber(arrayOperand.getName(), varTable)).append("\n"); // load array (ref)
-            stringBuilder.append(this.getLoadToStack(arrayOperand.getIndexOperands().get(0), varTable)); // load index
+        Operand dest = (Operand) inst.getDest();
+        if (dest instanceof ArrayOperand arrayOperand) {
+            jasminBuilder.append("\taload").append(this.dealWithVariableNumber(arrayOperand.getName(), varTable)).append("\n"); // load array (ref)
+            jasminBuilder.append(this.dealWithLoadToStack(arrayOperand.getIndexOperands().get(0), varTable)); // load index
 
         } else {
-            // "iinc" instruction selection
-            if (instruction.getRhs().getInstType() == BINARYOPER) {
-                BinaryOpInstruction binaryOpInstruction = (BinaryOpInstruction) instruction.getRhs();
+            if (inst.getRhs().getInstType() == BINARYOPER) {
+                BinaryOpInstruction binaryOpInstruction = (BinaryOpInstruction) inst.getRhs();
 
                 if (binaryOpInstruction.getOperation().getOpType() == OperationType.ADD) {
                     boolean leftIsLiteral = binaryOpInstruction.getLeftOperand().isLiteral();
@@ -624,84 +560,79 @@ public class JasminBuilder implements JasminBackend {
                             }
                         }
                     }
-
                 }
             }
         }
 
-        stringBuilder.append(this.getInstruction(instruction.getRhs(), varTable));
-        stringBuilder.append(this.getStore(dest, varTable)); // store in array[index] if (dest instanceof ArrayOperand)
+        jasminBuilder.append(this.dealWithInst(inst.getRhs(), varTable));
+        jasminBuilder.append(this.dealWithStore(dest, varTable)); // store in array[index] if (dest instanceof ArrayOperand)
 
-        return stringBuilder.toString();
+        return jasminBuilder.toString();
     }
 
-    private String getStore(Operand dest, HashMap<String, Descriptor> varTable) {
-        StringBuilder stringBuilder = new StringBuilder();
+    private String dealWithStore(Operand dest, HashMap<String, Descriptor> varTable) {
+        StringBuilder jasminBuilder = new StringBuilder();
 
         switch (dest.getType().getTypeOfElement()) {
-            // BOOLEAN is represented as int in JVM
             case INT32, BOOLEAN -> {
                 if (varTable.get(dest.getName()).getVarType().getTypeOfElement() == ElementType.ARRAYREF) {
-                    stringBuilder.append("\tiastore").append("\n");
-                    this.changeStackLimits(-3);
+                    jasminBuilder.append("\tiastore").append("\n");
                 } else {
-                    stringBuilder.append("\tistore").append(this.getVariableNumber(dest.getName(), varTable)).append("\n");
-                    this.changeStackLimits(-1);
+                    jasminBuilder.append("\tistore").append(this.dealWithVariableNumber(dest.getName(), varTable)).append("\n");
+
                 }
             }
             case OBJECTREF, THIS, STRING, ARRAYREF -> {
-                stringBuilder.append("\tastore").append(this.getVariableNumber(dest.getName(), varTable)).append("\n");
-                this.changeStackLimits(-1);
+                jasminBuilder.append("\tastore").append(this.dealWithVariableNumber(dest.getName(), varTable)).append("\n");
             }
-            default -> stringBuilder.append("; ERROR: getStore()\n");
+            default -> jasminBuilder.append("; ERROR: getStore()\n");
         }
-
-        return stringBuilder.toString();
+        return jasminBuilder.toString();
     }
 
-    private String getVariableNumber(String name, HashMap<String, Descriptor> varTable) {
+    private String dealWithVariableNumber(String name, HashMap<String, Descriptor> varTable) {
         if (name.equals("this")) {
             return "_0";
         }
-
-        int virtualReg = varTable.get(name).getVirtualReg();
+        int virtualRegister = varTable.get(name).getVirtualReg();
 
         StringBuilder stringBuilder = new StringBuilder();
 
-        // virtual reg 0, 1, 2, 3 have specific operation
-        if (virtualReg < 4) stringBuilder.append("_");
+        if (virtualRegister < 4) stringBuilder.append("_");
         else stringBuilder.append(" ");
 
-        stringBuilder.append(virtualReg);
+        stringBuilder.append(virtualRegister);
 
         return stringBuilder.toString();
     }
 
-    private String getFieldDescriptor(Type type) {
-        StringBuilder stringBuilder = new StringBuilder();
+    private String dealWithFieldDescriptor(Type type) {
+        StringBuilder jasminBuilder = new StringBuilder();
         ElementType elementType = type.getTypeOfElement();
 
         if (elementType == ElementType.ARRAYREF) {
-            stringBuilder.append("[");
+            jasminBuilder.append("[");
+            //noinspection deprecation
             elementType = ((ArrayType) type).getArrayType();
         }
 
         switch (elementType) {
-            case INT32 -> stringBuilder.append("I");
-            case BOOLEAN -> stringBuilder.append("Z");
+            case INT32 -> jasminBuilder.append("I");
+            case BOOLEAN -> jasminBuilder.append("Z");
             case OBJECTREF -> {
+                assert type instanceof ClassType;
                 String name = ((ClassType) type).getName();
-                stringBuilder.append("L").append(this.getClassFullName(name)).append(";");
+                jasminBuilder.append("L").append(this.dealWithClassFullName(name)).append(";");
             }
-            case STRING -> stringBuilder.append("Ljava/lang/String;");
-            case VOID -> stringBuilder.append("V");
-            default -> stringBuilder.append("; ERROR: descriptor type not implemented\n");
+            case STRING -> jasminBuilder.append("Ljava/lang/String;");
+            case VOID -> jasminBuilder.append("V");
+            default -> jasminBuilder.append("; ERROR: descriptor type not implemented\n");
         }
 
-        return stringBuilder.toString();
+        return jasminBuilder.toString();
     }
 
-    private String getClassFullName(String classNameWithoutImports) {
+    private String dealWithClassFullName(String classNameWithoutImports) {
         if (classNameWithoutImports.equals("this")) {
             return this.classUnit.getClassName();
         }
@@ -715,29 +646,13 @@ public class JasminBuilder implements JasminBackend {
         return classNameWithoutImports;
     }
 
-    private String getBooleanOperationResultToStack() {
-        return " TRUE" + this.conditionalNumber + "\n"
+    private String dealWithBoolOperResultToStack() {
+        return " TRUE" + this.condNumber + "\n"
                 + "\ticonst_0\n"
-                + "\tgoto NEXT" + this.conditionalNumber + "\n"
-                + "TRUE" + this.conditionalNumber + ":\n"
+                + "\tgoto NEXT" + this.condNumber + "\n"
+                + "TRUE" + this.condNumber + ":\n"
                 + "\ticonst_1\n"
-                + "NEXT" + this.conditionalNumber++ + ":";
-    }
-
-    private void changeStackLimits(int variation) {
-        this.currentStack += variation;
-        this.methodStackLimit = Math.max(this.methodStackLimit, this.currentStack);
-    }
-
-    public static int calculateLimitLocals(Method method) {
-        Set<Integer> virtualRegs = new TreeSet<>();
-        virtualRegs.add(0);
-
-        for (Descriptor descriptor : method.getVarTable().values()) {
-            virtualRegs.add(descriptor.getVirtualReg());
-        }
-
-        return virtualRegs.size();
+                + "NEXT" + this.condNumber++ + ":";
     }
 
 }
