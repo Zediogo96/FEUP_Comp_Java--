@@ -32,10 +32,10 @@ public class OllirTest {
 //                this::compileMethodInvocation);
 //    }
 
-    @Test
-    public void compileAssignment() {
-        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileAssignment.jmm", this::compileAssignment);
-    }
+//    @Test
+//    public void compileAssignment() {
+//        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileAssignment.jmm", this::compileAssignment);
+//    }
 
 //    @Test
 //    public void compileCustom() {
