@@ -6,6 +6,7 @@ import pt.up.fe.comp2023.Analysis.MySymbolTable;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 
+import javax.sound.midi.SysexMessage;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,6 +25,8 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
     private String currentSCOPE;
 
     private String currentMETHOD;
+
+    private Map<String, Integer> parameterIndex = new HashMap<>();
 
     @Override
     protected void buildVisitor() {
@@ -220,6 +223,17 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         //parameters
 
         var params = st.getParameters(methodName);
+
+        var param_index = 0;
+
+        //for each param, get save the name and index
+
+        for (var param : params) {
+            parameterIndex.put(param.getName(), param_index);
+            param_index++;
+        }
+
+        System.out.println("PARAMS: " + params);
 
         var paramCode = params.stream()
                 .map(OllirUtils::getCode).
@@ -449,21 +463,31 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         //System.out.println("DEBUGGING RETURN NODE: " + returnNode);
         JmmNode exprNode = returnNode.getJmmChild(0);
+        System.out.println("DEBUGGING RETURN NODE CHILD: " + exprNode);
         if (exprNode == null) {
             //return "null"; // or whatever default value you want to use
             System.out.println("aaa");
         }
         else {
+            String param_indexstring = "";
             //System.out.println("DEBUGGING RETURN NODE CHILD: " + exprNode);
             exprnodeReturn = visit(exprNode);
             //System.out.println("What is coming from expr node?: " + exprnodeReturn);
+            System.out.println("EXPRNODE KIND: " + exprNode.getKind());
+
+            if (exprNode.getKind().equals("Variable")) {
+
+                System.out.println("ENTERED");
+                var param_index = parameterIndex.get(exprNode.get("id"));
+                param_indexstring = "$" + param_index.toString() + ".";
+            }
 
             String returnString = OllirUtils.getOllirType(st.getReturnType(getCurrentMethodName(returnNode))) + " ";
 
             String returnReg = exprnodeReturn;
             //System.out.println("DEBUUGING RETURN REGISTER: " + returnReg);
 
-            ollirCode.append(getIndent()).append("ret").append(returnString)
+            ollirCode.append(getIndent()).append("ret").append(returnString).append(param_indexstring)
                     .append(returnReg).append(";\n");
 
             return exprnodeReturn;
