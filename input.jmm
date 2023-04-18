@@ -1,19 +1,7 @@
-import io;
-
 class A {
-
     int a;
 
-    public int x(){
-    }
-
-    public int bar() {
-        A a;
-        a = new A();
-        a.x();
-    }
-
     public static void main(String[] args){
-
+        a = 10;
     }
 }
