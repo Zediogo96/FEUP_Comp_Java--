@@ -82,9 +82,9 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
             System.out.println(objectReturn.getKey());
 
-            if (objectReturn.getKey().contains("imported") || (st.getSuper() != null && st.getImports().contains(st.getSuper()))) {
+            if (objectReturn.getKey().contains("imported") || (st.getSuper() != null && st.getImportsAsList().contains(st.getSuper()))) {
                 return Map.entry("access", "null");
-            } else if (st.getImports().contains(object.get("id"))) {
+            } else if (st.getImportsAsList().contains(object.get("id"))) {
                 return Map.entry("access", "null");
             } else if (objectReturn.getKey().equals(st.getClassName()) && (st.getMethod(method.get("id")) != null)) {
 
@@ -124,9 +124,9 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             String methodName = node.getChildren().get(0).get("method");
 
             if (methodReturn.getValue().equals("access") && st.getMethod(methodName) == null) {
-                if (st.getSuper() != null && st.getImports().contains(st.getSuper())) {
+                if (st.getSuper() != null && st.getImportsAsList().contains(st.getSuper())) {
                     return Map.entry("access", "null");
-                } else if (st.getImports().contains(methodName)) {
+                } else if (st.getImportsAsList().contains(methodName)) {
                     return Map.entry("access", "null");
                 } else {
                     reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method not found in class " + st.getClassName()));
@@ -294,8 +294,8 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
             String fieldType = fieldToAssign.getKey().getType().getName();
 
-            boolean wasImportedLeftPart = st.getImports().contains(fieldType) || fieldType.equals(st.getClassName());
-            boolean wasImportedRightPart = st.getImports().contains(parts[0]) || parts[0].equals(st.getClassName());
+            boolean wasImportedLeftPart = st.getImportsAsList().contains(fieldType) || fieldType.equals(st.getClassName());
+            boolean wasImportedRightPart = st.getImportsAsList().contains(parts[0]) || parts[0].equals(st.getClassName());
             boolean isCurrentClassObject = fieldType.equals(st.getClassName()) && parts[0].equals(st.getClassName());
 
             if (!isCurrentClassObject) {
@@ -390,14 +390,14 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         if (node.getKind().equals("ObjectType")) {
 
-            for (String s : st.getImports()) {
+            for (String s : st.getImportsAsList()) {
                 if (s.contains(node.get("type_"))) {
                     return Map.entry(s, "null");
                 }
             }
 
-            if (st.getImports().contains(node.get("type_"))) return Map.entry(node.get("type_"), "null");
-            if (!st.getImports().contains(node.get("type_")) && !st.getSuper().contains(node.get("type_")) && !node.get("type_").equals(st.getClassName())) {
+            if (st.getImportsAsList().contains(node.get("type_"))) return Map.entry(node.get("type_"), "null");
+            if (!st.getImportsAsList().contains(node.get("type_")) && !st.getSuper().contains(node.get("type_")) && !node.get("type_").equals(st.getClassName())) {
                 return Map.entry("error", "null");
             }
         }
@@ -425,7 +425,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         }
 
-        if (field != null && st.getImports().contains(field.getKey().getType().getName())) {
+        if (field != null && st.getImportsAsList().contains(field.getKey().getType().getName())) {
             return Map.entry(field.getKey().getType().getName() + "(imported)", "true");
         } else if (field != null && st.getSuper().contains(field.getKey().getType().getName())) {
             return Map.entry(field.getKey().getType().getName() + "(extended)", "true");
