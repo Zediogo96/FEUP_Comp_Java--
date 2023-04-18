@@ -6,7 +6,6 @@ import pt.up.fe.comp2023.Analysis.MySymbolTable;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 
-import javax.sound.midi.SysexMessage;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -473,11 +472,8 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             //System.out.println("DEBUGGING RETURN NODE CHILD: " + exprNode);
             exprnodeReturn = visit(exprNode);
             //System.out.println("What is coming from expr node?: " + exprnodeReturn);
-            System.out.println("EXPRNODE KIND: " + exprNode.getKind());
 
             if (exprNode.getKind().equals("Variable")) {
-
-                System.out.println("ENTERED");
                 var param_index = parameterIndex.get(exprNode.get("id"));
                 param_indexstring = "$" + param_index.toString() + ".";
             }
