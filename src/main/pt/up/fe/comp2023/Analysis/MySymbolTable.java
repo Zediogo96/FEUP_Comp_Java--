@@ -42,9 +42,10 @@ public class MySymbolTable implements SymbolTable {
     }
 
     public void addImport(String importName) {
-        if (importName.contains("[")) {
-            importName = importName.substring(1, importName.length() - 1);
-        }
+        System.out.println(importName);
+//        if (importName.contains("[")) {
+//            importName = importName.substring(1, importName.length() - 1);
+//        }
         imports.add(importName);
 
     }
