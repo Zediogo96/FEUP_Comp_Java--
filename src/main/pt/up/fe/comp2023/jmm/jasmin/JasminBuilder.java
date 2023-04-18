@@ -13,6 +13,7 @@ import static org.specs.comp.ollir.InstructionType.BINARYOPER;
 import static org.specs.comp.ollir.InstructionType.RETURN;
 
 
+@SuppressWarnings("SpellCheckingInspection")
 public class JasminBuilder implements JasminBackend {
     ClassUnit classUnit = null;
     int condNumber = 0;
@@ -23,17 +24,16 @@ public class JasminBuilder implements JasminBackend {
         try {
             this.classUnit = ollirResult.getOllirClass();
 
-            // SETUP classUnit
             this.classUnit.checkMethodLabels();
             this.classUnit.buildCFGs();
             this.classUnit.buildVarTables();
 
-            System.out.println("Generating Jasmin code ...");
+            System.out.println("Generating Jasmin ...");
 
             String jasminCode = buildJasmin();
             List<Report> reports = new ArrayList<>();
 
-            System.out.println("JASMIN CODE : \n" + jasminCode);
+            System.out.println("Jasmin Output : \n" + jasminCode);
 
             return new JasminResult(ollirResult, jasminCode, reports);
 
@@ -59,6 +59,7 @@ public class JasminBuilder implements JasminBackend {
 
         for (Field field : this.classUnit.getFields()) {
             StringBuilder access = new StringBuilder();
+
             if (field.getFieldAccessModifier() != AccessModifiers.DEFAULT) {
                 access.append(field.getFieldAccessModifier().name().toLowerCase()).append(" ");
             }
@@ -81,6 +82,20 @@ public class JasminBuilder implements JasminBackend {
         }
 
         return jasminBuilder.toString();
+    }
+
+    private String dealWithClassFullName(String classNameWithoutImports) {
+        if (classNameWithoutImports.equals("this")) {
+            return this.classUnit.getClassName();
+        }
+
+        for (String importName : this.classUnit.getImports()) {
+            if (importName.endsWith(classNameWithoutImports)) {
+                return importName.replaceAll("\\.", "/");
+            }
+        }
+
+        return classNameWithoutImports;
     }
 
     private String dealWithMethodHeader(Method method) {
@@ -114,20 +129,7 @@ public class JasminBuilder implements JasminBackend {
         return jasminBuilder.toString();
     }
 
-    private String dealWithMethodStatements(Method method) {
-
-        String methodInst = this.dealWithMethodInst(method);
-
-        if (method.isConstructMethod()) {
-            return methodInst;
-        } else {
-            return "\t.limit stack 99" + "\n" +
-                    "\t.limit locals 99" + "\n" +
-                    methodInst;
-        }
-    }
-
-    private String dealWithMethodInst(Method method) {
+    private String dealWithMethod(Method method) {
         StringBuilder jasminBuilder = new StringBuilder();
 
         List<Instruction> methodInst = method.getInstructions();
@@ -154,6 +156,19 @@ public class JasminBuilder implements JasminBackend {
         }
 
         return jasminBuilder.toString();
+    }
+
+    private String dealWithMethodStatements(Method method) {
+
+        String methodInst = this.dealWithMethod(method);
+
+        if (method.isConstructMethod()) {
+            return methodInst;
+        } else {
+            return "\t.limit stack 99" + "\n" +
+                    "\t.limit locals 99" + "\n" +
+                    methodInst;
+        }
     }
 
     private String dealWithInst(Instruction inst, HashMap<String, Descriptor> varTable) {
@@ -214,6 +229,30 @@ public class JasminBuilder implements JasminBackend {
         jasminBuilder.append("\n");
 
         return jasminBuilder.toString();
+    }
+
+    private String dealWithOper(Operation operation) {
+        return switch (operation.getOpType()) {
+            case LTH -> "if_icmplt";
+            case ANDB -> "iand";
+            case NOTB -> "ifeq";
+
+            case ADD -> "iadd";
+            case SUB -> "isub";
+            case MUL -> "imul";
+            case DIV -> "idiv";
+
+            default -> "; ERROR: operation not implemented: " + operation.getOpType() + "\n";
+        };
+    }
+
+    private String dealWithBoolOperResultToStack() {
+        return " TRUE" + this.condNumber + "\n"
+                + "\ticonst_0\n"
+                + "\tgoto NEXT" + this.condNumber + "\n"
+                + "TRUE" + this.condNumber + ":\n"
+                + "\ticonst_1\n"
+                + "NEXT" + this.condNumber++ + ":";
     }
 
     private String dealWithBranch(CondBranchInstruction inst, HashMap<String, Descriptor> varTable) {
@@ -306,19 +345,8 @@ public class JasminBuilder implements JasminBackend {
         return jasminBuilder.toString();
     }
 
-    private String dealWithOper(Operation operation) {
-        return switch (operation.getOpType()) {
-            case LTH -> "if_icmplt";
-            case ANDB -> "iand";
-            case NOTB -> "ifeq";
-
-            case ADD -> "iadd";
-            case SUB -> "isub";
-            case MUL -> "imul";
-            case DIV -> "idiv";
-
-            default -> "; ERROR: operation not implemented: " + operation.getOpType() + "\n";
-        };
+    private String dealWithGoto(GotoInstruction inst) {
+        return "\tgoto " + inst.getLabel() + "\n";
     }
 
     private String dealWithPutField(PutFieldInstruction inst, HashMap<String, Descriptor> varTable) {
@@ -334,33 +362,6 @@ public class JasminBuilder implements JasminBackend {
                 "\tgetfield " + this.dealWithClassFullName(((Operand) inst.getFirstOperand()).getName()) +
                 "/" + ((Operand) inst.getSecondOperand()).getName() +
                 " " + this.dealWithFieldDescriptor(inst.getSecondOperand().getType()) + "\n";
-    }
-
-    private String dealWithReturn(ReturnInstruction inst, HashMap<String, Descriptor> varTable) {
-        StringBuilder jasminBuilder = new StringBuilder();
-
-        if (inst.hasReturnValue()) {
-            jasminBuilder.append(this.dealWithLoadToStack(inst.getOperand(), varTable));
-        }
-
-        jasminBuilder.append("\t");
-        if (inst.getOperand() != null) {
-            ElementType elementType = inst.getOperand().getType().getTypeOfElement();
-
-            if (elementType == ElementType.INT32 || elementType == ElementType.BOOLEAN) {
-                jasminBuilder.append("i");
-            } else {
-                jasminBuilder.append("a");
-            }
-        }
-
-        jasminBuilder.append("return\n");
-
-        return jasminBuilder.toString();
-    }
-
-    private String dealWithGoto(GotoInstruction inst) {
-        return "\tgoto " + inst.getLabel() + "\n";
     }
 
     private String dealWithLoadToStack(Element element, HashMap<String, Descriptor> varTable) {
@@ -582,9 +583,7 @@ public class JasminBuilder implements JasminBackend {
 
                 }
             }
-            case OBJECTREF, THIS, STRING, ARRAYREF -> {
-                jasminBuilder.append("\tastore").append(this.dealWithVariableNumber(dest.getName(), varTable)).append("\n");
-            }
+            case OBJECTREF, THIS, STRING, ARRAYREF -> jasminBuilder.append("\tastore").append(this.dealWithVariableNumber(dest.getName(), varTable)).append("\n");
             default -> jasminBuilder.append("; ERROR: getStore()\n");
         }
         return jasminBuilder.toString();
@@ -632,27 +631,27 @@ public class JasminBuilder implements JasminBackend {
         return jasminBuilder.toString();
     }
 
-    private String dealWithClassFullName(String classNameWithoutImports) {
-        if (classNameWithoutImports.equals("this")) {
-            return this.classUnit.getClassName();
+    private String dealWithReturn(ReturnInstruction inst, HashMap<String, Descriptor> varTable) {
+        StringBuilder jasminBuilder = new StringBuilder();
+
+        if (inst.hasReturnValue()) {
+            jasminBuilder.append(this.dealWithLoadToStack(inst.getOperand(), varTable));
         }
 
-        for (String importName : this.classUnit.getImports()) {
-            if (importName.endsWith(classNameWithoutImports)) {
-                return importName.replaceAll("\\.", "/");
+        jasminBuilder.append("\t");
+        if (inst.getOperand() != null) {
+            ElementType elementType = inst.getOperand().getType().getTypeOfElement();
+
+            if (elementType == ElementType.INT32 || elementType == ElementType.BOOLEAN) {
+                jasminBuilder.append("i");
+            } else {
+                jasminBuilder.append("a");
             }
         }
 
-        return classNameWithoutImports;
-    }
+        jasminBuilder.append("return\n");
 
-    private String dealWithBoolOperResultToStack() {
-        return " TRUE" + this.condNumber + "\n"
-                + "\ticonst_0\n"
-                + "\tgoto NEXT" + this.condNumber + "\n"
-                + "TRUE" + this.condNumber + ":\n"
-                + "\ticonst_1\n"
-                + "NEXT" + this.condNumber++ + ":";
+        return jasminBuilder.toString();
     }
 
 }
