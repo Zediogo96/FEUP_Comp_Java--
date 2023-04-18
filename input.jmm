@@ -1,13 +1,20 @@
-class A {
-    int a = 10;
+class IncompatibleReturn {
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
 
     }
 
-    public int foo() {
-        int x;
+    public int foo(int a) {
+        return a + 1;
+    }
 
-        x = this.a;
+    public boolean bar() {
+        IncompatibleReturn a;
+        int b;
+
+        a = new IncompatibleReturn();
+        b = 0;
+
+        return a.foo(b);
     }
 }
