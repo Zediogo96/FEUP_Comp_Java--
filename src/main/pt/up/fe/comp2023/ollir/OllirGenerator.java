@@ -42,10 +42,12 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         addVisit("Ret", this::visitExpression);
         addVisit("Identifier", this::visitExpression);
         addVisit("Integer", this::integerVisit);
+        addVisit("Boolean", this::boolVisit);
         addVisit("BinaryOp", this::visitBinaryOperator);
         addVisit("This", this::visitThis);
         addVisit("AccessMethod", this::visitAccessMethod);
         addVisit("MethodCall", this::visitMethodCall);
+        addVisit("RelationalOp", this::visitRelationalOperator);
 
         setDefaultVisit((node, dummy) -> null);
     }
@@ -574,6 +576,24 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         String left = visit(binaryOperator.getJmmChild(0));
         String right = visit(binaryOperator.getJmmChild(1));;
+
+        String result = left + " " + opstring + " " + right;
+
+
+        return result;
+    }
+
+    private String visitRelationalOperator(JmmNode relationalOperator, OllirInference inference) {
+        //System.out.println("VISITING BINARY OPERATOR" + binaryOperator);
+
+        String op = relationalOperator.get("op");
+        String opstring = OllirUtils.getOperator(op);
+
+        String left = visit(relationalOperator.getJmmChild(0));
+        String right = visit(relationalOperator.getJmmChild(1));;
+
+        System.out.println("Left: " + left);
+        System.out.println("Right: " + right);
 
         String result = left + " " + opstring + " " + right;
 
