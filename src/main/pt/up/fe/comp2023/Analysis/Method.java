@@ -24,7 +24,6 @@ public class Method {
         }
     }
 
-
     public String getName() {
         return name;
     }

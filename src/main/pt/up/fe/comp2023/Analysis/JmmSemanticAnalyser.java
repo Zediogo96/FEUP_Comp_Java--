@@ -71,16 +71,25 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         List<String> parametersTypeNames = new ArrayList<>();
 
+        System.out.println("object => " + object.getKind());
+        System.out.println("method => " + method.getKind());
+
+        System.out.println("objectReturn => " + objectReturn);
+
         if (node.getChildren().size() > 2) {
             for (JmmNode child : node.getChildren().subList(2, node.getChildren().size())) {
                 Map.Entry<String, String> res = visit(child, true);
                 parametersTypeNames.add(res.getKey().replace("(imported)", ""));
             }
         }
+/*
+
+        if (objectReturn.getKey().e) {
+            return Map.entry("error", "null");
+        }
+*/
 
         if (methodReturn.getKey().equals("error")) {
-
-            System.out.println(objectReturn.getKey());
 
             if (objectReturn.getKey().contains("imported") || (st.getSuper() != null && st.getImportsAsList().contains(st.getSuper()))) {
                 return Map.entry("access", "null");
@@ -410,12 +419,12 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         if (currentSCOPE.equals("CLASS")) {
             field = st.getField(node.get("id"));
         } else if ((currentSCOPE.equals("METHOD") || currentSCOPE.equals("MAIN")) && currentMethod != null) {
+            
+            Map.Entry<Symbol, Boolean> tmp2 = st.getField(node.get("id"));
+            if (tmp2 != null) field = tmp2;
 
             Map.Entry<Symbol, Boolean> tmp = currentMethod.getLocalVariable(node.get("id"));
             if (tmp != null) field = tmp;
-
-            Map.Entry<Symbol, Boolean> tmp2 = st.getField(node.get("id"));
-            if (tmp2 != null) field = tmp2;
 
             for (Symbol s : currentMethod.getParameters()) {
                 if (s.getName().equals(node.get("id"))) {
