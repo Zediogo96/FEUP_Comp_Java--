@@ -118,6 +118,19 @@ public class MySymbolTable implements SymbolTable {
         return imports;
     }
 
+    public List<String> getImportsAsList() {
+        List<String> temp = new ArrayList<>();
+        for (String anImport : this.imports) {
+            if (anImport.contains("[")) {
+                temp.add(anImport.substring(1, anImport.length() - 1));
+            } else {
+                temp.add(anImport);
+            }
+        }
+
+        return temp;
+    }
+
     @Override
     public List<Symbol> getFields() {
         return new ArrayList<>(fields.keySet());
