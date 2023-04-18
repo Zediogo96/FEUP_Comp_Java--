@@ -284,9 +284,15 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         if (Objects.equals(currentSCOPE, "CLASS")) fieldToAssign = st.getField(node.get("id"));
         else fieldToAssign = currentMethod.getLocalVariable(node.get("id"));
 
-        if (currentSCOPE.equals("MAIN") && (st.getField(node.get("id")) != null)) {
-            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Cannot assign value to a field in static main method: " + node.get("id")));
+        if (currentSCOPE.equals("MAIN")) {
+            for (Symbol field : st.getFields()) {
+                if (field.getName().equals(node.get("id"))) {
+                    reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Cannot assign value to a field in the main method: " + node.get("id")));
+                    return Map.entry("error", "null");
+                }
+            }
         }
+
 
         if (assignment.getKey().equals("error")) {
             reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable for assignment not declared: " + node.get("id")));
