@@ -763,7 +763,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 //            if (((methodCallNode.getJmmChild(i).getKind().equals("Integer")||methodCallNode.getJmmChild(i).getKind().equals("Boolean")))){
 //                argsJmm.add(methodCallNode.getJmmChild(i));
 //            }
-            System.out.println("DEBUGGING METHODCALL CHILDREN: " + methodCallNode.getJmmChild(i));
+//            System.out.println("DEBUGGING METHODCALL CHILDREN: " + methodCallNode.getJmmChild(i));
 //            if (methodCallNode.getJmmChild(i).getKind().equals("Integer")) {
 //                //print type
 //                System.out.println("DEBUGGING TYPE: " + methodCallNode.getJmmChild(i).getKind());
