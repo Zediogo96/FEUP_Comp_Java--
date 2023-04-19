@@ -6,7 +6,6 @@ import pt.up.fe.comp2023.Analysis.MySymbolTable;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 
-import javax.sound.midi.SysexMessage;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,6 +50,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         addVisit("AccessMethod", this::visitAccessMethod);
         addVisit("MethodCall", this::visitMethodCall);
         addVisit("RelationalOp", this::visitRelationalOperator);
+        addVisit("NewObject", this::visitNewObject);
 
         setDefaultVisit((node, dummy) -> null);
     }
@@ -228,10 +228,13 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         //for each param, get save the name and index
 
-        for (var param : params) {
-            parameterIndex.put(param.getName(), param_index);
-            param_index++;
+        if (!params.isEmpty()) {
+            for (var param : params) {
+                parameterIndex.put(param.getName(), param_index);
+                param_index++;
+            }
         }
+
 
         System.out.println("PARAMS: " + params);
 
@@ -323,6 +326,12 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             return retstr;
         }
 
+        else if (assignmentNode.getJmmChild(0).getKind().equals("NewObject")) {
+
+            type = toAssignType;
+
+        }
+
         ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" ");  //.append(str_assigned).append(";\n");  //append generally the assignment  structure, then each visitor will append the rhs
 
         String str_assigned;
@@ -333,6 +342,12 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         }
 
         ollirCode.append(";\n");
+
+        if (assignmentNode.getJmmChild(0).getKind().equals("NewObject")) {
+            ollirCode.append(getIndent()).append("invokespecial(").append(toAssign + toAssignType).append(", \"<init>\")").append(toAssignType);
+            ollirCode.append(";\n");
+        }
+
 
         return "";
     }
@@ -473,21 +488,18 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             //System.out.println("DEBUGGING RETURN NODE CHILD: " + exprNode);
             exprnodeReturn = visit(exprNode);
             //System.out.println("What is coming from expr node?: " + exprnodeReturn);
-            System.out.println("EXPRNODE KIND: " + exprNode.getKind());
 
-            if (exprNode.getKind().equals("Variable")) {
-
-                System.out.println("ENTERED");
-                var param_index = parameterIndex.get(exprNode.get("id"));
-                param_indexstring = "$" + param_index.toString() + ".";
-            }
+//            if (exprNode.getKind().equals("Variable")) {
+//                var param_index = parameterIndex.get(exprNode.get("id"));
+//                param_indexstring = "$" + param_index.toString() + ".";
+//            }
 
             String returnString = OllirUtils.getOllirType(st.getReturnType(getCurrentMethodName(returnNode))) + " ";
 
             String returnReg = exprnodeReturn;
             //System.out.println("DEBUUGING RETURN REGISTER: " + returnReg);
 
-            ollirCode.append(getIndent()).append("ret").append(returnString).append(param_indexstring)
+            ollirCode.append(getIndent()).append("ret").append(returnString)
                     .append(returnReg).append(";\n");
 
             return exprnodeReturn;
@@ -612,12 +624,16 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
     private String visitBinaryOperator(JmmNode binaryOperator, OllirInference inference) {
         //System.out.println("VISITING BINARY OPERATOR" + binaryOperator);
 
+        System.out.println("DEBUG OP" + binaryOperator.get("op"));
+
         String op = binaryOperator.get("op");
         String opstring = OllirUtils.getOperator(op);
         var assignmentType = OllirUtils.getOperatorType(op);
 
         String left = visit(binaryOperator.getJmmChild(0), new OllirInference(assignmentType, true));
+        System.out.println("DEBUG LEFT" + binaryOperator.getJmmChild(0) + left);
         String right = visit(binaryOperator.getJmmChild(1), new OllirInference(assignmentType, true));
+        System.out.println("DEBUG RIGHT" + binaryOperator.getJmmChild(0) + right);
 
         String result = left + " " + opstring + " " + right;
 
@@ -849,5 +865,21 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         //for assignment
         return "this";
+    }
+
+    private String visitNewObject(JmmNode newObjectNode, OllirInference inference) {
+        System.out.println("VISITING NEW OBJECT");
+
+        for (JmmNode child : newObjectNode.getChildren()) {
+            visit(child);
+        }
+
+        String type = newObjectNode.get("id");
+
+        ollirCode.append("new(").append(type).append(").").append(type);
+
+        //for assignment
+        //return "new " + newObjectNode.get("id");
+        return "";
     }
 }

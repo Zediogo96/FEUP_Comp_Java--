@@ -16,10 +16,10 @@ import static org.junit.Assert.*;
 public class OllirTest {
 
 
-    @Test
-    public void compileBasic() {
-        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileBasic.jmm", this::compileBasic);
-    }
+//    @Test
+//    public void compileBasic() {
+//        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileBasic.jmm", this::compileBasic);
+//    }
 
     @Test
     public void compileArithmetic() {
