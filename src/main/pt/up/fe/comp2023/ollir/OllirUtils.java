@@ -113,7 +113,9 @@ public class OllirUtils {
 
         List<String> importNames = imports.stream()
                 .map(str -> str.replaceAll("\\[|\\]", ""))
-                .collect(Collectors.toList());
+                .toList();
+
+        //System.out.println("IMPORTS" + importNames);
 
         for (String _import : importNames) {
             String[] tokens = _import.split("\\.");
