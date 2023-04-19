@@ -332,13 +332,19 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         }
 
+        else if (assignmentNode.getJmmChild(0).getKind().equals("AccessMethod")){
+            type = toAssignType;
+        }
+
         ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" ");  //.append(str_assigned).append(";\n");  //append generally the assignment  structure, then each visitor will append the rhs
 
         String str_assigned;
 
         for (JmmNode child : assignmentNode.getChildren()) {
+            System.out.println("VISITING CHILD OF ASSIGNMENT NODE: " + child);
             String returnstr = visit(child);
             ollirCode.append(returnstr);
+            System.out.println("OLLIR CODE AFTER VISITING CHILD OF ASSIGNMENT NODE: " + ollirCode);
         }
 
         ollirCode.append(";\n");
@@ -703,6 +709,25 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 //        }
 
         //method call like io.println(a)
+        var parent = methodCallNode.getAncestor("Assignment");
+        System.out.println("DEBUGGING PARENT: " + parent);
+//        System.out.println("DEBUGGING PARENT CHILDREN: " + parent.get().get("id"));
+        Symbol toAssignSymbol = null;
+        if (parent.isPresent()) {
+            toAssignSymbol = st.getLocalVariableFromMethod(getCurrentMethodName(methodCallNode), parent.get().get("id"));
+        }
+        else {
+            ollirCode.append(getIndent());
+        }
+//        toAssignSymbol = st.getLocalVariableFromMethod(getCurrentMethodName(methodCallNode), parent.get().get("id"));
+        var toAssignType = "";
+        if (toAssignSymbol == null) {
+            toAssignType = "";
+        }
+        else {
+            toAssignType = OllirUtils.getOllirType(toAssignSymbol.getType());
+        }
+//        toAssignType = OllirUtils.getOllirType(toAssignSymbol.getType());
 
         String firstArg = methodCallNode.getJmmChild(0).get("id");  //get the first identifier of the method call, like io in io.println(a)
         System.out.println("DEBUGGING FIRST ARG: " + firstArg);
@@ -712,20 +737,73 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         //String methodName = methodCallNode.get("method");  //get the method name, like println in io.println(a)
         //for loop to visit the rest of the children
 
-        //list of args
-        List<String> argsList = new ArrayList<>();
-
-        for (int i = 2; i < methodCallNode.getChildren().size(); i++) {
-            argsList.add(methodCallNode.getJmmChild(i).get("id"));
-        }
-
-        System.out.println("DEBUGGING ARGS LIST: " + argsList);
-
         String invokeType = OllirUtils.getInvokeType(firstArg, st);
-        String returnType = OllirUtils.getOllirType(st.getReturnType(getCurrentMethodName(methodCallNode))) + " ";
+        //String returnType = OllirUtils.getOllirType(st.getReturnType(getCurrentMethodName(methodCallNode))) + " ";
+        String returnType = "";
+
+
+        if (parent.isPresent()) {
+            returnType = toAssignType;
+        }
+        else {
+            returnType = ".V";
+        }
 
         System.out.println("DEBUGGING INVOKE TYPE: " + invokeType);
         System.out.println("DEBUGGING METHOD ID: " + methodId);
+
+        //list of args
+        List<String> argsList = new ArrayList<>();
+
+        List<JmmNode> argsJmm = new ArrayList<>();
+
+        var localvars = st.getLocalVariables(getCurrentMethodName(methodCallNode));
+
+        for (int i = 2; i < methodCallNode.getChildren().size(); i++) {
+//            if (((methodCallNode.getJmmChild(i).getKind().equals("Integer")||methodCallNode.getJmmChild(i).getKind().equals("Boolean")))){
+//                argsJmm.add(methodCallNode.getJmmChild(i));
+//            }
+            System.out.println("DEBUGGING METHODCALL CHILDREN: " + methodCallNode.getJmmChild(i));
+//            if (methodCallNode.getJmmChild(i).getKind().equals("Integer")) {
+//                //print type
+//                System.out.println("DEBUGGING TYPE: " + methodCallNode.getJmmChild(i).getKind());
+//            }
+//            else {
+//                argsList.add(methodCallNode.getJmmChild(i).get("id"));
+//            }
+            argsJmm.add(methodCallNode.getJmmChild(i));
+        }
+
+        System.out.println("DEBUGGING ARGS JMM: " + argsJmm);
+
+        StringBuilder operationString = new StringBuilder(invokeType + "(" + firstArg + ", \"" + methodId + "\"");
+        System.out.println("DEBUGGING STRING BUILDER: " + operationString);
+
+        for (var arg : argsJmm) {
+            if (arg.getKind().equals("Integer")){
+                operationString.append(", ").append(arg.get("value")).append(".i32");
+            }
+            else if (arg.getKind().equals("Boolean")){
+                operationString.append(", ").append(arg.get("value")).append(".bool");
+            }
+            else {
+                //operationString.append(", ").append(arg.get("id"));
+                for (var localvar : localvars) {
+                    if (arg.get("id").equals(localvar.getName())){
+                        String argType = OllirUtils.getOllirType(localvar.getType());
+                        operationString.append(", ").append(localvar.getName()).append(argType);
+                    }
+                }
+            }
+        }
+
+        operationString.append(")").append(returnType);
+
+        System.out.println("DEBUGGING OPERATION STRING: " + operationString);
+
+        //System.out.println("DEBUGGING ARGS LIST: " + argsList);
+
+
 
         //parse the children of the method call to get the arguments, but ignore the first one, which is the identifier
 
@@ -742,38 +820,38 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         //System.out.println("DEBUGGING ARGS: " + args);
         //System.out.println("DEBUGGING ARGS LIST: " + argsList);
 
-        List<Symbol> argsSymbols = new ArrayList<>();
+//        List<Symbol> argsSymbols = new ArrayList<>();
 
-        var localvars = st.getLocalVariables(getCurrentMethodName(methodCallNode));
+//        var localvars = st.getLocalVariables(getCurrentMethodName(methodCallNode));
+//
+//        //System.out.println("DEBUGGING LOCAL VARS: " + localvars);
+//
+//        for (var localvar : localvars) {
+//            for (var arg : argsList) {
+//                if (localvar.getName().equals(arg)) {
+//                    argsSymbols.add(localvar);
+//                }
+//            }
+//        }
+//
+//        System.out.println("DEBUGGING ARGS SYMBOLS: " + argsSymbols);
+//
+//        StringBuilder operationString = new StringBuilder(invokeType + "(" + firstArg + ", \"" + methodId + "\"");
 
-        //System.out.println("DEBUGGING LOCAL VARS: " + localvars);
-
-        for (var localvar : localvars) {
-            for (var arg : argsList) {
-                if (localvar.getName().equals(arg)) {
-                    argsSymbols.add(localvar);
-                }
-            }
-        }
-
-        System.out.println("DEBUGGING ARGS SYMBOLS: " + argsSymbols);
-
-        StringBuilder operationString = new StringBuilder(invokeType + "(" + firstArg + ", \"" + methodId + "\"");
-
-        for (var arg : argsSymbols) {
-            String argType = OllirUtils.getOllirType(arg.getType());
-            operationString.append(", ").append(arg.getName()).append(argType);
-        }
-
-        operationString.append(")").append(returnType);
-
-        System.out.println("DEBUGGING OPERATION STRING: " + operationString);
-
-        //convert strigbuilder to string
-
+//        for (var arg : argsSymbols) {
+//            String argType = OllirUtils.getOllirType(arg.getType());
+//            operationString.append(", ").append(arg.getName()).append(argType);
+//        }
+//
+//        operationString.append(")").append(returnType);
+//
+//        System.out.println("DEBUGGING OPERATION STRING: " + operationString);
+//
+//        //convert strigbuilder to string
+//
         String opstring = operationString.toString();
 
-        ollirCode.append(getIndent()).append(opstring).append(";\n");
+        ollirCode.append(opstring).append(";\n");
 
         return "";
     }
