@@ -608,12 +608,16 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
     private String visitBinaryOperator(JmmNode binaryOperator, OllirInference inference) {
         //System.out.println("VISITING BINARY OPERATOR" + binaryOperator);
 
+        System.out.println("DEBUG OP" + binaryOperator.get("op"));
+
         String op = binaryOperator.get("op");
         String opstring = OllirUtils.getOperator(op);
         var assignmentType = OllirUtils.getOperatorType(op);
 
         String left = visit(binaryOperator.getJmmChild(0), new OllirInference(assignmentType, true));
+        System.out.println("DEBUG LEFT" + binaryOperator.getJmmChild(0) + left);
         String right = visit(binaryOperator.getJmmChild(1), new OllirInference(assignmentType, true));
+        System.out.println("DEBUG RIGHT" + binaryOperator.getJmmChild(0) + right);
 
         String result = left + " " + opstring + " " + right;
 
