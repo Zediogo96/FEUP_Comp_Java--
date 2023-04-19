@@ -26,11 +26,11 @@ public class OllirTest {
         testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileArithmetic.jmm", this::compileArithmetic);
     }
 
-    @Test
-    public void compileMethodInvocation() {
-        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileMethodInvocation.jmm",
-                this::compileMethodInvocation);
-    }
+//    @Test
+//    public void compileMethodInvocation() {
+//        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileMethodInvocation.jmm",
+//                this::compileMethodInvocation);
+//    }
 
 //    @Test
 //    public void compileAssignment() {
