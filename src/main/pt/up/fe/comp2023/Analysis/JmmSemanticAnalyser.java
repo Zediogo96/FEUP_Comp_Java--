@@ -275,6 +275,8 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         /* List<JmmNode> children = node.getChildren(); */
 
         Map.Entry<String, String> assignment = visit(node.getChildren().get(0), true);
+
+        System.out.println("CHILDREN ASSIGN " + node.getChildren().get(0).getChildren());
         Map.Entry<Symbol, Boolean> fieldToAssign;
 
         if (Objects.equals(currentSCOPE, "CLASS")) fieldToAssign = st.getField(node.get("id"));
