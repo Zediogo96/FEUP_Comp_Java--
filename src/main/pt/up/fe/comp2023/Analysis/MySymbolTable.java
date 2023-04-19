@@ -12,9 +12,9 @@ import java.util.Map;
 
 public class MySymbolTable implements SymbolTable {
     private final List<String> imports = new ArrayList<>();
-    private String className, superClassName;
     private final Map<Symbol, Boolean> fields = new HashMap<>();
     private final List<Method> methods = new ArrayList<>();
+    private String className, superClassName;
     private Method currentMethod;
 
     public static Type getTypeFromNode(JmmNode node) {
@@ -31,10 +31,6 @@ public class MySymbolTable implements SymbolTable {
         };
 
         return type;
-    }
-
-    public void setClassName(String className) {
-        this.className = className;
     }
 
     public void setSuperClassName(String superClassName) {
@@ -106,6 +102,10 @@ public class MySymbolTable implements SymbolTable {
     @Override
     public String getClassName() {
         return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
     }
 
     @Override

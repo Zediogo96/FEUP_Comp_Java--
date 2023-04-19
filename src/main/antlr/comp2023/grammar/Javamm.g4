@@ -72,7 +72,7 @@ expression
     : 'new' id=ID '(' ')' #NewObject
     | value=('true' | 'false') #Boolean
     | expression '[' expression ']' #ArrayAccess
-    | expression '.' expression '(' ( expression (',' expression)* )? ')' #AccessMethod
+    | expression '.' expression '(' ( expression (',' expression)* )* ')' #AccessMethod
     | method=ID '(' ( expression (',' expression)* )? ')' #MethodCall
     | value=INTEGER #Integer
     | id=ID #Variable
