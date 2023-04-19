@@ -1,20 +1,29 @@
-class IncompatibleReturn {
+import io;
 
-    public static void main(String[] args) {
-
+class B {
+    int a;
+    public int getA(){
+        return a;
+    }
+    public int setA(int aNew){
+        a = aNew;
+        return a;
     }
 
-    public int foo(int a) {
-        return a + 1;
+    public int compare(B other){
+        int res;
+        if(other.getA() < this.getA())
+            res = 1;
+        else if(this.getA() < other.getA())
+            res = 0-1;
+        else res = 0;
+        return res;
     }
 
-    public boolean bar() {
-        IncompatibleReturn a;
-        int b;
-
-        a = new IncompatibleReturn();
-        b = 0;
-
-        return a.foo(b);
+    public int test() {
+       this.a = this.getA() + 1;
+       B b;
+       b = new B();
+       b = this;
     }
 }
