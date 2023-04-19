@@ -78,7 +78,7 @@ expression
     | method=ID '(' ( expression (',' expression)* )? ')' #MethodCall
 
     | 'this' '.' expression #This
-    | 'this' #This
+    | 'this' ('.' expression '=' expression)? #This
     | '(' expression ')' #Parenthesis
     | expression '.' 'length' #ArrayLength
     | 'new' 'int' '[' size=expression ']' #ArrayInit

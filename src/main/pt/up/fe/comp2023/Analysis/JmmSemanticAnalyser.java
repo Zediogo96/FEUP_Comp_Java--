@@ -66,8 +66,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         JmmNode object = node.getChildren().get(0);
         JmmNode method = node.getChildren().get(1);
 
-        System.out.println("HERE");
-
         Map.Entry<String, String> objectReturn = visit(object, true);
         Map.Entry<String, String> methodReturn = visit(method, true);
 
@@ -88,9 +86,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
                 return Map.entry("access", "null");
             } else if (objectReturn.getKey().equals(st.getClassName()) && (st.getMethod(method.get("id")) != null)) {
 
-                System.out.println("HEREEEE");
-
-
                 List<Type> argumentsNames = st.getMethod(method.get("id")).getParameters().stream().map(Symbol::getType).toList();
                 List<String> argumentsTypeNames = argumentsNames.stream().map(Type::getName).toList();
 
@@ -106,8 +101,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             }
 
         }
-
-        System.out.println("HERE???");
 
         return Map.entry("null", "null");
 
@@ -276,7 +269,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         Map.Entry<String, String> assignment = visit(node.getChildren().get(0), true);
 
-        System.out.println("CHILDREN ASSIGN " + node.getChildren().get(0).getChildren());
         Map.Entry<Symbol, Boolean> fieldToAssign;
 
         if (Objects.equals(currentSCOPE, "CLASS")) fieldToAssign = st.getField(node.get("id"));

@@ -19,14 +19,11 @@ class B {
         else res = 0;
         return res;
     }
-    public int compareSelf(){
-        return this.compare(this);
-    }
 
-    public static void main(String[] args){
-        B b;
-        b = new B();
-        b.setA(20);
-        io.println(b.compareSelf());
+    public int test() {
+       this.a = this.getA() + 1;
+       B b;
+       b = new B();
+       b = this;
     }
 }
