@@ -981,7 +981,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             else if (thisNode.getJmmChild(1).getKind().equals("Boolean")) {
                 var2Type = ".bool";
             }
-            ollirCode.append(getIndent()).append("putfield(this,").append(thisNode.getJmmChild(0).get("id")).append(classField0Type).append(",").append(thisNode.getJmmChild(1).get("value")).append(var2Type).append(");\n");
+            ollirCode.append(getIndent()).append("putfield(this,").append(thisNode.getJmmChild(0).get("id")).append(classField0Type).append(",").append(thisNode.getJmmChild(1).get("value")).append(var2Type).append(").V;\n");
         }
         else {
             ollirCode.append("this.").append("putfield(this,").append(thisNode.getJmmChild(0).get("id")).append(");\n");;
