@@ -851,7 +851,12 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 //
         String opstring = operationString.toString();
 
-        ollirCode.append(opstring).append(";\n");
+        if (parent.isPresent()) {
+            ollirCode.append(opstring);
+        }
+        else {
+            ollirCode.append(opstring).append(";\n");
+        }
 
         return "";
     }
