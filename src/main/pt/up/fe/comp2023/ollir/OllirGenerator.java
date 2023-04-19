@@ -350,7 +350,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         ollirCode.append(";\n");
 
         if (assignmentNode.getJmmChild(0).getKind().equals("NewObject")) {
-            ollirCode.append(getIndent()).append("invokespecial(").append(toAssign + toAssignType).append(", \"<init>\")").append(toAssignType);
+            ollirCode.append(getIndent()).append("invokespecial(").append(toAssign + toAssignType).append(", \"<init>\")").append(".V");
             ollirCode.append(";\n");
         }
 
@@ -776,7 +776,16 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         System.out.println("DEBUGGING ARGS JMM: " + argsJmm);
 
-        StringBuilder operationString = new StringBuilder(invokeType + "(" + firstArg + ", \"" + methodId + "\"");
+        Symbol firstArgNotImports = st.getLocalVariableFromMethod(getCurrentMethodName(methodCallNode), firstArg);
+
+        StringBuilder operationString = new StringBuilder();
+
+        if (firstArgNotImports != null) {
+            operationString.append(invokeType + "(" + firstArg + OllirUtils.getOllirType(firstArgNotImports.getType()) + ", \"" + methodId + "\"");
+        } else {
+            operationString.append(invokeType + "(" + firstArg + ", \"" + methodId + "\"");
+        }
+
         System.out.println("DEBUGGING STRING BUILDER: " + operationString);
 
         for (var arg : argsJmm) {
@@ -797,7 +806,12 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             }
         }
 
-        operationString.append(")").append(returnType);
+        if (invokeType.equals("invokespecial")) {
+            operationString.append(")").append(".V");
+        }
+        else {
+            operationString.append(")").append(returnType);
+        }
 
         System.out.println("DEBUGGING OPERATION STRING: " + operationString);
 
