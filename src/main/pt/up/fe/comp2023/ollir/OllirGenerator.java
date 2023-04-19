@@ -269,6 +269,10 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         }
 
+        if (OllirUtils.getOllirType(st.getReturnType(getCurrentMethodName(methodDecl))).equals(".V")) {
+            ollirCode.append(getIndent()).append("ret.V;\n");
+        }
+
         this.removeIndent();
 
         ollirCode.append(getIndent()).append("}\n");
