@@ -681,6 +681,16 @@ private int getTempVarCount() {
 
         System.out.println("DEBUGGING METHODCALL NODE: " + methodCallNode);
 
+        var externalMethodParams = st.getParameters(getCurrentMethodName(methodCallNode));
+
+        System.out.println("DEBUGGING EXTERNAL METHOD PARAMS: " + externalMethodParams);
+
+
+
+
+
+
+
         System.out.println("CHILD = " + methodCallNode.getChildren());
 
         //passar esta parte para expression
@@ -734,9 +744,9 @@ private int getTempVarCount() {
 //        toAssignType = OllirUtils.getOllirType(toAssignSymbol.getType());
 
         String firstArg = methodCallNode.getJmmChild(0).get("id");  //get the first identifier of the method call, like io in io.println(a)
-        //System.out.println("DEBUGGING FIRST ARG: " + firstArg);
+        System.out.println("DEBUGGING FIRST ARG: " + firstArg);
         String methodId = methodCallNode.getJmmChild(1).get("id");  //get the method identifier, like println in io.println(a)
-        //System.out.println("DEBUGGING METHOD ID: " + methodId);
+        System.out.println("DEBUGGING METHOD ID: " + methodId);
         //System.out.println("DEBUGGING METHOD ID" + methodId);
         //String methodName = methodCallNode.get("method");  //get the method name, like println in io.println(a)
         //for loop to visit the rest of the children
@@ -751,6 +761,8 @@ private int getTempVarCount() {
         }
         else {
             returnType = ".V";
+            //get the return type of the actual method
+            System.out.println("DEBUGGING METHOD RETURN TYPE: " + st.getReturnType(getCurrentMethodName(methodCallNode)));
         }
 
         //System.out.println("DEBUGGING INVOKE TYPE: " + invokeType);
@@ -763,9 +775,12 @@ private int getTempVarCount() {
 
         var localvars = st.getLocalVariables(getCurrentMethodName(methodCallNode));
 
+        var params = st.getParameters(getCurrentMethodName(methodCallNode));
+
         boolean addIndentToNewObject = false;
 
         for (int i = 2; i < methodCallNode.getChildren().size(); i++) {
+            System.out.println("DEBUGGING METHODCALL CHILDREN AAA: " + methodCallNode.getJmmChild(i));
 //            if (((methodCallNode.getJmmChild(i).getKind().equals("Integer")||methodCallNode.getJmmChild(i).getKind().equals("Boolean")))){
 //                argsJmm.add(methodCallNode.getJmmChild(i));
 //            }
@@ -794,6 +809,14 @@ private int getTempVarCount() {
 
         StringBuilder operationString = new StringBuilder();
 
+        //check if first arg is an object from the parameters
+
+        for (var param : params) {
+            if (param.getName().equals(firstArg)) {
+                firstArgNotImports = param;
+            }
+        }
+
         if (firstArgNotImports != null) {
             operationString.append(invokeType + "(" + firstArg + OllirUtils.getOllirType(firstArgNotImports.getType()) + ", \"" + methodId + "\"");
         } else {
@@ -820,6 +843,16 @@ private int getTempVarCount() {
                     if (arg.get("id").equals(localvar.getName())){
                         String argType = OllirUtils.getOllirType(localvar.getType());
                         operationString.append(", ").append(localvar.getName()).append(argType);
+                    }
+                    else {
+                        operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
+                    }
+                }
+                for (var param : params) {
+                    if (arg.get("id").equals(param.getName())){
+                        System.out.println("GOT PARAM C CORRECTLY");
+                        String argType = OllirUtils.getOllirType(param.getType());
+                        operationString.append(", ").append(param.getName()).append(argType);
                     }
                     else {
                         operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
