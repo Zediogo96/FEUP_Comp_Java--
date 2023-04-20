@@ -105,6 +105,10 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         }
     }
 
+private int getTempVarCount() {
+        return this.tempVarCount;
+    }
+
     private Set<String> getMethodVars(JmmNode node) {
         String currentMethod = getCurrentMethodName(node);
         Set<String> methodVars = new HashSet<>();
@@ -759,6 +763,8 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         var localvars = st.getLocalVariables(getCurrentMethodName(methodCallNode));
 
+        boolean addIndentToNewObject = false;
+
         for (int i = 2; i < methodCallNode.getChildren().size(); i++) {
 //            if (((methodCallNode.getJmmChild(i).getKind().equals("Integer")||methodCallNode.getJmmChild(i).getKind().equals("Boolean")))){
 //                argsJmm.add(methodCallNode.getJmmChild(i));
@@ -772,6 +778,14 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 //                argsList.add(methodCallNode.getJmmChild(i).get("id"));
 //            }
             argsJmm.add(methodCallNode.getJmmChild(i));
+            if (methodCallNode.getJmmChild(i).getKind().equals("NewObject")) {
+                var tvar = visit(methodCallNode.getJmmChild(i));
+                System.out.println("DEBUGGING TVAR: " + tvar);
+                argsList.add(tvar);
+                addIndentToNewObject = true;
+                //argsList.add(methodCallNode.getJmmChild(i).get("tvar"));
+            }
+
         }
 
         //System.out.println("DEBUGGING ARGS JMM: " + argsJmm);
@@ -783,6 +797,9 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         if (firstArgNotImports != null) {
             operationString.append(invokeType + "(" + firstArg + OllirUtils.getOllirType(firstArgNotImports.getType()) + ", \"" + methodId + "\"");
         } else {
+            if (addIndentToNewObject) {
+                operationString.append(getIndent());
+            }
             operationString.append(invokeType + "(" + firstArg + ", \"" + methodId + "\"");
         }
 
@@ -796,11 +813,16 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
                 operationString.append(", ").append(arg.get("value")).append(".bool");
             }
             else {
+                System.out.println("ENTERED INLINE CLASS");
+                System.out.println("DEBUGGING ARG TEMP: " + arg);
                 //operationString.append(", ").append(arg.get("id"));
                 for (var localvar : localvars) {
                     if (arg.get("id").equals(localvar.getName())){
                         String argType = OllirUtils.getOllirType(localvar.getType());
                         operationString.append(", ").append(localvar.getName()).append(argType);
+                    }
+                    else {
+                        operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
                     }
                 }
             }
@@ -1000,12 +1022,26 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             visit(child);
         }
 
+        var parent = newObjectNode.getAncestor("AccessMethod");
+
+
         String type = newObjectNode.get("id");
 
-        ollirCode.append("new(").append(type).append(").").append(type);
+        var newTemp = "";
+
+        if (parent.isPresent()) {
+            newTemp = String.valueOf(getAndAddTempVarCount(newObjectNode));
+            ollirCode.append("t").append(newTemp).append(".").append(type).append(" :=.").append(type).append(" new(").append(newObjectNode.get("id")).append(").").append(newObjectNode.get("id")).append(";\n");
+            ollirCode.append(getIndent()).append("invokespecial(").append("t").append(newTemp).append(".").append(type).append(", \"<init>\").V").append(";\n");
+        }
+        else {
+            ollirCode.append("new(").append(type).append(").").append(type);
+        }
+
+        //ollirCode.append("new(").append(type).append(").").append(type);
 
         //for assignment
         //return "new " + newObjectNode.get("id");
-        return "";
+        return "t" + newTemp + type;
     }
 }
