@@ -301,12 +301,23 @@ private int getTempVarCount() {
 
 
             String varid = assignmentNode.getJmmChild(0).get("id");
+            //System.out.println("VAR ID: " + varid);
             var localvars = st.getLocalVariables(getCurrentMethodName(assignmentNode));
+            //System.out.println("LOCAL VARS: " + localvars);
+            var params = st.getParameters(getCurrentMethodName(assignmentNode));
+            //System.out.println("PARAMS: " + params);
 
             Symbol varSymbol = null;
             for (var localvar : localvars) {
                 if (localvar.getName().equals(varid)) {
                     varSymbol = localvar;
+                }
+            }
+            if (varSymbol == null) {
+                for (var param : params) {
+                    if (param.getName().equals(varid)) {
+                        varSymbol = param;
+                    }
                 }
             }
             //System.out.println("VAR SYMBOL: " + varSymbol);
@@ -347,7 +358,10 @@ private int getTempVarCount() {
         for (JmmNode child : assignmentNode.getChildren()) {
             System.out.println("VISITING CHILD OF ASSIGNMENT NODE: " + child);
             String returnstr = visit(child);
-            ollirCode.append(returnstr);
+            System.out.println("RETURN STR: " + returnstr);
+            if (!child.getKind().equals("NewObject")) {
+                ollirCode.append(returnstr);
+            }
             //System.out.println("OLLIR CODE AFTER VISITING CHILD OF ASSIGNMENT NODE: " + ollirCode);
         }
 
@@ -683,15 +697,9 @@ private int getTempVarCount() {
 
         var externalMethodParams = st.getParameters(getCurrentMethodName(methodCallNode));
 
-        System.out.println("DEBUGGING EXTERNAL METHOD PARAMS: " + externalMethodParams);
+        //System.out.println("DEBUGGING EXTERNAL METHOD PARAMS: " + externalMethodParams);
 
-
-
-
-
-
-
-        System.out.println("CHILD = " + methodCallNode.getChildren());
+        //System.out.println("CHILD = " + methodCallNode.getChildren());
 
         //passar esta parte para expression
 
@@ -780,7 +788,7 @@ private int getTempVarCount() {
         boolean addIndentToNewObject = false;
 
         for (int i = 2; i < methodCallNode.getChildren().size(); i++) {
-            System.out.println("DEBUGGING METHODCALL CHILDREN AAA: " + methodCallNode.getJmmChild(i));
+            //System.out.println("DEBUGGING METHODCALL CHILDREN AAA: " + methodCallNode.getJmmChild(i));
 //            if (((methodCallNode.getJmmChild(i).getKind().equals("Integer")||methodCallNode.getJmmChild(i).getKind().equals("Boolean")))){
 //                argsJmm.add(methodCallNode.getJmmChild(i));
 //            }
@@ -795,7 +803,7 @@ private int getTempVarCount() {
             argsJmm.add(methodCallNode.getJmmChild(i));
             if (methodCallNode.getJmmChild(i).getKind().equals("NewObject")) {
                 var tvar = visit(methodCallNode.getJmmChild(i));
-                System.out.println("DEBUGGING TVAR: " + tvar);
+                //System.out.println("DEBUGGING TVAR: " + tvar);
                 argsList.add(tvar);
                 addIndentToNewObject = true;
                 //argsList.add(methodCallNode.getJmmChild(i).get("tvar"));
@@ -836,23 +844,30 @@ private int getTempVarCount() {
                 operationString.append(", ").append(arg.get("value")).append(".bool");
             }
             else {
-                System.out.println("ENTERED INLINE CLASS");
-                System.out.println("DEBUGGING ARG TEMP: " + arg);
+                //System.out.println("ENTERED INLINE CLASS");
+                //System.out.println("DEBUGGING ARG TEMP: " + arg);
+                //System.out.println("LOCAL VARS: " + localvars);
+                //System.out.println("PARAMS: " + params);
+                boolean found = false;
                 //operationString.append(", ").append(arg.get("id"));
                 for (var localvar : localvars) {
                     if (arg.get("id").equals(localvar.getName())){
                         String argType = OllirUtils.getOllirType(localvar.getType());
                         operationString.append(", ").append(localvar.getName()).append(argType);
+                        found = true;
+                        break;
                     }
                     else {
                         operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
                     }
                 }
+                if (found) {continue;}
                 for (var param : params) {
                     if (arg.get("id").equals(param.getName())){
-                        System.out.println("GOT PARAM C CORRECTLY");
+                        //System.out.println("GOT PARAM C CORRECTLY");
                         String argType = OllirUtils.getOllirType(param.getType());
                         operationString.append(", ").append(param.getName()).append(argType);
+                        break;
                     }
                     else {
                         operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
@@ -1068,6 +1083,9 @@ private int getTempVarCount() {
             ollirCode.append(getIndent()).append("invokespecial(").append("t").append(newTemp).append(".").append(type).append(", \"<init>\").V").append(";\n");
         }
         else {
+            System.out.println("ENTERED ELSE");
+            String toAppend = "new(" + type + ")." + type;
+            System.out.println("TO APPEND: " + toAppend);
             ollirCode.append("new(").append(type).append(").").append(type);
         }
 
