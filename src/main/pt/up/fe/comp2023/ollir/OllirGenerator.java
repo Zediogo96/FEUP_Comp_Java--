@@ -105,6 +105,10 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         }
     }
 
+private int getTempVarCount() {
+        return this.tempVarCount;
+    }
+
     private Set<String> getMethodVars(JmmNode node) {
         String currentMethod = getCurrentMethodName(node);
         Set<String> methodVars = new HashSet<>();
@@ -126,12 +130,12 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
     }
 
     private String visitProgram(JmmNode programNode, OllirInference inference) {
-        System.out.println("IMPORTS:" + st.getImports());
+        //System.out.println("IMPORTS:" + st.getImports());
 
         List<String> sublists = new ArrayList<String>();
 
         for (var importStr : st.getImports()) {
-            System.out.println("IMPORTS SUBLIST:" + importStr);
+            //System.out.println("IMPORTS SUBLIST:" + importStr);
             sublists.add(importStr);
 
         }
@@ -236,7 +240,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         }
 
 
-        System.out.println("PARAMS: " + params);
+        //System.out.println("PARAMS: " + params);
 
         var paramCode = params.stream()
                 .map(OllirUtils::getCode).
@@ -344,7 +348,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             System.out.println("VISITING CHILD OF ASSIGNMENT NODE: " + child);
             String returnstr = visit(child);
             ollirCode.append(returnstr);
-            System.out.println("OLLIR CODE AFTER VISITING CHILD OF ASSIGNMENT NODE: " + ollirCode);
+            //System.out.println("OLLIR CODE AFTER VISITING CHILD OF ASSIGNMENT NODE: " + ollirCode);
         }
 
         ollirCode.append(";\n");
@@ -384,7 +388,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
             if (variable == null) {
                 var parameters_var = st.getField(varName);
-                System.out.println("PARAMETERS VAR: " + parameters_var);
+                //System.out.println("PARAMETERS VAR: " + parameters_var);
                 var varTypeInt = parameters_var.getKey().getType();
                 varType = OllirUtils.getOllirType(varTypeInt);
             } else {
@@ -484,7 +488,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         //System.out.println("DEBUGGING RETURN NODE: " + returnNode);
         JmmNode exprNode = returnNode.getJmmChild(0);
-        System.out.println("DEBUGGING RETURN NODE CHILD: " + exprNode);
+        //System.out.println("DEBUGGING RETURN NODE CHILD: " + exprNode);
         if (exprNode == null) {
             //return "null"; // or whatever default value you want to use
             System.out.println("aaa");
@@ -710,7 +714,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         //method call like io.println(a)
         var parent = methodCallNode.getAncestor("Assignment");
-        System.out.println("DEBUGGING PARENT: " + parent);
+        //System.out.println("DEBUGGING PARENT: " + parent);
 //        System.out.println("DEBUGGING PARENT CHILDREN: " + parent.get().get("id"));
         Symbol toAssignSymbol = null;
         if (parent.isPresent()) {
@@ -730,10 +734,10 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 //        toAssignType = OllirUtils.getOllirType(toAssignSymbol.getType());
 
         String firstArg = methodCallNode.getJmmChild(0).get("id");  //get the first identifier of the method call, like io in io.println(a)
-        System.out.println("DEBUGGING FIRST ARG: " + firstArg);
+        //System.out.println("DEBUGGING FIRST ARG: " + firstArg);
         String methodId = methodCallNode.getJmmChild(1).get("id");  //get the method identifier, like println in io.println(a)
-        System.out.println("DEBUGGING METHOD ID: " + methodId);
-        System.out.println("DEBUGGING METHOD ID" + methodId);
+        //System.out.println("DEBUGGING METHOD ID: " + methodId);
+        //System.out.println("DEBUGGING METHOD ID" + methodId);
         //String methodName = methodCallNode.get("method");  //get the method name, like println in io.println(a)
         //for loop to visit the rest of the children
 
@@ -749,8 +753,8 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             returnType = ".V";
         }
 
-        System.out.println("DEBUGGING INVOKE TYPE: " + invokeType);
-        System.out.println("DEBUGGING METHOD ID: " + methodId);
+        //System.out.println("DEBUGGING INVOKE TYPE: " + invokeType);
+        //System.out.println("DEBUGGING METHOD ID: " + methodId);
 
         //list of args
         List<String> argsList = new ArrayList<>();
@@ -758,6 +762,8 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         List<JmmNode> argsJmm = new ArrayList<>();
 
         var localvars = st.getLocalVariables(getCurrentMethodName(methodCallNode));
+
+        boolean addIndentToNewObject = false;
 
         for (int i = 2; i < methodCallNode.getChildren().size(); i++) {
 //            if (((methodCallNode.getJmmChild(i).getKind().equals("Integer")||methodCallNode.getJmmChild(i).getKind().equals("Boolean")))){
@@ -772,9 +778,17 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 //                argsList.add(methodCallNode.getJmmChild(i).get("id"));
 //            }
             argsJmm.add(methodCallNode.getJmmChild(i));
+            if (methodCallNode.getJmmChild(i).getKind().equals("NewObject")) {
+                var tvar = visit(methodCallNode.getJmmChild(i));
+                System.out.println("DEBUGGING TVAR: " + tvar);
+                argsList.add(tvar);
+                addIndentToNewObject = true;
+                //argsList.add(methodCallNode.getJmmChild(i).get("tvar"));
+            }
+
         }
 
-        System.out.println("DEBUGGING ARGS JMM: " + argsJmm);
+        //System.out.println("DEBUGGING ARGS JMM: " + argsJmm);
 
         Symbol firstArgNotImports = st.getLocalVariableFromMethod(getCurrentMethodName(methodCallNode), firstArg);
 
@@ -783,10 +797,13 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         if (firstArgNotImports != null) {
             operationString.append(invokeType + "(" + firstArg + OllirUtils.getOllirType(firstArgNotImports.getType()) + ", \"" + methodId + "\"");
         } else {
+            if (addIndentToNewObject) {
+                operationString.append(getIndent());
+            }
             operationString.append(invokeType + "(" + firstArg + ", \"" + methodId + "\"");
         }
 
-        System.out.println("DEBUGGING STRING BUILDER: " + operationString);
+        //System.out.println("DEBUGGING STRING BUILDER: " + operationString);
 
         for (var arg : argsJmm) {
             if (arg.getKind().equals("Integer")){
@@ -796,11 +813,16 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
                 operationString.append(", ").append(arg.get("value")).append(".bool");
             }
             else {
+                System.out.println("ENTERED INLINE CLASS");
+                System.out.println("DEBUGGING ARG TEMP: " + arg);
                 //operationString.append(", ").append(arg.get("id"));
                 for (var localvar : localvars) {
                     if (arg.get("id").equals(localvar.getName())){
                         String argType = OllirUtils.getOllirType(localvar.getType());
                         operationString.append(", ").append(localvar.getName()).append(argType);
+                    }
+                    else {
+                        operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
                     }
                 }
             }
@@ -813,7 +835,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             operationString.append(")").append(returnType);
         }
 
-        System.out.println("DEBUGGING OPERATION STRING: " + operationString);
+        //System.out.println("DEBUGGING OPERATION STRING: " + operationString);
 
         //System.out.println("DEBUGGING ARGS LIST: " + argsList);
 
@@ -881,14 +903,14 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
     private String visitMethodCall(JmmNode methodCallNode, OllirInference inference) {
 
-        System.out.println("DEBUGGING METHODCALL NODE: " + methodCallNode);
+        //System.out.println("DEBUGGING METHODCALL NODE: " + methodCallNode);
 
         System.out.println("CHILD = " + methodCallNode.getChildren());
 
         String firstArg = "";
         String methodId = methodCallNode.get("method");  //get the method identifier, like println in io.println(a)
-        System.out.println("DEBUGGING METHOD ID: " + methodId);
-        System.out.println("DEBUGGING METHOD ID" + methodId);
+        //System.out.println("DEBUGGING METHOD ID: " + methodId);
+        //System.out.println("DEBUGGING METHOD ID" + methodId);
         //String methodName = methodCallNode.get("method");  //get the method name, like println in io.println(a)
         //for loop to visit the rest of the children
 
@@ -901,13 +923,13 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             argsList.add(child.get("id"));
         }
 
-        System.out.println("DEBUGGING ARGS LIST: " + argsList);
+        //System.out.println("DEBUGGING ARGS LIST: " + argsList);
 
         String invokeType = OllirUtils.getInvokeType(firstArg, st);
         String returnType = OllirUtils.getOllirType(st.getReturnType(getCurrentMethodName(methodCallNode))) + " ";
 
-        System.out.println("DEBUGGING INVOKE TYPE: " + invokeType);
-        System.out.println("DEBUGGING METHOD ID: " + methodId);
+        //System.out.println("DEBUGGING INVOKE TYPE: " + invokeType);
+        //System.out.println("DEBUGGING METHOD ID: " + methodId);
 
         List<Symbol> argsSymbols = new ArrayList<>();
 
@@ -957,11 +979,40 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         System.out.println("VISITING THIS");
 
         for (JmmNode child : thisNode.getChildren()) {
+            System.out.println("THIS CHILD = " + child);
+
+
             visit(child);
         }
 
+        if (thisNode.getJmmChild(0).getKind().equals("Variable") && thisNode.getJmmChild(1).getKind().equals("Variable")) {
+            var classField0 = st.getField(thisNode.getJmmChild(0).get("id"));
+            var classField0Type = OllirUtils.getOllirType(classField0.getKey().getType());
+            var classField1 = st.getField(thisNode.getJmmChild(1).get("id"));
+            var classField1Type = OllirUtils.getOllirType(classField1.getKey().getType());
+            ollirCode.append(getIndent()).append("putfield(this,").append(thisNode.getJmmChild(0).get("id")).append(classField0Type).append(",").append(thisNode.getJmmChild(1).get("id")).append(classField1Type).append(");\n");
+        }
+        else if (thisNode.getJmmChild(0).getKind().equals("Variable") && !thisNode.getJmmChild(1).getKind().equals("Variable")) {
+            System.out.println("aaa");
+            var classField0 = st.getField(thisNode.getJmmChild(0).get("id"));
+            var classField0Type = OllirUtils.getOllirType(classField0.getKey().getType());
+            var var2Type = "";
+            if (thisNode.getJmmChild(1).getKind().equals("Integer")) {
+                var2Type = ".i32";
+            }
+            else if (thisNode.getJmmChild(1).getKind().equals("Boolean")) {
+                var2Type = ".bool";
+            }
+            ollirCode.append(getIndent()).append("putfield(this,").append(thisNode.getJmmChild(0).get("id")).append(classField0Type).append(",").append(thisNode.getJmmChild(1).get("value")).append(var2Type).append(").V;\n");
+        }
+        else {
+            ollirCode.append("this.").append("putfield(this,").append(thisNode.getJmmChild(0).get("id")).append(");\n");;
+        }
+
+        //ollirCode.append("this");
+
         //for assignment
-        return "this";
+        return "";
     }
 
     private String visitNewObject(JmmNode newObjectNode, OllirInference inference) {
@@ -971,12 +1022,26 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             visit(child);
         }
 
+        var parent = newObjectNode.getAncestor("AccessMethod");
+
+
         String type = newObjectNode.get("id");
 
-        ollirCode.append("new(").append(type).append(").").append(type);
+        var newTemp = "";
+
+        if (parent.isPresent()) {
+            newTemp = String.valueOf(getAndAddTempVarCount(newObjectNode));
+            ollirCode.append("t").append(newTemp).append(".").append(type).append(" :=.").append(type).append(" new(").append(newObjectNode.get("id")).append(").").append(newObjectNode.get("id")).append(";\n");
+            ollirCode.append(getIndent()).append("invokespecial(").append("t").append(newTemp).append(".").append(type).append(", \"<init>\").V").append(";\n");
+        }
+        else {
+            ollirCode.append("new(").append(type).append(").").append(type);
+        }
+
+        //ollirCode.append("new(").append(type).append(").").append(type);
 
         //for assignment
         //return "new " + newObjectNode.get("id");
-        return "";
+        return "t" + newTemp + type;
     }
 }
