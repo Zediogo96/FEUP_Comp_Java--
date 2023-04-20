@@ -2,17 +2,17 @@ package pt.up.fe.comp2023;
 
 import pt.up.fe.comp.TestUtils;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
+import pt.up.fe.comp.jmm.jasmin.JasminResult;
+import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp2023.jmm.jasmin.JasminBuilder;
 import pt.up.fe.specs.util.SpecsIo;
 import pt.up.fe.specs.util.SpecsLogs;
 import pt.up.fe.specs.util.SpecsSystem;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Launcher {
@@ -65,19 +65,15 @@ public class Launcher {
             throw new RuntimeException("Semantic analysis failed.");
         }
 
-
-        /* END OF SEMANTIC ANALYSIS */
-
         System.out.println(parserResult.getRootNode().toTree());
 
         System.out.println(semanticsResult.getSymbolTable().toString());
 
- /*       String ollirCode = SpecsIo.read("test/pt/up/fe/comp/cp2/apps/example_ollir/Simple.ollir");
+        String ollirCode = SpecsIo.read("test/pt/up/fe/comp/cp2/apps/example_ollir/Simple.ollir");
         OllirResult ollirResult = new OllirResult(ollirCode, Collections.emptyMap());
         JasminBuilder jasminBuilder = new JasminBuilder();
         JasminResult jasminResult = jasminBuilder.toJasmin(ollirResult);
-
-        TestUtils.noErrors(jasminResult);*/
+        TestUtils.noErrors(jasminResult);
 
     }
 

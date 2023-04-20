@@ -23,7 +23,6 @@ class B {
     public int test() {
        this.a = this.getA() + 1;
        B b;
-       b = new B();
        b = this;
     }
 }
