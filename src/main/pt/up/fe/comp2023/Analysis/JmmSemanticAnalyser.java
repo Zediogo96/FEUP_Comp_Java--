@@ -632,7 +632,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             }
 
         } else {
-            if (st.getSuper() == null || st.getSuper().equals("Object")) {
+            if (st.getSuper() == null || st.getSuper().equals("java.lang.Object")) {
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method not found: " + methodName));
                 return Map.entry("error", "noSuchMethod");
             } else {

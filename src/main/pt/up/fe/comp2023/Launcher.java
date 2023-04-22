@@ -74,10 +74,6 @@ public class Launcher {
 
         var optimizer = new JmmOptimizer();
 
-        semanticsResult = optimizer.optimize(semanticsResult);
-
-        TestUtils.noErrors(semanticsResult);
-
         var ollirResult = optimizer.toOllir(semanticsResult);
 
         TestUtils.noErrors(ollirResult);

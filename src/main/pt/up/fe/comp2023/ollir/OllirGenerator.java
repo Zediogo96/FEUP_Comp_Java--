@@ -163,7 +163,7 @@ private int getTempVarCount() {
 
         ollirCode.append(getIndent()).append("public ").append(st.getClassName());
         var superClassName = st.getSuper();
-        if (superClassName != null) {
+        if (superClassName != null && !superClassName.equals("java.lang.Object")){
             ollirCode.append(" extends ").append(superClassName);
         }
         ollirCode.append(" {\n");
