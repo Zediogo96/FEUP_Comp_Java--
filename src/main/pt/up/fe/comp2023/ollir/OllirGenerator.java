@@ -303,6 +303,7 @@ private int getTempVarCount() {
         else if (assignmentNode.getJmmChild(0).getKind().equals("BinaryOp")) {
 
             String retstr = visit(assignmentNode.getJmmChild(0));
+            ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" ").append(retstr).append(";\n");
             return retstr;
         }
 
@@ -563,7 +564,7 @@ private int getTempVarCount() {
 
         String result = left + " " + opstring + " " + right;
 
-        if (inference == null || inference.getIsAssignedToTempVar()) {
+        if (inference != null && inference.getIsAssignedToTempVar()) {
             int tempVar = getAndAddTempVarCount(binaryOperator);
             ollirCode.append(getIndent()).append("t").append(tempVar).append(assignmentType).append(" :=").append(assignmentType).append(" ").append(result).append(";\n");
             return "t" + tempVar + assignmentType;
@@ -715,9 +716,9 @@ private int getTempVarCount() {
                         found = true;
                         break;
                     }
-                    else {
-                        operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
-                    }
+//                    else {
+//                        operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
+//                    }
                 }
                 if (found) {continue;}
                 for (var param : params) {
@@ -727,9 +728,12 @@ private int getTempVarCount() {
                         operationString.append(", ").append(param.getName()).append(argType);
                         break;
                     }
-                    else {
-                        operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
-                    }
+//                    else {
+//                        operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
+//                    }
+                }
+                if (!found) {
+                    operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
                 }
             }
         }
