@@ -303,7 +303,7 @@ private int getTempVarCount() {
         else if (assignmentNode.getJmmChild(0).getKind().equals("BinaryOp")) {
 
             String retstr = visit(assignmentNode.getJmmChild(0));
-            ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" ").append(retstr).append(";\n");
+            //ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" ").append(retstr).append(";\n");
             return retstr;
         }
 
