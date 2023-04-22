@@ -302,6 +302,9 @@ private int getTempVarCount() {
                     }
                 }
             }
+            if (varSymbol == null) {
+                varSymbol = st.getField(varid).getKey();  //in case of being a field
+            }
             //System.out.println("VAR SYMBOL: " + varSymbol);
             type = OllirUtils.getOllirType(varSymbol.getType());
         }
@@ -409,7 +412,7 @@ private int getTempVarCount() {
         //System.out.println("DEBUGGING RETURN NODE CHILD: " + exprNode);
 
 
-            String param_indexstring = "";
+        String param_indexstring = "";
         boolean varIsParam = false;
 
             if (parameterIndex != null) {
@@ -421,6 +424,12 @@ private int getTempVarCount() {
                 }
             }
 
+        var varField = st.getField(varName);
+        boolean varIsField = false;
+
+        if (varField != null) {
+            varIsField = true;
+        }
 
         //ollirCode.append(varName).append(varType);
 
@@ -428,6 +437,8 @@ private int getTempVarCount() {
 
         if (varIsParam) {
             str = param_indexstring + varName + varType;
+        } else if (varIsField) {
+            str = "getfield(this, " + varName + varType + ")" + varType;
         } else {
             str = varName + varType;
         }
