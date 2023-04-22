@@ -7,6 +7,7 @@ import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp2023.jmm.jasmin.JasminBuilder;
+import pt.up.fe.comp2023.ollir.JmmOptimizer;
 import pt.up.fe.specs.util.SpecsIo;
 import pt.up.fe.specs.util.SpecsLogs;
 import pt.up.fe.specs.util.SpecsSystem;
@@ -49,31 +50,53 @@ public class Launcher {
 
         JmmSemanticsResult semanticsResult = analysisStage.semanticAnalysis(parserResult);
 
-        /* CONVERTS ALL ELEMENTS TO STRING, READY TO BE MORE EASILY PRINTED */
-        List<String> reports = semanticsResult.getReports().stream().map(Report::toString).toList();
+//        /* CONVERTS ALL ELEMENTS TO STRING, READY TO BE MORE EASILY PRINTED */
+//        List<String> reports = semanticsResult.getReports().stream().map(Report::toString).toList();
+//
+//        /* REMOVE DUPLICATE STRINGS FROM REPORTS */
+//        reports = reports.stream().distinct().collect(Collectors.toList());
+//
+//        if (reports.size() > 0) {
+//            System.out.println("\nSemantic Analysis failed with " + reports.size() + " error(s):\n");
+//            for (var report : reports) {
+//                System.out.println("\t- " + report);
+//            }
+//            System.out.println("\n");
+//
+//            throw new RuntimeException("Semantic analysis failed.");
+//        }
 
-        /* REMOVE DUPLICATE STRINGS FROM REPORTS */
-        reports = reports.stream().distinct().collect(Collectors.toList());
-
-        if (reports.size() > 0) {
-            System.out.println("\nSemantic Analysis failed with " + reports.size() + " error(s):\n");
-            for (var report : reports) {
-                System.out.println("\t- " + report);
-            }
-            System.out.println("\n");
-
-            throw new RuntimeException("Semantic analysis failed.");
-        }
+        TestUtils.noErrors(semanticsResult);
 
         System.out.println(parserResult.getRootNode().toTree());
 
         System.out.println(semanticsResult.getSymbolTable().toString());
 
-        String ollirCode = SpecsIo.read("test/pt/up/fe/comp/cp2/apps/example_ollir/Simple.ollir");
-        OllirResult ollirResult = new OllirResult(ollirCode, Collections.emptyMap());
-        JasminBuilder jasminBuilder = new JasminBuilder();
-        JasminResult jasminResult = jasminBuilder.toJasmin(ollirResult);
+        var optimizer = new JmmOptimizer();
+
+        semanticsResult = optimizer.optimize(semanticsResult);
+
+        TestUtils.noErrors(semanticsResult);
+
+        var ollirResult = optimizer.toOllir(semanticsResult);
+
+        TestUtils.noErrors(ollirResult);
+
+        var jasminBuilder = new JasminBuilder();
+
+        var jasminResult = jasminBuilder.toJasmin(ollirResult);
+
         TestUtils.noErrors(jasminResult);
+
+        jasminResult.compile();
+
+        jasminResult.run();
+
+//        String ollirCode = SpecsIo.read("test/pt/up/fe/comp/cp2/apps/example_ollir/Simple.ollir");
+//        OllirResult ollirResult = new OllirResult(ollirCode, Collections.emptyMap());
+//        JasminBuilder jasminBuilder = new JasminBuilder();
+//        JasminResult jasminResult = jasminBuilder.toJasmin(ollirResult);
+//        TestUtils.noErrors(jasminResult);
 
     }
 
