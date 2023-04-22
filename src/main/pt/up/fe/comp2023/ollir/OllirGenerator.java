@@ -263,7 +263,13 @@ private int getTempVarCount() {
         //System.out.println("VISITING ASSIGNMENT NODE CHILDREN: " + assignmentNode.getChildren());
 
         String toAssign = assignmentNode.get("id");
+        boolean isField = false;
         var toAssignSymbol = st.getLocalVariableFromMethod(getCurrentMethodName(assignmentNode), toAssign);
+        if (toAssignSymbol == null) {
+            toAssignSymbol = st.getField(toAssign).getKey();
+            isField = true;
+            System.out.println("TO ASSIGN SYMBOL: " + toAssignSymbol);
+        }
         var toAssignType = OllirUtils.getOllirType(toAssignSymbol.getType());
 
         String type = "";
@@ -325,7 +331,13 @@ private int getTempVarCount() {
             type = toAssignType;
         }
 
-        ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" ");  //.append(str_assigned).append(";\n");  //append generally the assignment  structure, then each visitor will append the rhs
+        if (isField) {
+            ollirCode.append(getIndent()).append("putfield(this, ").append(toAssign).append(toAssignType).append(", ");
+        }
+        else {
+            ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" ");
+        }
+        //ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" ");  //.append(str_assigned).append(";\n");  //append generally the assignment  structure, then each visitor will append the rhs
 
         String str_assigned;
 
@@ -339,7 +351,14 @@ private int getTempVarCount() {
             //System.out.println("OLLIR CODE AFTER VISITING CHILD OF ASSIGNMENT NODE: " + ollirCode);
         }
 
-        ollirCode.append(";\n");
+        if (isField) {
+            ollirCode.append(").V;\n");
+        }
+        else {
+            ollirCode.append(";\n");
+        }
+
+        //ollirCode.append(";\n");
 
         if (assignmentNode.getJmmChild(0).getKind().equals("NewObject")) {
             ollirCode.append(getIndent()).append("invokespecial(").append(toAssign + toAssignType).append(", \"<init>\")").append(".V");
