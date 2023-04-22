@@ -148,6 +148,7 @@ private int getTempVarCount() {
 
         ollirCode.append(getIndent()).append("public ").append(st.getClassName());
         var superClassName = st.getSuper();
+        System.out.println("SUPERCLASSNAME: " + superClassName);
         if (superClassName != null) {
             ollirCode.append(" extends ").append(superClassName);
         }
@@ -351,7 +352,7 @@ private int getTempVarCount() {
         }
         else if(currentSCOPE.equals("METHOD") && currentMethod != null) {
             var _params = st.getParameters(currentMethod);
-            System.out.println("PARAMS: " + _params);
+            //System.out.println("PARAMS: " + _params);
             var variable = st.getLocalVariableFromMethod(varName, currentMethod);
             var variables = st.getLocalVariables(currentMethod);
             for (var v : variables) {
