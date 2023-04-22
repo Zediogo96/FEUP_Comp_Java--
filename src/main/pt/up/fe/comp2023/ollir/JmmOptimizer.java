@@ -25,10 +25,12 @@ public class JmmOptimizer implements JmmOptimization {
 
         var ollirCode = ollirGenerator.getOllirCode();
 
-        if (semanticsResult.getConfig().get("debug") != null
-                && semanticsResult.getConfig().get("debug").equals("true")) {
-            System.out.println(ollirCode);
-        }
+//        if (semanticsResult.getConfig().get("debug") != null
+//                && semanticsResult.getConfig().get("debug").equals("true")) {
+//        }
+        System.out.println(ollirCode);
+
+
 
         return new OllirResult(semanticsResult, ollirCode, Collections.emptyList());
     }

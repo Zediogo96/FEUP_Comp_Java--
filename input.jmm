@@ -1,29 +1,37 @@
 import io;
+class Simple {
 
-class B {
-    int a;
-    public int getA(){
-        return a;
-    }
-    public int setA(int aNew){
-        a = aNew;
-        return a;
+    public int add(int a, int b){
+        int t1;
+        t1 = a + b;
+        return t1;
     }
 
-    public int compare(B other){
-        int res;
-        if(other.getA() < this.getA())
-            res = 1;
-        else if(this.getA() < other.getA())
-            res = 0-1;
-        else res = 0;
-        return res;
+    public static void main(String[] args){
+        int a;
+        int b;
+        int c;
+        Simple s;
+        a = 20;
+        b = 10;
+        s = new Simple();
+        c = s.add(a,b);
+        io.println(c);
     }
 
-    public int test() {
-       this.a = this.getA() + 1;
-       B b;
-       b = new B();
-       b = this;
+    public int constInstr(){
+        int c;
+        c = 0;
+        c = 4;
+        c = 8;
+        c = 14;
+        c = 250;
+        c = 400;
+        c = 1000;
+        c = 100474650;
+		c = 10;
+        return c;
     }
+
+
 }

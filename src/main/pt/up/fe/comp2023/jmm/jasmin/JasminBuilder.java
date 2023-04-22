@@ -48,10 +48,10 @@ public class JasminBuilder implements JasminBackend {
     private String buildJasmin() {
         StringBuilder jasminBuilder = new StringBuilder();
 
-        jasminBuilder.append(".class ").append(this.classUnit.getClassName()).append("\n");
+        jasminBuilder.append(".class public ").append(this.classUnit.getClassName()).append("\n");
 
         this.superClass = this.classUnit.getSuperClass();
-        if (this.superClass == null) {
+        if (this.superClass == null || this.superClass.equals("Object")) {
             this.superClass = "java/lang/Object";
         }
 
@@ -633,7 +633,8 @@ public class JasminBuilder implements JasminBackend {
     }
 
     private String dealWithClassFullName(String classNameWithoutImports) {
-        if (classNameWithoutImports.equals("this")) {
+
+        if (classNameWithoutImports.equals("this") ) {
             return this.classUnit.getClassName();
         }
 
