@@ -304,6 +304,10 @@ private int getTempVarCount() {
             }
             if (varSymbol == null) {
                 varSymbol = st.getField(varid).getKey();  //in case of being a field
+                System.out.println("VAR SYMBOL IS FIELD: " + varSymbol);
+                var newTemp = getAndAddTempVarCount(assignmentNode);
+                var varType = OllirUtils.getOllirType(varSymbol.getType());
+                ollirCode.append(getIndent()).append("t").append(newTemp).append(varType).append(" :=").append(varType).append(" getfield(this, ").append(varSymbol.getName()).append(varType).append(")").append(OllirUtils.getOllirType(varSymbol.getType())).append(";\n");
             }
             //System.out.println("VAR SYMBOL: " + varSymbol);
             type = OllirUtils.getOllirType(varSymbol.getType());
@@ -426,6 +430,7 @@ private int getTempVarCount() {
 
         var varField = st.getField(varName);
         boolean varIsField = false;
+        var isAssignChild = variableNode.getAncestor("Assignment").isPresent();
 
         if (varField != null) {
             varIsField = true;
@@ -438,7 +443,12 @@ private int getTempVarCount() {
         if (varIsParam) {
             str = param_indexstring + varName + varType;
         } else if (varIsField) {
-            str = "getfield(this, " + varName + varType + ")" + varType;
+            //str = "getfield(this, " + varName + varType + ")" + varType;
+            var currentTemp = getTempVarCount();
+            str = "t" + currentTemp + varType;
+        } else if (varIsField && isAssignChild) {
+            var currentTemp = getTempVarCount();
+            str = "t" + currentTemp + varType;
         } else {
             str = varName + varType;
         }
@@ -709,7 +719,7 @@ private int getTempVarCount() {
         else {
             returnType = ".V";
             //get the return type of the actual method
-            System.out.println("DEBUGGING METHOD RETURN TYPE: " + st.getReturnType(getCurrentMethodName(methodCallNode)));
+            //System.out.println("DEBUGGING METHOD RETURN TYPE: " + st.getReturnType(getCurrentMethodName(methodCallNode)));
         }
 
         //list of args
