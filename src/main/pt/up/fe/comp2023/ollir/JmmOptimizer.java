@@ -18,7 +18,7 @@ public class JmmOptimizer implements JmmOptimization {
         boolean optimize = semanticsResult.getConfig().get("optimize") != null
                 && semanticsResult.getConfig().get("optimize").equals("true");
 
-        System.out.println("Generating OLLIR code...");
+        System.out.println("OLLIR code output...");
 
         var ollirGenerator = new OllirGenerator((MySymbolTable) semanticsResult.getSymbolTable(), optimize);
         ollirGenerator.visit(semanticsResult.getRootNode());
