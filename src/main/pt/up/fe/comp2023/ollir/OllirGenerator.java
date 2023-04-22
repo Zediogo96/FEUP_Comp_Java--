@@ -385,9 +385,33 @@ private int getTempVarCount() {
 
         }
 
+        //System.out.println("DEBUGGING RETURN NODE: " + returnNode);
+
+        //System.out.println("DEBUGGING RETURN NODE CHILD: " + exprNode);
+
+
+            String param_indexstring = "";
+        boolean varIsParam = false;
+
+            if (parameterIndex != null) {
+                var param_index = parameterIndex.get(variableNode.get("id"));
+                if (param_index != null) {
+                    param_index += 1;
+                    param_indexstring = "$" + param_index.toString() + ".";
+                    varIsParam = true;
+                }
+            }
+
+
         //ollirCode.append(varName).append(varType);
 
-        String str = varName + varType;
+        String str;
+
+        if (varIsParam) {
+            str = param_indexstring + varName + varType;
+        } else {
+            str = varName + varType;
+        }
 
         return str;
     }
@@ -444,6 +468,7 @@ private int getTempVarCount() {
         //System.out.println("VISITING RETURN" + returnNode);
 
         String exprnodeReturn = "";
+        boolean returnIsparam = false;
 
         //System.out.println("DEBUGGING RETURN NODE: " + returnNode);
         JmmNode exprNode = returnNode.getJmmChild(0);
@@ -453,19 +478,15 @@ private int getTempVarCount() {
             System.out.println("aaa");
         }
         else {
-            String param_indexstring = "";
+
             //System.out.println("DEBUGGING RETURN NODE CHILD: " + exprNode);
             exprnodeReturn = visit(exprNode);
             //System.out.println("What is coming from expr node?: " + exprnodeReturn);
 
-//            if (exprNode.getKind().equals("Variable")) {
-//                var param_index = parameterIndex.get(exprNode.get("id"));
-//                param_indexstring = "$" + param_index.toString() + ".";
-//            } TODO: check this later on
-
             String returnString = OllirUtils.getOllirType(st.getReturnType(getCurrentMethodName(returnNode))) + " ";
 
             String returnReg = exprnodeReturn;
+
             //System.out.println("DEBUUGING RETURN REGISTER: " + returnReg);
 
             ollirCode.append(getIndent()).append("ret").append(returnString)
