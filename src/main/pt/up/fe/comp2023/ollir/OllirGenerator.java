@@ -63,9 +63,6 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         this.optimize = optimize;
         this.indent = 0;
         this.tempVarCount = 0;
-        this.ifThenElseCount = 1;
-        this.whileCount = 1;
-
         //more things
     }
 
@@ -81,18 +78,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         return "\t".repeat(Math.max(0, this.indent));
     }
 
-
-    private int getAndAddIfThenElseCount() {
-        return this.ifThenElseCount++;
-    }
-
-    private int getAndAddWhileCount() {
-        return this.whileCount++;
-    }
-
     private int getAndAddTempVarCount(JmmNode node) {
-        //TODO: check if this is correct
-
         String currentMethod = getCurrentMethodName(node);
         Set<String> methodVars = getMethodVars(node);
 
@@ -137,7 +123,6 @@ private int getTempVarCount() {
         for (var importStr : st.getImports()) {
             //System.out.println("IMPORTS SUBLIST:" + importStr);
             sublists.add(importStr);
-
         }
 
         for (var importLower : sublists) {
@@ -163,7 +148,8 @@ private int getTempVarCount() {
 
         ollirCode.append(getIndent()).append("public ").append(st.getClassName());
         var superClassName = st.getSuper();
-        if (superClassName != null && !superClassName.equals("java.lang.Object")){
+        System.out.println("SUPERCLASSNAME: " + superClassName);
+        if (superClassName != null && !superClassName.equals("Object")) {
             ollirCode.append(" extends ").append(superClassName);
         }
         ollirCode.append(" {\n");
@@ -239,7 +225,6 @@ private int getTempVarCount() {
             }
         }
 
-
         //System.out.println("PARAMS: " + params);
 
         var paramCode = params.stream()
@@ -261,16 +246,8 @@ private int getTempVarCount() {
 
         for (var child : methodDeclChildren) {
             counter++;
-            System.out.println("Child of method declaration number: " + counter + " is: " + child);
-            if (counter == 7) {var type = child.getKind(); System.out.println("Type of child is: " + type); System.out.println("Children of child are: " + child.getChildren());}
+            //System.out.println("Child of method declaration number: " + counter + " is: " + child);
             visit(child);
-//            if (counter == 6) {
-//                var childofStmt = child.getJmmChild(0);
-//                //System.out.println("Child of statement is: " + childofStmt);
-//                var methodCallChildren = childofStmt.getChildren();
-//                //System.out.println("Children of method call are: " + methodCallChildren);
-//            }
-
         }
 
         this.removeIndent();
@@ -282,8 +259,8 @@ private int getTempVarCount() {
 
     private String visitAssignment(JmmNode assignmentNode, OllirInference inference) {
 
-        System.out.println("VISITING ASSIGNMENT NODE: " + assignmentNode);
-        System.out.println("VISITING ASSIGNMENT NODE CHILDREN: " + assignmentNode.getChildren());
+        //System.out.println("VISITING ASSIGNMENT NODE: " + assignmentNode);
+        //System.out.println("VISITING ASSIGNMENT NODE CHILDREN: " + assignmentNode.getChildren());
 
         String toAssign = assignmentNode.get("id");
         var toAssignSymbol = st.getLocalVariableFromMethod(getCurrentMethodName(assignmentNode), toAssign);
@@ -298,7 +275,6 @@ private int getTempVarCount() {
             type = ".bool";
         }
         else if (assignmentNode.getJmmChild(0).getKind().equals("Variable")) {
-
 
             String varid = assignmentNode.getJmmChild(0).get("id");
             //System.out.println("VAR ID: " + varid);
@@ -327,17 +303,7 @@ private int getTempVarCount() {
         else if (assignmentNode.getJmmChild(0).getKind().equals("BinaryOp")) {
 
             String retstr = visit(assignmentNode.getJmmChild(0));
-//            String varid = assignmentNode.getJmmChild(0).get("id");
-//            var localvars = st.getLocalVariables(getCurrentMethodName(assignmentNode));
-//
-//            Symbol varSymbol = null;
-//            for (var localvar : localvars) {
-//                if (localvar.getName().equals(varid)) {
-//                    varSymbol = localvar;
-//                }
-//            }
-//            //System.out.println("VAR SYMBOL: " + varSymbol);
-//            type = OllirUtils.getOllirType(varSymbol.getType());
+            ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(toAssignType).append(" ").append(retstr).append(";\n");
             return retstr;
         }
 
@@ -372,7 +338,6 @@ private int getTempVarCount() {
             ollirCode.append(";\n");
         }
 
-
         return "";
     }
 
@@ -388,7 +353,7 @@ private int getTempVarCount() {
         }
         else if(currentSCOPE.equals("METHOD") && currentMethod != null) {
             var _params = st.getParameters(currentMethod);
-            System.out.println("PARAMS: " + _params);
+            //System.out.println("PARAMS: " + _params);
             var variable = st.getLocalVariableFromMethod(varName, currentMethod);
             var variables = st.getLocalVariables(currentMethod);
             for (var v : variables) {
@@ -418,34 +383,6 @@ private int getTempVarCount() {
 
         return str;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     private String visitStmt(JmmNode stmt, OllirInference inference) {
         //System.out.println("VISITING STMT" + stmt);
@@ -504,7 +441,7 @@ private int getTempVarCount() {
         JmmNode exprNode = returnNode.getJmmChild(0);
         //System.out.println("DEBUGGING RETURN NODE CHILD: " + exprNode);
         if (exprNode == null) {
-            //return "null"; // or whatever default value you want to use
+            //return "null";
             System.out.println("aaa");
         }
         else {
@@ -516,7 +453,7 @@ private int getTempVarCount() {
 //            if (exprNode.getKind().equals("Variable")) {
 //                var param_index = parameterIndex.get(exprNode.get("id"));
 //                param_indexstring = "$" + param_index.toString() + ".";
-//            }
+//            } TODO: check this later on
 
             String returnString = OllirUtils.getOllirType(st.getReturnType(getCurrentMethodName(returnNode))) + " ";
 
@@ -531,19 +468,6 @@ private int getTempVarCount() {
 
         return "";
     }
-
-
-    //BINARY OPERATORS
-
-
-
-
-
-
-
-
-
-
 
     private String visitParameter(JmmNode parameterNode, OllirInference inference) {
 
@@ -561,8 +485,6 @@ private int getTempVarCount() {
         return "";
     }
 
-    //reorder this
-
     private String integerVisit(JmmNode integerNode, OllirInference inference) {
         //System.out.println("DEBUGGING INTEGER NODE"  + integerNode.get("value"));
         var value = integerNode.get("value");
@@ -575,18 +497,6 @@ private int getTempVarCount() {
         var value = boolNode.get("value");  //TODO: check if this is correct with OllirUtils
         var str = value + ".bool";
         return str;
-    }
-
-    private String NegationVisit(JmmNode negationNode, OllirInference inference) {
-        String toNegate = visit(negationNode.getJmmChild(0), new OllirInference(".bool", true));
-        String opStr = "!.bool " + toNegate;
-        if (inference == null || inference.getIsAssignedToTempVar()) {
-            int tempVar = getAndAddTempVarCount(negationNode);  //TODO: correct this
-            ollirCode.append(getIndent()).append("t").append(tempVar).append(".bool").append(" :=.bool ").append(opStr).append(";\n");
-            return "t" + tempVar;
-        } else {
-            return opStr;
-        }
     }
 
     private String visitVarDecl(JmmNode varDeclNode, OllirInference inference) {
@@ -634,32 +544,32 @@ private int getTempVarCount() {
 //            }
 //        }
 
-
         //TODO: This is commented because of var declaration walkover
         return "";
     }
 
-
-
-
-
-
-
     private String visitBinaryOperator(JmmNode binaryOperator, OllirInference inference) {
         //System.out.println("VISITING BINARY OPERATOR" + binaryOperator);
 
-        System.out.println("DEBUG OP" + binaryOperator.get("op"));
+        //System.out.println("DEBUG OP" + binaryOperator.get("op"));
+
+        var parentRet = binaryOperator.getAncestor("ReturnStmt").isPresent();
+        System.out.println("DEBUG PARENT RET" + parentRet);
 
         String op = binaryOperator.get("op");
         String opstring = OllirUtils.getOperator(op);
         var assignmentType = OllirUtils.getOperatorType(op);
 
         String left = visit(binaryOperator.getJmmChild(0), new OllirInference(assignmentType, true));
-        System.out.println("DEBUG LEFT" + binaryOperator.getJmmChild(0) + left);
+        //System.out.println("DEBUG LEFT" + binaryOperator.getJmmChild(0) + left);
         String right = visit(binaryOperator.getJmmChild(1), new OllirInference(assignmentType, true));
-        System.out.println("DEBUG RIGHT" + binaryOperator.getJmmChild(0) + right);
+        //System.out.println("DEBUG RIGHT" + binaryOperator.getJmmChild(0) + right);
 
         String result = left + " " + opstring + " " + right;
+
+        if (inference == null && !parentRet) {
+            return result;
+        }
 
         if (inference == null || inference.getIsAssignedToTempVar()) {
             int tempVar = getAndAddTempVarCount(binaryOperator);
@@ -679,11 +589,10 @@ private int getTempVarCount() {
         String left = visit(relationalOperator.getJmmChild(0));
         String right = visit(relationalOperator.getJmmChild(1));;
 
-        System.out.println("Left: " + left);
-        System.out.println("Right: " + right);
+        //System.out.println("Left: " + left);
+        //System.out.println("Right: " + right);
 
         String result = left + " " + opstring + " " + right;
-
 
         return result;
     }
@@ -693,42 +602,13 @@ private int getTempVarCount() {
 
     private String visitAccessMethod(JmmNode methodCallNode, OllirInference inference) {
 
-        System.out.println("DEBUGGING METHODCALL NODE: " + methodCallNode);
+        //System.out.println("DEBUGGING METHODCALL NODE: " + methodCallNode);
 
         var externalMethodParams = st.getParameters(getCurrentMethodName(methodCallNode));
 
         //System.out.println("DEBUGGING EXTERNAL METHOD PARAMS: " + externalMethodParams);
 
         //System.out.println("CHILD = " + methodCallNode.getChildren());
-
-        //passar esta parte para expression
-
-        // if parent node is of this type TODO: This part is for THIS
-
-//        var ancestor = methodCallNode.getAncestor("This");
-//        System.out.println("DEBUGGING ANCESTOR: " + ancestor);
-//
-//        if (methodCallNode.getAncestor("This").isPresent()) {
-//            System.out.println(methodCallNode);
-//        }
-
-
-
-//        else if (methodCallNode.getAncestor("MethodCall").isPresent()) {
-//            //visit methodcall
-//            System.out.println("DEBUGGING METHODCALL");
-//        }
-
-//        var firstChildKind = methodCallNode.getJmmChild(0).getKind();
-//
-//        if (firstChildKind.equals("This")) {
-//            //visit this
-//            System.out.println("DEBUGGING THIS");
-//        }
-//        else if (firstChildKind.equals("MethodCall")) {
-//            //visit methodcall
-//            System.out.println("DEBUGGING METHODCALL");
-//        }
 
         //method call like io.println(a)
         var parent = methodCallNode.getAncestor("Assignment");
@@ -752,9 +632,9 @@ private int getTempVarCount() {
 //        toAssignType = OllirUtils.getOllirType(toAssignSymbol.getType());
 
         String firstArg = methodCallNode.getJmmChild(0).get("id");  //get the first identifier of the method call, like io in io.println(a)
-        System.out.println("DEBUGGING FIRST ARG: " + firstArg);
+        //System.out.println("DEBUGGING FIRST ARG: " + firstArg);
         String methodId = methodCallNode.getJmmChild(1).get("id");  //get the method identifier, like println in io.println(a)
-        System.out.println("DEBUGGING METHOD ID: " + methodId);
+        //System.out.println("DEBUGGING METHOD ID: " + methodId);
         //System.out.println("DEBUGGING METHOD ID" + methodId);
         //String methodName = methodCallNode.get("method");  //get the method name, like println in io.println(a)
         //for loop to visit the rest of the children
@@ -773,9 +653,6 @@ private int getTempVarCount() {
             System.out.println("DEBUGGING METHOD RETURN TYPE: " + st.getReturnType(getCurrentMethodName(methodCallNode)));
         }
 
-        //System.out.println("DEBUGGING INVOKE TYPE: " + invokeType);
-        //System.out.println("DEBUGGING METHOD ID: " + methodId);
-
         //list of args
         List<String> argsList = new ArrayList<>();
 
@@ -788,18 +665,7 @@ private int getTempVarCount() {
         boolean addIndentToNewObject = false;
 
         for (int i = 2; i < methodCallNode.getChildren().size(); i++) {
-            //System.out.println("DEBUGGING METHODCALL CHILDREN AAA: " + methodCallNode.getJmmChild(i));
-//            if (((methodCallNode.getJmmChild(i).getKind().equals("Integer")||methodCallNode.getJmmChild(i).getKind().equals("Boolean")))){
-//                argsJmm.add(methodCallNode.getJmmChild(i));
-//            }
-//            System.out.println("DEBUGGING METHODCALL CHILDREN: " + methodCallNode.getJmmChild(i));
-//            if (methodCallNode.getJmmChild(i).getKind().equals("Integer")) {
-//                //print type
-//                System.out.println("DEBUGGING TYPE: " + methodCallNode.getJmmChild(i).getKind());
-//            }
-//            else {
-//                argsList.add(methodCallNode.getJmmChild(i).get("id"));
-//            }
+
             argsJmm.add(methodCallNode.getJmmChild(i));
             if (methodCallNode.getJmmChild(i).getKind().equals("NewObject")) {
                 var tvar = visit(methodCallNode.getJmmChild(i));
@@ -857,9 +723,9 @@ private int getTempVarCount() {
                         found = true;
                         break;
                     }
-                    else {
-                        operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
-                    }
+//                    else {
+//                        operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
+//                    }
                 }
                 if (found) {continue;}
                 for (var param : params) {
@@ -869,9 +735,12 @@ private int getTempVarCount() {
                         operationString.append(", ").append(param.getName()).append(argType);
                         break;
                     }
-                    else {
-                        operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
-                    }
+//                    else {
+//                        operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
+//                    }
+                }
+                if (!found) {
+                    operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
                 }
             }
         }
@@ -883,56 +752,6 @@ private int getTempVarCount() {
             operationString.append(")").append(returnType);
         }
 
-        //System.out.println("DEBUGGING OPERATION STRING: " + operationString);
-
-        //System.out.println("DEBUGGING ARGS LIST: " + argsList);
-
-
-
-        //parse the children of the method call to get the arguments, but ignore the first one, which is the identifier
-
-//        String args = "";
-//        List<String> argsList = new ArrayList<>();
-//        for (int i = 1; i < methodCallNode.getChildren().size(); i++) {
-//            args += visit(methodCallNode.getJmmChild(i));
-//            argsList.add(visit(methodCallNode.getJmmChild(i)));
-//            if (i != methodCallNode.getChildren().size() - 1) {
-//                args += ", ";
-//            }
-//        }
-
-        //System.out.println("DEBUGGING ARGS: " + args);
-        //System.out.println("DEBUGGING ARGS LIST: " + argsList);
-
-//        List<Symbol> argsSymbols = new ArrayList<>();
-
-//        var localvars = st.getLocalVariables(getCurrentMethodName(methodCallNode));
-//
-//        //System.out.println("DEBUGGING LOCAL VARS: " + localvars);
-//
-//        for (var localvar : localvars) {
-//            for (var arg : argsList) {
-//                if (localvar.getName().equals(arg)) {
-//                    argsSymbols.add(localvar);
-//                }
-//            }
-//        }
-//
-//        System.out.println("DEBUGGING ARGS SYMBOLS: " + argsSymbols);
-//
-//        StringBuilder operationString = new StringBuilder(invokeType + "(" + firstArg + ", \"" + methodId + "\"");
-
-//        for (var arg : argsSymbols) {
-//            String argType = OllirUtils.getOllirType(arg.getType());
-//            operationString.append(", ").append(arg.getName()).append(argType);
-//        }
-//
-//        operationString.append(")").append(returnType);
-//
-//        System.out.println("DEBUGGING OPERATION STRING: " + operationString);
-//
-//        //convert strigbuilder to string
-//
         String opstring = operationString.toString();
 
         if (parent.isPresent()) {
@@ -944,10 +763,6 @@ private int getTempVarCount() {
 
         return "";
     }
-
-
-
-
 
     private String visitMethodCall(JmmNode methodCallNode, OllirInference inference) {
 
@@ -1012,16 +827,6 @@ private int getTempVarCount() {
 
         return "";
     }
-
-
-
-
-
-
-
-
-
-
 
     private String visitThis(JmmNode thisNode, OllirInference inference) {
         System.out.println("VISITING THIS");

@@ -10,10 +10,6 @@ import java.util.stream.Collectors;
 
 public class OllirUtils {
 
-
-
-
-
     public static String getOllirType(Type jmmType) {
         //System.out.println(jmmType.getName());
         switch (jmmType.getName()) {

@@ -51,8 +51,7 @@ public class JasminBuilder implements JasminBackend {
         jasminBuilder.append(".class public ").append(this.classUnit.getClassName()).append("\n");
 
         this.superClass = this.classUnit.getSuperClass();
-
-        if (this.superClass == null || this.superClass.equals("java.lang.Object")) {
+        if (this.superClass == null || this.superClass.equals("Object")) {
             this.superClass = "java/lang/Object";
         }
 
