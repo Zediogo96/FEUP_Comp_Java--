@@ -564,7 +564,7 @@ private int getTempVarCount() {
 
         String result = left + " " + opstring + " " + right;
 
-        if (inference != null && inference.getIsAssignedToTempVar()) {
+        if (inference == null || inference.getIsAssignedToTempVar()) {
             int tempVar = getAndAddTempVarCount(binaryOperator);
             ollirCode.append(getIndent()).append("t").append(tempVar).append(assignmentType).append(" :=").append(assignmentType).append(" ").append(result).append(";\n");
             return "t" + tempVar + assignmentType;
