@@ -303,7 +303,7 @@ private int getTempVarCount() {
         else if (assignmentNode.getJmmChild(0).getKind().equals("BinaryOp")) {
 
             String retstr = visit(assignmentNode.getJmmChild(0));
-            //ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" ").append(retstr).append(";\n");
+            ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(toAssignType).append(" ").append(retstr).append(";\n");
             return retstr;
         }
 
@@ -553,6 +553,9 @@ private int getTempVarCount() {
 
         //System.out.println("DEBUG OP" + binaryOperator.get("op"));
 
+        var parentRet = binaryOperator.getAncestor("ReturnStmt").isPresent();
+        System.out.println("DEBUG PARENT RET" + parentRet);
+
         String op = binaryOperator.get("op");
         String opstring = OllirUtils.getOperator(op);
         var assignmentType = OllirUtils.getOperatorType(op);
@@ -563,6 +566,10 @@ private int getTempVarCount() {
         //System.out.println("DEBUG RIGHT" + binaryOperator.getJmmChild(0) + right);
 
         String result = left + " " + opstring + " " + right;
+
+        if (inference == null && !parentRet) {
+            return result;
+        }
 
         if (inference == null || inference.getIsAssignedToTempVar()) {
             int tempVar = getAndAddTempVarCount(binaryOperator);
