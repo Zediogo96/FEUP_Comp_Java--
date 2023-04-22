@@ -246,7 +246,7 @@ private int getTempVarCount() {
 
         for (var child : methodDeclChildren) {
             counter++;
-            //System.out.println("Child of method declaration number: " + counter + " is: " + child);
+            System.out.println("Child of method declaration number: " + counter + " is: " + child);
             visit(child);
         }
 
@@ -317,14 +317,22 @@ private int getTempVarCount() {
             type = toAssignType;
         }
 
+        else if (assignmentNode.getJmmChild(0).getKind().equals("MethodCall")){
+            type = toAssignType;
+        }
+
+        else if (assignmentNode.getJmmChild(0).getKind().equals("This")){
+            type = toAssignType;
+        }
+
         ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" ");  //.append(str_assigned).append(";\n");  //append generally the assignment  structure, then each visitor will append the rhs
 
         String str_assigned;
 
         for (JmmNode child : assignmentNode.getChildren()) {
-            System.out.println("VISITING CHILD OF ASSIGNMENT NODE: " + child);
+            //System.out.println("VISITING CHILD OF ASSIGNMENT NODE: " + child);
             String returnstr = visit(child);
-            System.out.println("RETURN STR: " + returnstr);
+            //System.out.println("RETURN STR: " + returnstr);
             if (!child.getKind().equals("NewObject")) {
                 ollirCode.append(returnstr);
             }
@@ -554,7 +562,7 @@ private int getTempVarCount() {
         //System.out.println("DEBUG OP" + binaryOperator.get("op"));
 
         var parentRet = binaryOperator.getAncestor("ReturnStmt").isPresent();
-        System.out.println("DEBUG PARENT RET" + parentRet);
+        //System.out.println("DEBUG PARENT RET" + parentRet);
 
         String op = binaryOperator.get("op");
         String opstring = OllirUtils.getOperator(op);
@@ -808,7 +816,18 @@ private int getTempVarCount() {
 
         System.out.println("DEBUGGING ARGS SYMBOLS: " + argsSymbols);
 
-        StringBuilder operationString = new StringBuilder(invokeType + "(" + "\"" + methodId + "\"");
+        var parent = methodCallNode.getAncestor("This").isPresent();
+
+        StringBuilder operationString = new StringBuilder();
+
+        if (parent) {
+            operationString = new StringBuilder(invokeType + "(this, " + "\"" + methodId + "\"");
+        }
+        else {
+            operationString = new StringBuilder(invokeType + "(" + "\"" + methodId + "\"");
+        }
+
+        //StringBuilder operationString = new StringBuilder(invokeType + "(" + "\"" + methodId + "\"");
 
         for (var arg : argsSymbols) {
             String argType = OllirUtils.getOllirType(arg.getType());
@@ -818,6 +837,10 @@ private int getTempVarCount() {
         operationString.append(")").append(returnType);
 
         System.out.println("DEBUGGING OPERATION STRING: " + operationString);
+
+        if (parent) {
+            return operationString.toString();
+        }
 
         //convert strigbuilder to string
 
@@ -857,6 +880,17 @@ private int getTempVarCount() {
                 var2Type = ".bool";
             }
             ollirCode.append(getIndent()).append("putfield(this,").append(thisNode.getJmmChild(0).get("id")).append(classField0Type).append(",").append(thisNode.getJmmChild(1).get("value")).append(var2Type).append(").V;\n");
+        }
+        else if (thisNode.getJmmChild(0).getKind().equals("MethodCall")) {
+            System.out.println("bbb");
+            var methodCallNode = thisNode.getJmmChild(0);
+            var returnType = OllirUtils.getOllirType(st.getReturnType(getCurrentMethodName(methodCallNode)));
+            var methodCall = visit(thisNode.getJmmChild(0)); //visit the method call
+            var newTemp = getAndAddTempVarCount(thisNode);
+            ollirCode.append(getIndent()).append("t").append(newTemp).append(returnType).append(" :=").append(returnType).append(" ").append(methodCall).append(";\n");
+
+            //ollirCode.append(getIndent()).append("invokevirtual(this,").append(thisNode.getJmmChild(0).get("method")).append(")").append(";\n");
+            return "t" + newTemp + returnType; //para ir para o assignment
         }
         else {
             ollirCode.append("this.").append("putfield(this,").append(thisNode.getJmmChild(0).get("id")).append(");\n");;
