@@ -446,9 +446,10 @@ private int getTempVarCount() {
             //str = "getfield(this, " + varName + varType + ")" + varType;
             var currentTemp = getTempVarCount();
             str = "t" + currentTemp + varType;
-        } else if (varIsField && isAssignChild) {
-            var currentTemp = getTempVarCount();
-            str = "t" + currentTemp + varType;
+            if (isAssignChild) {
+                // ollir append assign temp var to getfield
+                ollirCode.append(getIndent()).append(str).append(" :=").append(varType).append(" getfield(this, ").append(varName).append(varType).append(")").append(varType).append(";\n");
+            }
         } else {
             str = varName + varType;
         }
