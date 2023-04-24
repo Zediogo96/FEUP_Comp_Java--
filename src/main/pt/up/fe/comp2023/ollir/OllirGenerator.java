@@ -444,6 +444,7 @@ private int getTempVarCount() {
             str = param_indexstring + varName + varType;
         } else if (varIsField) {
             //str = "getfield(this, " + varName + varType + ")" + varType;
+            ollirCode.append(getIndent()).append("t").append(getAndAddTempVarCount(variableNode)).append(varType).append(" :=").append(varType).append(" getfield(this, ").append(varName).append(varType).append(")").append(varType).append(";\n");
             var currentTemp = getTempVarCount();
             str = "t" + currentTemp + varType;
             if (isAssignChild) {
@@ -673,7 +674,7 @@ private int getTempVarCount() {
 
     private String visitAccessMethod(JmmNode methodCallNode, OllirInference inference) {
 
-        System.out.println("CHILD OF METHOD CALL: " + methodCallNode.getChildren());
+        //System.out.println("CHILD OF METHOD CALL: " + methodCallNode.getChildren());
 
         //System.out.println("DEBUGGING METHODCALL NODE: " + methodCallNode);
 
@@ -822,6 +823,14 @@ private int getTempVarCount() {
 //                    else {
 //                        operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
 //                    }
+                }
+                if (found) {continue;}
+                var argField = st.getField(arg.get("id")).getKey();
+                if (argField != null) {
+                    String argType = OllirUtils.getOllirType(argField.getType());
+                    ollirCode.append(getIndent()).append("t").append(getTempVarCount()).append(argType).append(" :=").append(argType).append(" getfield(this, ").append(arg.get("id")).append(argType).append(")").append(argType).append(";\n");
+                    operationString.append(", ").append("t").append(getTempVarCount()).append(argType);
+                    found = true;
                 }
                 if (!found) {
                     operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
