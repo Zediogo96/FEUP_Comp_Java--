@@ -461,6 +461,7 @@ private int getTempVarCount() {
         //System.out.println("VISITING STMT" + stmt);
 
         for (var child : stmt.getChildren()) {
+            System.out.println("VISITING CHILD OF STMT: " + child);
             var childreturn = visit(child);
             //if (childreturn == "") {System.out.println("CHILD RETURN IS EMPTY: VISITED EXPRESSION DERIVING FROM STMT ");}
             //System.out.println("CHILD RETURN: " + childreturn);
@@ -672,6 +673,8 @@ private int getTempVarCount() {
 
     private String visitAccessMethod(JmmNode methodCallNode, OllirInference inference) {
 
+        System.out.println("CHILD OF METHOD CALL: " + methodCallNode.getChildren());
+
         //System.out.println("DEBUGGING METHODCALL NODE: " + methodCallNode);
 
         var externalMethodParams = st.getParameters(getCurrentMethodName(methodCallNode));
@@ -734,6 +737,8 @@ private int getTempVarCount() {
 
         boolean addIndentToNewObject = false;
 
+        boolean opInsideCall = false;
+
         for (int i = 2; i < methodCallNode.getChildren().size(); i++) {
 
             argsJmm.add(methodCallNode.getJmmChild(i));
@@ -743,6 +748,10 @@ private int getTempVarCount() {
                 argsList.add(tvar);
                 addIndentToNewObject = true;
                 //argsList.add(methodCallNode.getJmmChild(i).get("tvar"));
+            }
+            if (methodCallNode.getJmmChild(i).getKind().equals("BinaryOp")) {
+                opInsideCall = true;
+                //visit(methodCallNode.getJmmChild(i), new OllirInference(returnType, true));
             }
 
         }
@@ -778,6 +787,11 @@ private int getTempVarCount() {
             }
             else if (arg.getKind().equals("Boolean")){
                 operationString.append(", ").append(arg.get("value")).append(".bool");
+            }
+            else if (arg.getKind().equals("BinaryOp")) {
+                var ret = visit(arg, new OllirInference(returnType, true));
+                System.out.println("DEBUGGING RET: " + ret);
+                operationString.append(", ").append(ret);
             }
             else {
                 //System.out.println("ENTERED INLINE CLASS");
