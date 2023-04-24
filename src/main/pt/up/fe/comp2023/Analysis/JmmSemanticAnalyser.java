@@ -276,7 +276,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         if (currentSCOPE.equals("MAIN")) {
             for (Symbol field : st.getFields()) {
-                if (field.getName().equals(node.get("id"))) {
+                if (field.getName().equals(node.get("id")) && (currentMethod.getLocalVariable(node.get("id")) == null)) {
                     reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Cannot assign value to a field in the main method: " + node.get("id")));
                     return Map.entry("error", "null");
                 }
