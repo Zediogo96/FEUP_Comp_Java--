@@ -360,7 +360,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         /* CHECK IF node.get("name") already exists in current method */
         if (currentMethod != null) {
             String varName = node.get("name");
-            if (currentMethod.getParameters().stream().anyMatch(s -> s.getName().equals(varName))) {
+            if (currentMethod.getParameters().stream().anyMatch(s -> s.getName().equals(varName)) && st.getField(varName) != null) {
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Variable '" + varName + "' already declared in current scope"));
                 return Map.entry("error", "null");
             }
