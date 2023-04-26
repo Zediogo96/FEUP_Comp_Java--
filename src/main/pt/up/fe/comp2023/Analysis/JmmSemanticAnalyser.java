@@ -78,13 +78,16 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             }
         }
 
+        System.out.println("Method: " + methodReturn);
+        System.out.println("Object: " + objectReturn);
+
         if (methodReturn.getKey().equals("error")) {
 
             if (objectReturn.getKey().contains("imported") || (st.getSuper() != null && st.getImportsAsList().contains(st.getSuper()))) {
                 return Map.entry("access", "null");
             } else if (st.getImportsAsList().contains(object.get("id"))) {
                 return Map.entry("access", "null");
-            } else if (objectReturn.getKey().equals(st.getClassName()) && (st.getMethod(method.get("id")) != null)) {
+            } else if ((st.getMethod(method.get("id")) != null)) {
 
                 List<Type> argumentsNames = st.getMethod(method.get("id")).getParameters().stream().map(Symbol::getType).toList();
                 List<String> argumentsTypeNames = argumentsNames.stream().map(Type::getName).toList();

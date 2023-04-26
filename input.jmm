@@ -8,11 +8,16 @@ class A {
        c = a + b;
     }
 
-    public int bar() {
-        return foo(a,b);
-    }
-
     public static void main(String[] args){
+        A teste;
 
+        int a;
+
+        a = 1;
+        int b;
+        b = 2;
+        teste = new A();
+
+        a.foo(a,b);
     }
 }
