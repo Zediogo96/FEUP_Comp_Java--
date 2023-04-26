@@ -588,6 +588,15 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
 
         returnType = returnType.replace("(imported)", "");
 
+        System.out.println();
+
+        if (returnType.equals("method")) {
+            returnType = st.getMethod(node.getChildren().get(0).get("method")).getReturnType().getName();
+        }
+
+        System.out.println("RETURN TYPE: " + returnType);
+        System.out.println("Curr M ret: " + currentMethod.getReturnType());
+
         if (!returnType.equals(currentMethod.getReturnType().getName().replace("(imported)", ""))) {
 
             reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types on return statement: '" + currentMethod.getReturnType().getName() + "' and '" + returnType + "'"));

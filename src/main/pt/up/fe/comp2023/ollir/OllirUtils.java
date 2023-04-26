@@ -124,7 +124,7 @@ public class OllirUtils {
     }
 
     public static String getDefaultVarDecl(Type jmmType) {
-        //System.out.println(jmmType.getName());
+        //System.out.println(jmmType.getName(invoke));
         switch (jmmType.getName()) {
             case "int" -> {
                 return " :=.i32 0.i32";
