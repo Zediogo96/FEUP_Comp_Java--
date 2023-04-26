@@ -913,7 +913,7 @@ private int getTempVarCount() {
             operationString = new StringBuilder(invokeType + "(this, " + "\"" + methodId + "\"");
         }
         else {
-            operationString = new StringBuilder(invokeType + "(" + "\"" + methodId + "\"");
+            operationString = new StringBuilder(invokeType + "(this," + "\"" + methodId + "\"");
         }
 
         //StringBuilder operationString = new StringBuilder(invokeType + "(" + "\"" + methodId + "\"");
