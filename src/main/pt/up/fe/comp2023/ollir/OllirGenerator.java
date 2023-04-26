@@ -717,9 +717,13 @@ private int getTempVarCount() {
         //String returnType = OllirUtils.getOllirType(st.getReturnType(getCurrentMethodName(methodCallNode))) + " ";
         String returnType = "";
 
+        var methodSymbol = st.getMethod(methodId);
 
         if (parent.isPresent()) {
             returnType = toAssignType;
+        }
+        else if (methodSymbol != null) {
+            returnType = OllirUtils.getOllirType(methodSymbol.getReturnType());
         }
         else {
             returnType = ".V";
