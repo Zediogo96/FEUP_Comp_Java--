@@ -676,7 +676,7 @@ private int getTempVarCount() {
 
         //System.out.println("CHILD OF METHOD CALL: " + methodCallNode.getChildren());
 
-        //System.out.println("DEBUGGING METHODCALL NODE: " + methodCallNode);
+        System.out.println("DEBUGGING METHODCALL NODE: " + methodCallNode);
 
         var externalMethodParams = st.getParameters(getCurrentMethodName(methodCallNode));
 
@@ -821,7 +821,8 @@ private int getTempVarCount() {
                     if (arg.get("id").equals(param.getName())){
                         //System.out.println("GOT PARAM C CORRECTLY");
                         String argType = OllirUtils.getOllirType(param.getType());
-                        operationString.append(", ").append(param.getName()).append(argType);
+                        operationString.append(", ").append("$").append(parameterIndex.get(param.getName())+1).append(".").append(param.getName()).append(argType);
+                        found = true;
                         break;
                     }
 //                    else {
@@ -913,7 +914,8 @@ private int getTempVarCount() {
             operationString = new StringBuilder(invokeType + "(this, " + "\"" + methodId + "\"");
         }
         else {
-            operationString = new StringBuilder(invokeType + "(this," + "\"" + methodId + "\"");
+            operationString = new StringBuilder(invokeType + "(" + "\"" + methodId + "\"");
+            operationString = new StringBuilder(invokeType + "(" + "\"" + methodId + "\"");
         }
 
         //StringBuilder operationString = new StringBuilder(invokeType + "(" + "\"" + methodId + "\"");
