@@ -148,7 +148,7 @@ private int getTempVarCount() {
 
         ollirCode.append(getIndent()).append("public ").append(st.getClassName());
         var superClassName = st.getSuper();
-        System.out.println("SUPERCLASSNAME: " + superClassName);
+        //System.out.println("SUPERCLASSNAME: " + superClassName);
         if (superClassName != null && !superClassName.equals("Object")) {
             ollirCode.append(" extends ").append(superClassName);
         }
@@ -246,7 +246,7 @@ private int getTempVarCount() {
 
         for (var child : methodDeclChildren) {
             counter++;
-            System.out.println("Child of method declaration number: " + counter + " is: " + child);
+            //System.out.println("Child of method declaration number: " + counter + " is: " + child);
             visit(child);
         }
 
@@ -268,7 +268,7 @@ private int getTempVarCount() {
         if (toAssignSymbol == null) {
             toAssignSymbol = st.getField(toAssign).getKey();
             isField = true;
-            System.out.println("TO ASSIGN SYMBOL: " + toAssignSymbol);
+            //System.out.println("TO ASSIGN SYMBOL: " + toAssignSymbol);
         }
         var toAssignType = OllirUtils.getOllirType(toAssignSymbol.getType());
 
@@ -304,7 +304,7 @@ private int getTempVarCount() {
             }
             if (varSymbol == null) {
                 varSymbol = st.getField(varid).getKey();  //in case of being a field
-                System.out.println("VAR SYMBOL IS FIELD: " + varSymbol);
+                //System.out.println("VAR SYMBOL IS FIELD: " + varSymbol);
                 var newTemp = getAndAddTempVarCount(assignmentNode);
                 var varType = OllirUtils.getOllirType(varSymbol.getType());
                 ollirCode.append(getIndent()).append("t").append(newTemp).append(varType).append(" :=").append(varType).append(" getfield(this, ").append(varSymbol.getName()).append(varType).append(")").append(OllirUtils.getOllirType(varSymbol.getType())).append(";\n");
@@ -676,7 +676,7 @@ private int getTempVarCount() {
 
         //System.out.println("CHILD OF METHOD CALL: " + methodCallNode.getChildren());
 
-        System.out.println("DEBUGGING METHODCALL NODE: " + methodCallNode);
+        //System.out.println("DEBUGGING METHODCALL NODE: " + methodCallNode);
 
         var externalMethodParams = st.getParameters(getCurrentMethodName(methodCallNode));
 
@@ -795,7 +795,7 @@ private int getTempVarCount() {
             }
             else if (arg.getKind().equals("BinaryOp")) {
                 var ret = visit(arg, new OllirInference(returnType, true));
-                System.out.println("DEBUGGING RET: " + ret);
+                //System.out.println("DEBUGGING RET: " + ret);
                 operationString.append(", ").append(ret);
             }
             else {
@@ -866,7 +866,7 @@ private int getTempVarCount() {
 
         //System.out.println("DEBUGGING METHODCALL NODE: " + methodCallNode);
 
-        System.out.println("CHILD = " + methodCallNode.getChildren());
+        //System.out.println("CHILD = " + methodCallNode.getChildren());
 
         String firstArg = "";
         String methodId = methodCallNode.get("method");  //get the method identifier, like println in io.println(a)
@@ -880,7 +880,7 @@ private int getTempVarCount() {
 
         for (var child : methodCallNode.getChildren()) {
             //argsList.add(methodCallNode.getJmmChild(i).get("id"));
-            System.out.println("DEBUGGING CHILD: " + child);
+            //System.out.println("DEBUGGING CHILD: " + child);
             argsList.add(child.get("id"));
         }
 
@@ -904,7 +904,7 @@ private int getTempVarCount() {
             }
         }
 
-        System.out.println("DEBUGGING ARGS SYMBOLS: " + argsSymbols);
+        //System.out.println("DEBUGGING ARGS SYMBOLS: " + argsSymbols);
 
         var parent = methodCallNode.getAncestor("This").isPresent();
 
@@ -927,7 +927,7 @@ private int getTempVarCount() {
 
         operationString.append(")").append(returnType);
 
-        System.out.println("DEBUGGING OPERATION STRING: " + operationString);
+        //System.out.println("DEBUGGING OPERATION STRING: " + operationString);
 
         if (parent) {
             return operationString.toString();
@@ -943,10 +943,10 @@ private int getTempVarCount() {
     }
 
     private String visitThis(JmmNode thisNode, OllirInference inference) {
-        System.out.println("VISITING THIS");
+        //System.out.println("VISITING THIS");
 
         for (JmmNode child : thisNode.getChildren()) {
-            System.out.println("THIS CHILD = " + child);
+            //System.out.println("THIS CHILD = " + child);
 
 
             visit(child);
@@ -960,7 +960,7 @@ private int getTempVarCount() {
             ollirCode.append(getIndent()).append("putfield(this,").append(thisNode.getJmmChild(0).get("id")).append(classField0Type).append(",").append(thisNode.getJmmChild(1).get("id")).append(classField1Type).append(");\n");
         }
         else if (thisNode.getJmmChild(0).getKind().equals("Variable") && !thisNode.getJmmChild(1).getKind().equals("Variable")) {
-            System.out.println("aaa");
+            //System.out.println("aaa");
             var classField0 = st.getField(thisNode.getJmmChild(0).get("id"));
             var classField0Type = OllirUtils.getOllirType(classField0.getKey().getType());
             var var2Type = "";
@@ -973,7 +973,6 @@ private int getTempVarCount() {
             ollirCode.append(getIndent()).append("putfield(this,").append(thisNode.getJmmChild(0).get("id")).append(classField0Type).append(",").append(thisNode.getJmmChild(1).get("value")).append(var2Type).append(").V;\n");
         }
         else if (thisNode.getJmmChild(0).getKind().equals("MethodCall")) {
-            System.out.println("bbb");
             var methodCallNode = thisNode.getJmmChild(0);
             var returnType = OllirUtils.getOllirType(st.getReturnType(getCurrentMethodName(methodCallNode)));
             var methodCall = visit(thisNode.getJmmChild(0)); //visit the method call
@@ -994,7 +993,7 @@ private int getTempVarCount() {
     }
 
     private String visitNewObject(JmmNode newObjectNode, OllirInference inference) {
-        System.out.println("VISITING NEW OBJECT");
+        //System.out.println("VISITING NEW OBJECT");
 
         for (JmmNode child : newObjectNode.getChildren()) {
             visit(child);
@@ -1013,9 +1012,9 @@ private int getTempVarCount() {
             ollirCode.append(getIndent()).append("invokespecial(").append("t").append(newTemp).append(".").append(type).append(", \"<init>\").V").append(";\n");
         }
         else {
-            System.out.println("ENTERED ELSE");
+            //System.out.println("ENTERED ELSE");
             String toAppend = "new(" + type + ")." + type;
-            System.out.println("TO APPEND: " + toAppend);
+            //System.out.println("TO APPEND: " + toAppend);
             ollirCode.append("new(").append(type).append(").").append(type);
         }
 
