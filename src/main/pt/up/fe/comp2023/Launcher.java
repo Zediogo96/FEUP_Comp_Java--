@@ -50,33 +50,21 @@ public class Launcher {
 
         JmmSemanticsResult semanticsResult = analysisStage.semanticAnalysis(parserResult);
 
-//        /* CONVERTS ALL ELEMENTS TO STRING, READY TO BE MORE EASILY PRINTED */
-//        List<String> reports = semanticsResult.getReports().stream().map(Report::toString).toList();
-//
-//        /* REMOVE DUPLICATE STRINGS FROM REPORTS */
-//        reports = reports.stream().distinct().collect(Collectors.toList());
-//
-//        if (reports.size() > 0) {
-//            System.out.println("\nSemantic Analysis failed with " + reports.size() + " error(s):\n");
-//            for (var report : reports) {
-//                System.out.println("\t- " + report);
-//            }
-//            System.out.println("\n");
-//
-//            throw new RuntimeException("Semantic analysis failed.");
-//        }
-
         TestUtils.noErrors(semanticsResult);
 
         System.out.println(parserResult.getRootNode().toTree());
 
         System.out.println(semanticsResult.getSymbolTable().toString());
 
+        /* OLLIR */
+
         var optimizer = new JmmOptimizer();
 
         var ollirResult = optimizer.toOllir(semanticsResult);
 
         TestUtils.noErrors(ollirResult);
+
+        /* JASMIN */
 
         var jasminBuilder = new JasminBuilder();
 
@@ -87,12 +75,6 @@ public class Launcher {
         jasminResult.compile();
 
         jasminResult.run();
-
-//        String ollirCode = SpecsIo.read("test/pt/up/fe/comp/cp2/apps/example_ollir/Simple.ollir");
-//        OllirResult ollirResult = new OllirResult(ollirCode, Collections.emptyMap());
-//        JasminBuilder jasminBuilder = new JasminBuilder();
-//        JasminResult jasminResult = jasminBuilder.toJasmin(ollirResult);
-//        TestUtils.noErrors(jasminResult);
 
     }
 
