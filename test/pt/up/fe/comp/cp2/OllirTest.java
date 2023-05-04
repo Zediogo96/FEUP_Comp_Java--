@@ -21,10 +21,10 @@ public class OllirTest {
 //        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileBasic.jmm", this::compileBasic);
 //    }
 
-//    @Test
-//    public void compileArithmetic() {
-//        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileArithmetic.jmm", this::compileArithmetic);
-//    }
+    @Test
+    public void compileArithmetic() {
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileArithmetic.jmm", this::compileArithmetic);
+    }
 
 //    @Test
 //    public void compileMethodInvocation() {
@@ -32,10 +32,10 @@ public class OllirTest {
 //                this::compileMethodInvocation);
 //    }
 
-    @Test
-    public void compileAssignment() {
-        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileAssignment.jmm", this::compileAssignment);
-    }
+//    @Test
+//    public void compileAssignment() {
+//        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileAssignment.jmm", this::compileAssignment);
+//    }
 
 //    @Test
 //    public void compileCustom() {

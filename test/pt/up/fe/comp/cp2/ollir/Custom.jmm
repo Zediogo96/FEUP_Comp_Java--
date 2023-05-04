@@ -5,8 +5,8 @@ class CompileMethodInvocation {
     int x;
 
     public static void main(String[] args) {
-        int compemerda = 1;
-        int compishit;
+        int y = 1;
+        int z;
     }
 
     public int println(int a) {

@@ -10,10 +10,6 @@ import java.util.stream.Collectors;
 
 public class OllirUtils {
 
-
-
-
-
     public static String getOllirType(Type jmmType) {
         //System.out.println(jmmType.getName());
         switch (jmmType.getName()) {
@@ -113,7 +109,9 @@ public class OllirUtils {
 
         List<String> importNames = imports.stream()
                 .map(str -> str.replaceAll("\\[|\\]", ""))
-                .collect(Collectors.toList());
+                .toList();
+
+        //System.out.println("IMPORTS" + importNames);
 
         for (String _import : importNames) {
             String[] tokens = _import.split("\\.");
@@ -126,7 +124,7 @@ public class OllirUtils {
     }
 
     public static String getDefaultVarDecl(Type jmmType) {
-        //System.out.println(jmmType.getName());
+        //System.out.println(jmmType.getName(invoke));
         switch (jmmType.getName()) {
             case "int" -> {
                 return " :=.i32 0.i32";

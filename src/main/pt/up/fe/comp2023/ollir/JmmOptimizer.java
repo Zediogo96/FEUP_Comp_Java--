@@ -18,17 +18,19 @@ public class JmmOptimizer implements JmmOptimization {
         boolean optimize = semanticsResult.getConfig().get("optimize") != null
                 && semanticsResult.getConfig().get("optimize").equals("true");
 
-        System.out.println("Generating OLLIR code...");
+        System.out.println("OLLIR code output...");
 
         var ollirGenerator = new OllirGenerator((MySymbolTable) semanticsResult.getSymbolTable(), optimize);
         ollirGenerator.visit(semanticsResult.getRootNode());
 
         var ollirCode = ollirGenerator.getOllirCode();
 
-        if (semanticsResult.getConfig().get("debug") != null
-                && semanticsResult.getConfig().get("debug").equals("true")) {
-            System.out.println(ollirCode);
-        }
+//        if (semanticsResult.getConfig().get("debug") != null
+//                && semanticsResult.getConfig().get("debug").equals("true")) {
+//        }
+        System.out.println(ollirCode);
+
+
 
         return new OllirResult(semanticsResult, ollirCode, Collections.emptyList());
     }

@@ -1,13 +1,23 @@
+import io;
+
 class A {
-    int a = 10;
+    int a;
 
-    public static void main(String[] args){
-
+    public int foo(int a, int b) {
+       int c;
+       c = a + b;
     }
 
-    public int foo() {
-        int x;
+    public static void main(String[] args){
+        A teste;
 
-        x = this.a;
+        int a;
+
+        a = 1;
+        int b;
+        b = 2;
+        teste = new A();
+
+        a.foo(a,b);
     }
 }

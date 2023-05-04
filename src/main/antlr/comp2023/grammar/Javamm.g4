@@ -71,12 +71,14 @@ statement
 expression
     : 'new' id=ID '(' ')' #NewObject
     | value=('true' | 'false') #Boolean
-    | expression '[' expression ']' #ArrayAccess
-    | expression '.' expression '(' ( expression (',' expression)* )? ')' #AccessMethod
-    | method=ID '(' ( expression (',' expression)* )? ')' #MethodCall
     | value=INTEGER #Integer
     | id=ID #Variable
-    | 'this' ('.' expression)* ('=' expression)? #This
+    | expression '[' expression ']' #ArrayAccess
+    | expression '.' expression '(' ( expression (',' expression)* )* ')' #AccessMethod
+    | method=ID '(' ( expression (',' expression)* )? ')' #MethodCall
+
+    | 'this' '.' expression #This
+    | 'this' ('.' expression '=' expression)? #This
     | '(' expression ')' #Parenthesis
     | expression '.' 'length' #ArrayLength
     | 'new' 'int' '[' size=expression ']' #ArrayInit
