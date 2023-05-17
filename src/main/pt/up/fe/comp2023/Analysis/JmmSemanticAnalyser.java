@@ -472,7 +472,10 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             return Map.entry("error", "null");
         }
 
-        if (variable.getKey().getType().getName().equals("int[]") && valueReturn.getKey().equals("int")) {
+        String comparator_var = variable.getKey().getType().getName() + (variable.getKey().getType().isArray() ? "[]" : "");
+        String comparator_valReturn = valueReturn.getKey() + (valueReturn.getKey().equals("int") ? "[]" : "");
+
+        if (comparator_var.equals("int[]") && comparator_valReturn.equals("int[]")) {
             st.initializeField(variable.getKey());
         } else {
             reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types on Array Assignment: '" + variable.getKey().getType().getName() + "' and '" + valueReturn.getKey() + "'"));
