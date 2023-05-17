@@ -1,17 +1,13 @@
-import ioPlus;
-class ComplexArrayAccess {
 
-    public int func(int a) {
-        return a;
+import Other;
+// import Person;
+
+class BasicMethods extends Other {
+
+    public int[] func4(){
+        int[] k;
+        k = new int[1];
+        return k;
     }
 
-	public static void main(String[] args) {
-
-	    int[] a;
-        int i;
-
-        i = a[1];
-
-
-	}
 }
