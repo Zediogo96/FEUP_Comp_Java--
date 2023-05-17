@@ -539,13 +539,16 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         if (temp1 != null) arraySymbol = temp1.getKey();
         else if (temp2 != null) arraySymbol = temp2.getKey();
 
-        if (arraySymbol != null && !arraySymbol.getType().getName().equals("int[]")) {
-            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(array.get("lineStart")), Integer.parseInt(array.get("colStart")), "Variable is not an array: " + array.get("id")));
-            return Map.entry("error", "null");
+        if (arraySymbol != null) {
+            String comparator = arraySymbol.getType().getName() + (arraySymbol.getType().isArray() ? "[]" : "");
+            if (!comparator.equals("int[]")) {
+                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(array.get("lineStart")), Integer.parseInt(array.get("colStart")), "Variable is not an array: " + array.get("id")));
+                return Map.entry("error", "null");
+            }
         } else if (!indexReturn.getKey().equals("int")) {
             reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(index.get("lineStart")), Integer.parseInt(index.get("colStart")), "Array index is not an Integer: " + index.get("id")));
             return Map.entry("error", "null");
-        } else if (arraySymbol == null) {
+        } else {
             reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(array.get("lineStart")), Integer.parseInt(array.get("colStart")), "Variable not declared: " + array.get("id")));
             return Map.entry("error", "null");
         }
@@ -581,6 +584,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         if (returnType.equals("method")) {
             returnType = st.getMethod(node.getChildren().get(0).get("method")).getReturnType().getName();
         }
+
 
         if (!returnType.equals(currentMethod.getReturnType().getName().replace("(imported)", ""))) {
             reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types on return statement: '" + currentMethod.getReturnType().getName() + "' and '" + returnType + "'"));
