@@ -69,7 +69,12 @@ statement
     ;
 
 expression
-    : 'new' id=ID '(' ')' #NewObject
+    : expression op=MULTDIV expression #BinaryOp
+    | expression op=PLUSMINUS expression #BinaryOp
+    | expression op=COMP_OP expression #RelationalOp
+    | expression op=AND_OP expression #RelationalOp
+    | expression op=OR_OP expression #RelationalOp
+    | 'new' id=ID '(' ')' #NewObject
     | value=('true' | 'false') #Boolean
     | value=INTEGER #Integer
     | id=ID #Variable
@@ -82,9 +87,5 @@ expression
     | '(' expression ')' #Parenthesis
     | expression '.' 'length' #ArrayLength
     | '!'expression #UnaryOp
-    | expression op=MULTDIV expression #BinaryOp
-    | expression op=PLUSMINUS expression #BinaryOp
-    | expression op=COMP_OP expression #RelationalOp
-    | expression op=AND_OP expression #RelationalOp
-    | expression op=OR_OP expression #RelationalOp
+
     ;
