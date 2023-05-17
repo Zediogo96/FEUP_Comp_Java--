@@ -54,6 +54,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         addVisit("While", this::visitWhile);
         addVisit("Block", this::visitBlock);
         addVisit("UnaryOp", this::visitNegation);
+        addVisit("ArrayInit", this::visitArrayInit);
 
         setDefaultVisit((node, dummy) -> null);
     }
@@ -358,6 +359,12 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             type = toAssignType;
         } else if (assignmentNode.getJmmChild(0).getKind().equals("This")) {
             type = toAssignType;
+        } else if (assignmentNode.getJmmChild(0).getKind().equals("ArrayInit")) {
+            type = toAssignType;
+            if (assignmentNode.getJmmChild(0).getJmmChild(0).getKind().equals("Integer")) {
+                var tVar = getAndAddTempVarCount(assignmentNode);
+                ollirCode.append(getIndent()).append("t").append(tVar).append(".i32 :=.i32 ").append(assignmentNode.getJmmChild(0).getJmmChild(0).get("value")).append(".i32").append(";\n");
+            }
         }
 
         if (isField) {
@@ -1167,6 +1174,24 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         }
 
         return result;
+    }
+
+    private String visitArrayInit(JmmNode arrayInitNode, OllirInference inference) {
+        //System.out.println("VISITING ARRAY INIT");
+
+        var child = arrayInitNode.getJmmChild(0);
+
+        String id = "";
+
+        if (child.getKind().equals("Integer")) {
+            var currentTempVar = getTempVarCount();
+            return "new(array," + currentTempVar + ".i32).array.i32";
+        }
+        else {
+            id = visit(child);
+        }
+
+        return "new(array," + id + ".i32).array.i32";
     }
 
 }
