@@ -532,15 +532,18 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         Map.Entry<String, String> indexReturn = visit(index, true);
 
         Map.Entry<Symbol, Boolean> temp1 = st.getField(array.get("id"));
+
         Map.Entry<Symbol, Boolean> temp2 = currentMethod.getLocalVariable(array.get("id"));
 
         Symbol arraySymbol = null;
 
         if (temp1 != null) arraySymbol = temp1.getKey();
-        else if (temp2 != null) arraySymbol = temp2.getKey();
+        if (temp2 != null) arraySymbol = temp2.getKey();
+
 
         if (arraySymbol != null) {
             String comparator = arraySymbol.getType().getName() + (arraySymbol.getType().isArray() ? "[]" : "");
+
             if (!comparator.equals("int[]")) {
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(array.get("lineStart")), Integer.parseInt(array.get("colStart")), "Variable is not an array: " + array.get("id")));
                 return Map.entry("error", "null");

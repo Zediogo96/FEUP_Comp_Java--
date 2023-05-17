@@ -74,13 +74,13 @@ expression
     | value=INTEGER #Integer
     | id=ID #Variable
     | expression '[' expression ']' #ArrayAccess
+    | 'new' 'int' '[' size=expression ']' #ArrayInit
     | expression '.' expression '(' ( expression (',' expression)* )* ')' #AccessMethod
     | method=ID '(' ( expression (',' expression)* )? ')' #MethodCall
     | 'this' '.' expression #This
     | 'this' ('.' expression '=' expression)? #This
     | '(' expression ')' #Parenthesis
     | expression '.' 'length' #ArrayLength
-    | 'new' 'int' '[' size=expression ']' #ArrayInit
     | '!'expression #UnaryOp
     | expression op=MULTDIV expression #BinaryOp
     | expression op=PLUSMINUS expression #BinaryOp

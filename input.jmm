@@ -1,19 +1,17 @@
-import io;
+import ioPlus;
+class ComplexArrayAccess {
 
-class Array {
-
-    public int get1() {
-
-        int[] arr;
-        int[] arr2;
-
-        arr = new int[10];
-        arr2 = new int[10];
-
-        arr = arr2;
+    public int func(int a) {
+        return a;
     }
 
-    public static void main(String[] args) {
-        io.println(new Array().get1());
-    }
+	public static void main(String[] args) {
+
+	    int[] a;
+        int i;
+
+        i = a[1];
+
+
+	}
 }

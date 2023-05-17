@@ -38,12 +38,7 @@ public class MySymbolTable implements SymbolTable {
     }
 
     public void addImport(String importName) {
-        System.out.println(importName);
-//        if (importName.contains("[")) {
-//            importName = importName.substring(1, importName.length() - 1);
-//        }
         imports.add(importName);
-
     }
 
     public void addField(Symbol field, boolean isStatic) {
