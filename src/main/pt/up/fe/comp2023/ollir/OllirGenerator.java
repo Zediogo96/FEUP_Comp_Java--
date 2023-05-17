@@ -53,6 +53,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         addVisit("IfElse", this::visitIfElse);
         addVisit("While", this::visitWhile);
         addVisit("Block", this::visitBlock);
+        addVisit("UnaryOp", this::visitNegation);
 
         setDefaultVisit((node, dummy) -> null);
     }
@@ -335,6 +336,11 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             type = OllirUtils.getOllirType(varSymbol.getType());
         } else if (assignmentNode.getJmmChild(0).getKind().equals("BinaryOp")) {
 
+            String retstr = visit(assignmentNode.getJmmChild(0));
+            ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(toAssignType).append(" ").append(retstr).append(";\n");
+            return retstr;
+        }
+        else if (assignmentNode.getJmmChild(0).getKind().equals("UnaryOp")) {
             String retstr = visit(assignmentNode.getJmmChild(0));
             ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(toAssignType).append(" ").append(retstr).append(";\n");
             return retstr;
@@ -1105,6 +1111,26 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         }
 
         return "";
+    }
+
+    private String visitNegation(JmmNode negationNode, OllirInference inference) {
+        //System.out.println("VISITING NEGATION");
+
+        String child = visit(negationNode.getJmmChild(0));
+
+        String operationString = "!.bool " + child;
+
+        if (inference != null && inference.getIsAssignedToTempVar()) {
+            int tempVar = getAndAddTempVarCount(negationNode);
+
+            StringBuilder tempVarStringBuilder = new StringBuilder("t").append(tempVar).append(".bool").append(" :=.bool ").append(operationString).append(";\n");
+            String tempVarString = tempVarStringBuilder.toString();
+
+            return tempVarString;
+        } else {
+            return operationString;
+        }
+
     }
 
 }
