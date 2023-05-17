@@ -1,16 +1,19 @@
-class MethodsAndFields{
+import io;
 
+class Array {
 
-	public int all(int a, boolean b, MethodsAndFields maf){
-		int[] c;
-		c = new int[1];
+    public int get1() {
 
-		c[0] = 1;
+        int[] arr;
+        int[] arr2;
 
-		return c[0];
-	}
+        arr = new int[10];
+        arr2 = new int[10];
 
-	public static void main(String[] args){
+        arr = arr2;
+    }
 
-	}
+    public static void main(String[] args) {
+        io.println(new Array().get1());
+    }
 }

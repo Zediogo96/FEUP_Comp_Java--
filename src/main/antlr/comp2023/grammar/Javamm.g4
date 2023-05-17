@@ -76,7 +76,6 @@ expression
     | expression '[' expression ']' #ArrayAccess
     | expression '.' expression '(' ( expression (',' expression)* )* ')' #AccessMethod
     | method=ID '(' ( expression (',' expression)* )? ')' #MethodCall
-
     | 'this' '.' expression #This
     | 'this' ('.' expression '=' expression)? #This
     | '(' expression ')' #Parenthesis
