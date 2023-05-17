@@ -23,7 +23,7 @@ public class MySymbolTable implements SymbolTable {
 
         type = switch (temp) {
             case "IntType" -> new Type("int", false);
-            case "IntArrayType" -> new Type("int[]", true);
+            case "IntArrayType" -> new Type("int", true);
             case "StringType" -> new Type("String", true);
             case "BooleanType" -> new Type("boolean", false);
             case "ObjectType" -> new Type(node.get("type_"), false);

@@ -1,23 +1,27 @@
-import io;
+class MethodsAndFields{
+	int field1;
+	boolean field2;
+	MethodsAndFields field3;
 
-class A {
-    int a;
+	public int getField1(){
+		return field1;
+	}
 
-    public int foo(int a, int b) {
-       int c;
-       c = a + b;
-    }
+	public boolean getField2(){
+		return field2;
+	}
 
-    public static void main(String[] args){
-        A teste;
+	public MethodsAndFields getField3(){
+		return field3;
+	}
 
-        int a;
+	public int[] all(int a, boolean b, MethodsAndFields maf){
+		int[] c;
+		c = new int[1];
+		return c;
+	}
 
-        a = 1;
-        int b;
-        b = 2;
-        teste = new A();
+	public static void main(String[] args){
 
-        a.foo(a,b);
-    }
+	}
 }

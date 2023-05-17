@@ -324,9 +324,12 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         }
 
         if (variable != null) {
-            if (variable.getKey().getType().getName().equals(parts[0])) {
+
+            String comparator = variable.getKey().getType().getName() + (variable.getKey().getType().isArray() ? "[]" : "");
+
+            if (comparator.equals(parts[0])) {
                 if (!currentMethod.initializeField(variable.getKey())) st.initializeField(variable.getKey());
-            } else if (!assignment.getKey().equals("access")) {
+            } else if (!assignment.getKey().equals("access") && variable.getKey().getType().isArray()) {
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types on Assignment: '" + variable.getKey().getType().getName() + "' and '" + assignment.getKey() + "'"));
                 return null;
             }
@@ -477,7 +480,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         }
 
         return Map.entry("void", "null");
-
     }
 
     private Map.Entry<String, String> dealWithMainDeclaration(JmmNode node, Boolean data) {
@@ -489,7 +491,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             currentMethod = null;
             e.printStackTrace();
         }
-
         return null;
     }
 
