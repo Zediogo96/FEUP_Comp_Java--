@@ -339,8 +339,12 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             String retstr = visit(assignmentNode.getJmmChild(0));
             ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(toAssignType).append(" ").append(retstr).append(";\n");
             return retstr;
-        }
-        else if (assignmentNode.getJmmChild(0).getKind().equals("UnaryOp")) {
+        } else if (assignmentNode.getJmmChild(0).getKind().equals("RelationalOp")) {
+
+            String retstr = visit(assignmentNode.getJmmChild(0));
+            ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(toAssignType).append(" ").append(retstr).append(";\n");
+            return retstr;
+        } else if (assignmentNode.getJmmChild(0).getKind().equals("UnaryOp")) {
             String retstr = visit(assignmentNode.getJmmChild(0));
             ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(toAssignType).append(" ").append(retstr).append(";\n");
             return retstr;
@@ -666,23 +670,23 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         return result;
     }
 
-    private String visitRelationalOperator(JmmNode relationalOperator, OllirInference inference) {
-        //System.out.println("VISITING BINARY OPERATOR" + binaryOperator);
-
-        String op = relationalOperator.get("op");
-        String opstring = OllirUtils.getOperator(op);
-
-        String left = visit(relationalOperator.getJmmChild(0));
-        String right = visit(relationalOperator.getJmmChild(1));
-        ;
-
-        //System.out.println("Left: " + left);
-        //System.out.println("Right: " + right);
-
-        String result = left + " " + opstring + " " + right;
-
-        return result;
-    }
+//    private String visitRelationalOperator(JmmNode relationalOperator, OllirInference inference) {
+//        //System.out.println("VISITING BINARY OPERATOR" + binaryOperator);
+//
+//        String op = relationalOperator.get("op");
+//        String opstring = OllirUtils.getOperator(op);
+//
+//        String left = visit(relationalOperator.getJmmChild(0));
+//        String right = visit(relationalOperator.getJmmChild(1));
+//        ;
+//
+//        //System.out.println("Left: " + left);
+//        //System.out.println("Right: " + right);
+//
+//        String result = left + " " + opstring + " " + right;
+//
+//        return result;
+//    }
 
 
     private String visitAccessMethod(JmmNode methodCallNode, OllirInference inference) {
@@ -1131,6 +1135,38 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             return operationString;
         }
 
+    }
+
+    private String visitRelationalOperator(JmmNode relationalOperator, OllirInference inference) {
+        //System.out.println("VISITING RELATIONAL OPERATOR" + binaryOperator);
+
+        //System.out.println("DEBUG OP" + binaryOperator.get("op"));
+
+        var parentRet = relationalOperator.getAncestor("ReturnStmt").isPresent();
+        //System.out.println("DEBUG PARENT RET" + parentRet);
+
+        String op = relationalOperator.get("op");
+        String opstring = OllirUtils.getOperator(op);
+        var assignmentType = OllirUtils.getOperatorType(op);
+
+        String left = visit(relationalOperator.getJmmChild(0), new OllirInference(assignmentType, true));
+        //System.out.println("DEBUG LEFT" + binaryOperator.getJmmChild(0) + left);
+        String right = visit(relationalOperator.getJmmChild(1), new OllirInference(assignmentType, true));
+        //System.out.println("DEBUG RIGHT" + binaryOperator.getJmmChild(0) + right);
+
+        String result = left + " " + opstring + " " + right;
+
+        if (inference == null && !parentRet) {
+            return result;
+        }
+
+        if (inference == null || inference.getIsAssignedToTempVar()) {
+            int tempVar = getAndAddTempVarCount(relationalOperator);
+            ollirCode.append(getIndent()).append("t").append(tempVar).append(assignmentType).append(" :=").append(assignmentType).append(" ").append(result).append(";\n");
+            return "t" + tempVar + assignmentType;
+        }
+
+        return result;
     }
 
 }
