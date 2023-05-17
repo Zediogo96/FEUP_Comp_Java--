@@ -86,10 +86,14 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
                 return Map.entry("access", "null");
             } else if ((st.getMethod(method.get("id")) != null)) {
 
-                List<Type> argumentsNames = st.getMethod(method.get("id")).getParameters().stream().map(Symbol::getType).toList();
-                List<String> argumentsTypeNames = argumentsNames.stream().map(Type::getName).toList();
+                List<String> argumentNames = st.getMethod(method.get("id"))
+                        .getParameters()
+                        .stream()
+                        .map(Symbol::getType)
+                        .map(t -> t.getName() + (t.isArray() ? "[]" : ""))
+                        .toList();
 
-                if (argumentsTypeNames.equals(parametersTypeNames)) {
+                if (argumentNames.equals(parametersTypeNames)) {
                     return Map.entry(st.getMethod(method.get("id")).getReturnType().getName(), "null");
                 } else {
                     reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Incorrect parameters in method call: " + method.get("id") + "() in class " + st.getClassName()));
