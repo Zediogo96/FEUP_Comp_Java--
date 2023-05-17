@@ -51,6 +51,8 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         addVisit("RelationalOp", this::visitRelationalOperator);
         addVisit("NewObject", this::visitNewObject);
         addVisit("IfElse", this::visitIfElse);
+        addVisit("While", this::visitWhile);
+        addVisit("Block", this::visitBlock);
 
         setDefaultVisit((node, dummy) -> null);
     }
@@ -102,6 +104,14 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
     private int getIfElseCount () {
         return this.ifElseCount;
+    }
+
+    private int getAndAddWhileCount() {
+        return this.whileCount++;
+    }
+
+    private int getWhileCount () {
+        return this.whileCount;
     }
 
     private Set<String> getMethodVars(JmmNode node) {
@@ -1019,6 +1029,9 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         JmmNode ifTrueScope = ifElseNode.getJmmChild(1);
         JmmNode ifFalseScope = ifElseNode.getJmmChild(2);
 
+        System.out.println("IFTRUE SCOPE = " + ifTrueScope);
+        System.out.println("IFFALSE SCOPE = " + ifFalseScope);
+
         System.out.println("CONDITION = " + condition);
         System.out.println("IF TRUE SCOPE = " + ifTrueScope);
         System.out.println("IF FALSE SCOPE = " + ifFalseScope);
@@ -1047,6 +1060,49 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         this.removeIndent();
 
         ollirCode.append(getIndent()).append("endIf").append(ifElseCount).append(":\n");
+
+        return "";
+    }
+
+    private String visitWhile(JmmNode whileNode, OllirInference inference) {
+        JmmNode condition = whileNode.getJmmChild(0);
+        JmmNode whileScope = whileNode.getJmmChild(1);
+
+        System.out.println("CONDITION = " + condition);
+        System.out.println("WHILE SCOPE = " + whileScope);
+
+        int whileCount = getAndAddWhileCount();
+
+        boolean isNotToAssignToTemp = condition.getKind().equals("BinaryOp")
+                || condition.getKind().equals("Boolean")
+                || condition.getKind().equals("Identifier");
+
+        String conditionRegOrExpression = visit(condition, new OllirInference(".bool", !isNotToAssignToTemp));
+
+        ollirCode.append(getIndent()).append("if (").append(conditionRegOrExpression).append(") goto whileBody").append(whileCount).append(";\n");
+        this.addIndent();
+        ollirCode.append(getIndent()).append("goto endWhile").append(whileCount).append(";\n");
+        this.removeIndent();
+
+        ollirCode.append(getIndent()).append("whileBody").append(whileCount).append(":\n");
+
+        this.addIndent();
+        visit(whileScope);
+
+        ollirCode.append(getIndent()).append("if (").append(conditionRegOrExpression).append(") goto whileBody").append(whileCount).append(";\n");
+        this.removeIndent();
+
+        ollirCode.append(getIndent()).append("endWhile").append(whileCount).append(":\n");
+
+        return "";
+    }
+
+    private String visitBlock(JmmNode blockNode, OllirInference inference) {
+        //System.out.println("VISITING BLOCK");
+
+        for (JmmNode child : blockNode.getChildren()) {
+            visit(child);
+        }
 
         return "";
     }
