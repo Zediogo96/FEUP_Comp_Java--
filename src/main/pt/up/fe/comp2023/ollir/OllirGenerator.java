@@ -15,10 +15,9 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
     private final StringBuilder ollirCode;
     private final MySymbolTable st;
     private final boolean optimize;
-
     private int indent;
     private int tempVarCount;
-    private int ifThenElseCount;
+    private int ifElseCount;
     private int whileCount;
 
     private String currentSCOPE;
@@ -51,6 +50,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         addVisit("MethodCall", this::visitMethodCall);
         addVisit("RelationalOp", this::visitRelationalOperator);
         addVisit("NewObject", this::visitNewObject);
+        addVisit("IfElse", this::visitIfElse);
 
         setDefaultVisit((node, dummy) -> null);
     }
@@ -63,6 +63,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         this.optimize = optimize;
         this.indent = 0;
         this.tempVarCount = 0;
+        this.ifElseCount = 0;
         //more things
     }
 
@@ -82,7 +83,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         String currentMethod = getCurrentMethodName(node);
         Set<String> methodVars = getMethodVars(node);
 
-        while(true) {
+        while (true) {
             this.tempVarCount++;
             String tempVarName = "t" + this.tempVarCount;
             if (!methodVars.contains(tempVarName)) {
@@ -91,8 +92,16 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         }
     }
 
-private int getTempVarCount() {
+    private int getTempVarCount() {
         return this.tempVarCount;
+    }
+
+    private int getAndAddIfElseCount() {
+        return this.ifElseCount++;
+    }
+
+    private int getIfElseCount () {
+        return this.ifElseCount;
     }
 
     private Set<String> getMethodVars(JmmNode node) {
@@ -246,8 +255,13 @@ private int getTempVarCount() {
 
         for (var child : methodDeclChildren) {
             counter++;
-            //System.out.println("Child of method declaration number: " + counter + " is: " + child);
+            var child2 = child;
+            System.out.println("Child of method declaration number: " + counter + " is: " + child);
             visit(child);
+        }
+
+        if (isMain) {
+            ollirCode.append(getIndent()).append("ret.V;\n");
         }
 
         this.removeIndent();
@@ -276,11 +290,9 @@ private int getTempVarCount() {
 
         if (assignmentNode.getJmmChild(0).getKind().equals("Integer")) {
             type = ".i32";
-        }
-        else if(assignmentNode.getJmmChild(0).getKind().equals("Boolean")) {
+        } else if (assignmentNode.getJmmChild(0).getKind().equals("Boolean")) {
             type = ".bool";
-        }
-        else if (assignmentNode.getJmmChild(0).getKind().equals("Variable")) {
+        } else if (assignmentNode.getJmmChild(0).getKind().equals("Variable")) {
 
             String varid = assignmentNode.getJmmChild(0).get("id");
             //System.out.println("VAR ID: " + varid);
@@ -311,37 +323,26 @@ private int getTempVarCount() {
             }
             //System.out.println("VAR SYMBOL: " + varSymbol);
             type = OllirUtils.getOllirType(varSymbol.getType());
-        }
-
-        else if (assignmentNode.getJmmChild(0).getKind().equals("BinaryOp")) {
+        } else if (assignmentNode.getJmmChild(0).getKind().equals("BinaryOp")) {
 
             String retstr = visit(assignmentNode.getJmmChild(0));
             ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(toAssignType).append(" ").append(retstr).append(";\n");
             return retstr;
-        }
-
-        else if (assignmentNode.getJmmChild(0).getKind().equals("NewObject")) {
+        } else if (assignmentNode.getJmmChild(0).getKind().equals("NewObject")) {
 
             type = toAssignType;
 
-        }
-
-        else if (assignmentNode.getJmmChild(0).getKind().equals("AccessMethod")){
+        } else if (assignmentNode.getJmmChild(0).getKind().equals("AccessMethod")) {
             type = toAssignType;
-        }
-
-        else if (assignmentNode.getJmmChild(0).getKind().equals("MethodCall")){
+        } else if (assignmentNode.getJmmChild(0).getKind().equals("MethodCall")) {
             type = toAssignType;
-        }
-
-        else if (assignmentNode.getJmmChild(0).getKind().equals("This")){
+        } else if (assignmentNode.getJmmChild(0).getKind().equals("This")) {
             type = toAssignType;
         }
 
         if (isField) {
             ollirCode.append(getIndent()).append("putfield(this, ").append(toAssign).append(toAssignType).append(", ");
-        }
-        else {
+        } else {
             ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" ");
         }
         //ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" ");  //.append(str_assigned).append(";\n");  //append generally the assignment  structure, then each visitor will append the rhs
@@ -360,8 +361,7 @@ private int getTempVarCount() {
 
         if (isField) {
             ollirCode.append(").V;\n");
-        }
-        else {
+        } else {
             ollirCode.append(";\n");
         }
 
@@ -384,8 +384,7 @@ private int getTempVarCount() {
             var field = st.getField(varName);
             var varTypeInt = field.getKey().getType();
             varType = OllirUtils.getOllirType(varTypeInt);
-        }
-        else if(currentSCOPE.equals("METHOD") && currentMethod != null) {
+        } else if (currentSCOPE.equals("METHOD") && currentMethod != null) {
             var _params = st.getParameters(currentMethod);
             //System.out.println("PARAMS: " + _params);
             var variable = st.getLocalVariableFromMethod(varName, currentMethod);
@@ -419,14 +418,14 @@ private int getTempVarCount() {
         String param_indexstring = "";
         boolean varIsParam = false;
 
-            if (parameterIndex != null) {
-                var param_index = parameterIndex.get(variableNode.get("id"));
-                if (param_index != null) {
-                    param_index += 1;
-                    param_indexstring = "$" + param_index.toString() + ".";
-                    varIsParam = true;
-                }
+        if (parameterIndex != null) {
+            var param_index = parameterIndex.get(variableNode.get("id"));
+            if (param_index != null) {
+                param_index += 1;
+                param_indexstring = "$" + param_index.toString() + ".";
+                varIsParam = true;
             }
+        }
 
         var varField = st.getField(varName);
         boolean varIsField = false;
@@ -519,8 +518,7 @@ private int getTempVarCount() {
         if (exprNode == null) {
             //return "null";
             System.out.println("aaa");
-        }
-        else {
+        } else {
 
             //System.out.println("DEBUGGING RETURN NODE CHILD: " + exprNode);
             exprnodeReturn = visit(exprNode);
@@ -543,7 +541,7 @@ private int getTempVarCount() {
 
     private String visitParameter(JmmNode parameterNode, OllirInference inference) {
 
-        List <Symbol> methodParameters = st.getParameters(getCurrentMethodName(parameterNode));
+        List<Symbol> methodParameters = st.getParameters(getCurrentMethodName(parameterNode));
 
         for (var child : parameterNode.getChildren()) {
             visit(child);
@@ -659,7 +657,8 @@ private int getTempVarCount() {
         String opstring = OllirUtils.getOperator(op);
 
         String left = visit(relationalOperator.getJmmChild(0));
-        String right = visit(relationalOperator.getJmmChild(1));;
+        String right = visit(relationalOperator.getJmmChild(1));
+        ;
 
         //System.out.println("Left: " + left);
         //System.out.println("Right: " + right);
@@ -668,8 +667,6 @@ private int getTempVarCount() {
 
         return result;
     }
-
-
 
 
     private String visitAccessMethod(JmmNode methodCallNode, OllirInference inference) {
@@ -691,16 +688,14 @@ private int getTempVarCount() {
         Symbol toAssignSymbol = null;
         if (parent.isPresent()) {
             toAssignSymbol = st.getLocalVariableFromMethod(getCurrentMethodName(methodCallNode), parent.get().get("id"));
-        }
-        else {
+        } else {
             ollirCode.append(getIndent());
         }
 //        toAssignSymbol = st.getLocalVariableFromMethod(getCurrentMethodName(methodCallNode), parent.get().get("id"));
         var toAssignType = "";
         if (toAssignSymbol == null) {
             toAssignType = "";
-        }
-        else {
+        } else {
             toAssignType = OllirUtils.getOllirType(toAssignSymbol.getType());
         }
 //        toAssignType = OllirUtils.getOllirType(toAssignSymbol.getType());
@@ -721,11 +716,9 @@ private int getTempVarCount() {
 
         if (parent.isPresent()) {
             returnType = toAssignType;
-        }
-        else if (methodSymbol != null) {
+        } else if (methodSymbol != null) {
             returnType = OllirUtils.getOllirType(methodSymbol.getReturnType());
-        }
-        else {
+        } else {
             returnType = ".V";
             //get the return type of the actual method
             //System.out.println("DEBUGGING METHOD RETURN TYPE: " + st.getReturnType(getCurrentMethodName(methodCallNode)));
@@ -787,18 +780,15 @@ private int getTempVarCount() {
         //System.out.println("DEBUGGING STRING BUILDER: " + operationString);
 
         for (var arg : argsJmm) {
-            if (arg.getKind().equals("Integer")){
+            if (arg.getKind().equals("Integer")) {
                 operationString.append(", ").append(arg.get("value")).append(".i32");
-            }
-            else if (arg.getKind().equals("Boolean")){
+            } else if (arg.getKind().equals("Boolean")) {
                 operationString.append(", ").append(arg.get("value")).append(".bool");
-            }
-            else if (arg.getKind().equals("BinaryOp")) {
+            } else if (arg.getKind().equals("BinaryOp")) {
                 var ret = visit(arg, new OllirInference(returnType, true));
                 //System.out.println("DEBUGGING RET: " + ret);
                 operationString.append(", ").append(ret);
-            }
-            else {
+            } else {
                 //System.out.println("ENTERED INLINE CLASS");
                 //System.out.println("DEBUGGING ARG TEMP: " + arg);
                 //System.out.println("LOCAL VARS: " + localvars);
@@ -806,7 +796,7 @@ private int getTempVarCount() {
                 boolean found = false;
                 //operationString.append(", ").append(arg.get("id"));
                 for (var localvar : localvars) {
-                    if (arg.get("id").equals(localvar.getName())){
+                    if (arg.get("id").equals(localvar.getName())) {
                         String argType = OllirUtils.getOllirType(localvar.getType());
                         operationString.append(", ").append(localvar.getName()).append(argType);
                         found = true;
@@ -816,12 +806,14 @@ private int getTempVarCount() {
 //                        operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
 //                    }
                 }
-                if (found) {continue;}
+                if (found) {
+                    continue;
+                }
                 for (var param : params) {
-                    if (arg.get("id").equals(param.getName())){
+                    if (arg.get("id").equals(param.getName())) {
                         //System.out.println("GOT PARAM C CORRECTLY");
                         String argType = OllirUtils.getOllirType(param.getType());
-                        operationString.append(", ").append("$").append(parameterIndex.get(param.getName())+1).append(".").append(param.getName()).append(argType);
+                        operationString.append(", ").append("$").append(parameterIndex.get(param.getName()) + 1).append(".").append(param.getName()).append(argType);
                         found = true;
                         break;
                     }
@@ -829,7 +821,9 @@ private int getTempVarCount() {
 //                        operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
 //                    }
                 }
-                if (found) {continue;}
+                if (found) {
+                    continue;
+                }
                 var argField = st.getField(arg.get("id")).getKey();
                 if (argField != null) {
                     String argType = OllirUtils.getOllirType(argField.getType());
@@ -845,8 +839,7 @@ private int getTempVarCount() {
 
         if (invokeType.equals("invokespecial")) {
             operationString.append(")").append(".V");
-        }
-        else {
+        } else {
             operationString.append(")").append(returnType);
         }
 
@@ -854,8 +847,7 @@ private int getTempVarCount() {
 
         if (parent.isPresent()) {
             ollirCode.append(opstring);
-        }
-        else {
+        } else {
             ollirCode.append(opstring).append(";\n");
         }
 
@@ -912,8 +904,7 @@ private int getTempVarCount() {
 
         if (parent) {
             operationString = new StringBuilder(invokeType + "(this, " + "\"" + methodId + "\"");
-        }
-        else {
+        } else {
             operationString = new StringBuilder(invokeType + "(" + "\"" + methodId + "\"");
             operationString = new StringBuilder(invokeType + "(" + "\"" + methodId + "\"");
         }
@@ -958,21 +949,18 @@ private int getTempVarCount() {
             var classField1 = st.getField(thisNode.getJmmChild(1).get("id"));
             var classField1Type = OllirUtils.getOllirType(classField1.getKey().getType());
             ollirCode.append(getIndent()).append("putfield(this,").append(thisNode.getJmmChild(0).get("id")).append(classField0Type).append(",").append(thisNode.getJmmChild(1).get("id")).append(classField1Type).append(");\n");
-        }
-        else if (thisNode.getJmmChild(0).getKind().equals("Variable") && !thisNode.getJmmChild(1).getKind().equals("Variable")) {
+        } else if (thisNode.getJmmChild(0).getKind().equals("Variable") && !thisNode.getJmmChild(1).getKind().equals("Variable")) {
             //System.out.println("aaa");
             var classField0 = st.getField(thisNode.getJmmChild(0).get("id"));
             var classField0Type = OllirUtils.getOllirType(classField0.getKey().getType());
             var var2Type = "";
             if (thisNode.getJmmChild(1).getKind().equals("Integer")) {
                 var2Type = ".i32";
-            }
-            else if (thisNode.getJmmChild(1).getKind().equals("Boolean")) {
+            } else if (thisNode.getJmmChild(1).getKind().equals("Boolean")) {
                 var2Type = ".bool";
             }
             ollirCode.append(getIndent()).append("putfield(this,").append(thisNode.getJmmChild(0).get("id")).append(classField0Type).append(",").append(thisNode.getJmmChild(1).get("value")).append(var2Type).append(").V;\n");
-        }
-        else if (thisNode.getJmmChild(0).getKind().equals("MethodCall")) {
+        } else if (thisNode.getJmmChild(0).getKind().equals("MethodCall")) {
             var methodCallNode = thisNode.getJmmChild(0);
             var returnType = OllirUtils.getOllirType(st.getReturnType(getCurrentMethodName(methodCallNode)));
             var methodCall = visit(thisNode.getJmmChild(0)); //visit the method call
@@ -981,9 +969,9 @@ private int getTempVarCount() {
 
             //ollirCode.append(getIndent()).append("invokevirtual(this,").append(thisNode.getJmmChild(0).get("method")).append(")").append(";\n");
             return "t" + newTemp + returnType; //para ir para o assignment
-        }
-        else {
-            ollirCode.append("this.").append("putfield(this,").append(thisNode.getJmmChild(0).get("id")).append(");\n");;
+        } else {
+            ollirCode.append("this.").append("putfield(this,").append(thisNode.getJmmChild(0).get("id")).append(");\n");
+            ;
         }
 
         //ollirCode.append("this");
@@ -1010,8 +998,7 @@ private int getTempVarCount() {
             newTemp = String.valueOf(getAndAddTempVarCount(newObjectNode));
             ollirCode.append("t").append(newTemp).append(".").append(type).append(" :=.").append(type).append(" new(").append(newObjectNode.get("id")).append(").").append(newObjectNode.get("id")).append(";\n");
             ollirCode.append(getIndent()).append("invokespecial(").append("t").append(newTemp).append(".").append(type).append(", \"<init>\").V").append(";\n");
-        }
-        else {
+        } else {
             //System.out.println("ENTERED ELSE");
             String toAppend = "new(" + type + ")." + type;
             //System.out.println("TO APPEND: " + toAppend);
@@ -1024,4 +1011,44 @@ private int getTempVarCount() {
         //return "new " + newObjectNode.get("id");
         return "t" + newTemp + type;
     }
+
+    public String visitIfElse(JmmNode ifElseNode, OllirInference inference) {
+        //System.out.println("VISITING IF ELSE");
+
+        JmmNode condition = ifElseNode.getJmmChild(0);
+        JmmNode ifTrueScope = ifElseNode.getJmmChild(1);
+        JmmNode ifFalseScope = ifElseNode.getJmmChild(2);
+
+        System.out.println("CONDITION = " + condition);
+        System.out.println("IF TRUE SCOPE = " + ifTrueScope);
+        System.out.println("IF FALSE SCOPE = " + ifFalseScope);
+
+        int ifElseCount = getAndAddIfElseCount();
+
+        boolean isNotToAssignToTemp = condition.getKind().equals("BinaryOp")
+                || condition.getKind().equals("Boolean")
+                || condition.getKind().equals("Identifier");
+
+        String conditionRegOrExpression = visit(condition, new OllirInference(".bool", !isNotToAssignToTemp));
+
+        ollirCode.append(getIndent()).append("if (").append(conditionRegOrExpression).append(") goto ifTrue").append(ifElseCount).append(";\n");
+
+        this.addIndent();
+        visit(ifFalseScope);
+
+        ollirCode.append(getIndent()).append("goto endIf").append(ifElseCount).append(";\n");
+        this.removeIndent();
+
+        ollirCode.append(getIndent()).append("ifTrue").append(ifElseCount).append(":\n");
+
+        this.addIndent();
+        visit(ifTrueScope);
+
+        this.removeIndent();
+
+        ollirCode.append(getIndent()).append("endIf").append(ifElseCount).append(":\n");
+
+        return "";
+    }
+
 }
