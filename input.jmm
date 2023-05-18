@@ -1,23 +1,13 @@
-import io;
 
-class A {
-    int a;
+import Other;
+// import Person;
 
-    public int foo(int a, int b) {
-       int c;
-       c = a + b;
+class BasicMethods extends Other {
+
+    public int[] func4(){
+        int[] k;
+        k = new int[1];
+        return k;
     }
 
-    public static void main(String[] args){
-        A teste;
-
-        int a;
-
-        a = 1;
-        int b;
-        b = 2;
-        teste = new A();
-
-        a.foo(a,b);
-    }
 }
