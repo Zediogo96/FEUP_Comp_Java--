@@ -1,13 +1,16 @@
+class ArrayIndexNotInt {
 
-import Other;
-// import Person;
+    public static void main(String[] args) {
 
-class BasicMethods extends Other {
-
-    public int[] func4(){
-        int[] k;
-        k = new int[1];
-        return k;
     }
 
+    public int foo() {
+        int[] a;
+        boolean b;
+
+        a = new int[2];
+        b = true;
+
+        return a[b];
+    }
 }
