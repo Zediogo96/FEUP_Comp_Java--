@@ -544,17 +544,16 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         if (temp1 != null) arraySymbol = temp1.getKey();
         if (temp2 != null) arraySymbol = temp2.getKey();
 
-
-        if (arraySymbol != null) {
+        if (!indexReturn.getKey().equals("int")) {
+            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(index.get("lineStart")), Integer.parseInt(index.get("colStart")), "Array index is not an Integer: " + index.get("id")));
+            return Map.entry("error", "null");
+        } else if (arraySymbol != null) {
             String comparator = arraySymbol.getType().getName() + (arraySymbol.getType().isArray() ? "[]" : "");
 
             if (!comparator.equals("int[]")) {
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(array.get("lineStart")), Integer.parseInt(array.get("colStart")), "Variable is not an array: " + array.get("id")));
                 return Map.entry("error", "null");
             }
-        } else if (!indexReturn.getKey().equals("int")) {
-            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(index.get("lineStart")), Integer.parseInt(index.get("colStart")), "Array index is not an Integer: " + index.get("id")));
-            return Map.entry("error", "null");
         } else {
             reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(array.get("lineStart")), Integer.parseInt(array.get("colStart")), "Variable not declared: " + array.get("id")));
             return Map.entry("error", "null");
