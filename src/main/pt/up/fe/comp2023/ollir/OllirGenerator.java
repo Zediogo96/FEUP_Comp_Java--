@@ -55,6 +55,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         addVisit("Block", this::visitBlock);
         addVisit("UnaryOp", this::visitNegation);
         addVisit("ArrayInit", this::visitArrayInit);
+        addVisit("ArrayAccess", this::visitArrayAccess);
 
         setDefaultVisit((node, dummy) -> null);
     }
@@ -365,13 +366,29 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
                 var tVar = getAndAddTempVarCount(assignmentNode);
                 ollirCode.append(getIndent()).append("t").append(tVar).append(".i32 :=.i32 ").append(assignmentNode.getJmmChild(0).getJmmChild(0).get("value")).append(".i32").append(";\n");
             }
+        } else if (assignmentNode.getJmmChild(0).getKind().equals("ArrayAccess")) {
+            type = toAssignType;
+            if (assignmentNode.getJmmChild(0).getJmmChild(1).getKind().equals("Integer")) {
+                var tVar = getAndAddTempVarCount(assignmentNode);
+                var children = assignmentNode.getChildren();
+                ollirCode.append(getIndent()).append("t").append(tVar).append(".i32 :=.i32 ");  //temp var that will hold the value resulting from the array access
+            }
         }
 
-        if (isField) {
-            ollirCode.append(getIndent()).append("putfield(this, ").append(toAssign).append(toAssignType).append(", ");
-        } else {
-            ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" ");
+        if (!assignmentNode.getJmmChild(0).getKind().equals("ArrayAccess")) {
+            if (isField) {
+                ollirCode.append(getIndent()).append("putfield(this, ").append(toAssign).append(toAssignType).append(", ");
+            } else {
+                ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" ");
+            }
+            //ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" ");  //.append(str_assigned).append(";\n");  //append generally the assignment  structure, then each visitor will append the rhs
+
         }
+//        if (isField) {
+//            ollirCode.append(getIndent()).append("putfield(this, ").append(toAssign).append(toAssignType).append(", ");
+//        } else {
+//            ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" ");
+//        }
         //ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" ");  //.append(str_assigned).append(";\n");  //append generally the assignment  structure, then each visitor will append the rhs
 
         String str_assigned;
@@ -382,6 +399,10 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             //System.out.println("RETURN STR: " + returnstr);
             if (!child.getKind().equals("NewObject")) {
                 ollirCode.append(returnstr);
+            }
+            if (child.getKind().equals("ArrayAccess")) {
+                ollirCode.append(";\n");
+                ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" t").append(getTempVarCount()).append(toAssignType);
             }
             //System.out.println("OLLIR CODE AFTER VISITING CHILD OF ASSIGNMENT NODE: " + ollirCode);
         }
@@ -1185,13 +1206,32 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         if (child.getKind().equals("Integer")) {
             var currentTempVar = getTempVarCount();
-            return "new(array," + currentTempVar + ".i32).array.i32";
+            return "new(array, t" + currentTempVar + ".i32).array.i32";
         }
         else {
             id = visit(child);
         }
 
         return "new(array," + id + ".i32).array.i32";
+    }
+
+    private String visitArrayAccess(JmmNode arrayAccessNode, OllirInference inference) {
+        //System.out.println("VISITING ARRAY ACCESS");
+
+        var arrayName = arrayAccessNode.getJmmChild(0);
+        var index = arrayAccessNode.getJmmChild(1);
+
+        String indexReg = index.get("value");
+
+        String opString = arrayName.get("id") + ".array.i32[" + indexReg + ".i32].i32";
+
+//        if (inference == null || inference.getIsAssignedToTempVar()) {
+//            int tempVar = getAndAddTempVarCount(arrayAccessNode);
+//            ollirCode.append(getIndent()).append("t").append(tempVar).append(".i32 :=.i32 ").append(opString).append(";\n");
+//            return "t" + tempVar + ".i32";
+//        }
+
+        return opString;
     }
 
 }
