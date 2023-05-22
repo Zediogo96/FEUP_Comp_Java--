@@ -69,23 +69,23 @@ statement
     ;
 
 expression
-    : 'new' id=ID '(' ')' #NewObject
-    | value=('true' | 'false') #Boolean
-    | value=INTEGER #Integer
-    | id=ID #Variable
-    | expression '[' expression ']' #ArrayAccess
-    | expression '.' expression '(' ( expression (',' expression)* )* ')' #AccessMethod
-    | method=ID '(' ( expression (',' expression)* )? ')' #MethodCall
-
-    | 'this' '.' expression #This
-    | 'this' ('.' expression '=' expression)? #This
-    | '(' expression ')' #Parenthesis
-    | expression '.' 'length' #ArrayLength
-    | 'new' 'int' '[' size=expression ']' #ArrayInit
-    | '!'expression #UnaryOp
-    | expression op=MULTDIV expression #BinaryOp
+    : expression op=MULTDIV expression #BinaryOp
     | expression op=PLUSMINUS expression #BinaryOp
     | expression op=COMP_OP expression #RelationalOp
     | expression op=AND_OP expression #RelationalOp
     | expression op=OR_OP expression #RelationalOp
+    | 'new' id=ID '(' ')' #NewObject
+    | value=('true' | 'false') #Boolean
+    | value=INTEGER #Integer
+    | id=ID #Variable
+    | expression '[' expression ']' #ArrayAccess
+    | 'new' 'int' '[' size=expression ']' #ArrayInit
+    | expression '.' expression '(' ( expression (',' expression)* )* ')' #AccessMethod
+    | method=ID '(' ( expression (',' expression)* )? ')' #MethodCall
+    | 'this' '.' expression #This
+    | 'this' ('.' expression '=' expression)? #This
+    | '(' expression ')' #Parenthesis
+    | expression '.' 'length' #ArrayLength
+    | '!'expression #UnaryOp
+
     ;

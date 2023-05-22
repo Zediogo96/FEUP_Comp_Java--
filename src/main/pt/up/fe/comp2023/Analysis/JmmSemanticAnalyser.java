@@ -86,10 +86,14 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
                 return Map.entry("access", "null");
             } else if ((st.getMethod(method.get("id")) != null)) {
 
-                List<Type> argumentsNames = st.getMethod(method.get("id")).getParameters().stream().map(Symbol::getType).toList();
-                List<String> argumentsTypeNames = argumentsNames.stream().map(Type::getName).toList();
+                List<String> argumentNames = st.getMethod(method.get("id"))
+                        .getParameters()
+                        .stream()
+                        .map(Symbol::getType)
+                        .map(t -> t.getName() + (t.isArray() ? "[]" : ""))
+                        .toList();
 
-                if (argumentsTypeNames.equals(parametersTypeNames)) {
+                if (argumentNames.equals(parametersTypeNames)) {
                     return Map.entry(st.getMethod(method.get("id")).getReturnType().getName(), "null");
                 } else {
                     reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Incorrect parameters in method call: " + method.get("id") + "() in class " + st.getClassName()));
@@ -324,7 +328,10 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         }
 
         if (variable != null) {
-            if (variable.getKey().getType().getName().equals(parts[0])) {
+
+            String comparator = variable.getKey().getType().getName() + (variable.getKey().getType().isArray() ? "[]" : "");
+
+            if (comparator.equals(parts[0])) {
                 if (!currentMethod.initializeField(variable.getKey())) st.initializeField(variable.getKey());
             } else if (!assignment.getKey().equals("access")) {
                 reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types on Assignment: '" + variable.getKey().getType().getName() + "' and '" + assignment.getKey() + "'"));
@@ -434,7 +441,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         if (field == null) {
             return Map.entry("error", "null");
         } else {
-            return Map.entry(field.getKey().getType().getName(), field.getValue() ? "true" : "false");
+            return Map.entry(field.getKey().getType().getName() + (field.getKey().getType().isArray() ? "[]" : ""), field.getValue() ? "true" : "false");
         }
     }
 
@@ -469,7 +476,10 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             return Map.entry("error", "null");
         }
 
-        if (variable.getKey().getType().getName().equals("int[]") && valueReturn.getKey().equals("int")) {
+        String comparator_var = variable.getKey().getType().getName() + (variable.getKey().getType().isArray() ? "[]" : "");
+        String comparator_valReturn = valueReturn.getKey() + (valueReturn.getKey().equals("int") ? "[]" : "");
+
+        if (comparator_var.equals("int[]") && comparator_valReturn.equals("int[]")) {
             st.initializeField(variable.getKey());
         } else {
             reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types on Array Assignment: '" + variable.getKey().getType().getName() + "' and '" + valueReturn.getKey() + "'"));
@@ -477,7 +487,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         }
 
         return Map.entry("void", "null");
-
     }
 
     private Map.Entry<String, String> dealWithMainDeclaration(JmmNode node, Boolean data) {
@@ -489,7 +498,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             currentMethod = null;
             e.printStackTrace();
         }
-
         return null;
     }
 
@@ -528,20 +536,25 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         Map.Entry<String, String> indexReturn = visit(index, true);
 
         Map.Entry<Symbol, Boolean> temp1 = st.getField(array.get("id"));
+
         Map.Entry<Symbol, Boolean> temp2 = currentMethod.getLocalVariable(array.get("id"));
 
         Symbol arraySymbol = null;
 
         if (temp1 != null) arraySymbol = temp1.getKey();
-        else if (temp2 != null) arraySymbol = temp2.getKey();
+        if (temp2 != null) arraySymbol = temp2.getKey();
 
-        if (arraySymbol != null && !arraySymbol.getType().getName().equals("int[]")) {
-            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(array.get("lineStart")), Integer.parseInt(array.get("colStart")), "Variable is not an array: " + array.get("id")));
-            return Map.entry("error", "null");
-        } else if (!indexReturn.getKey().equals("int")) {
+        if (!indexReturn.getKey().equals("int")) {
             reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(index.get("lineStart")), Integer.parseInt(index.get("colStart")), "Array index is not an Integer: " + index.get("id")));
             return Map.entry("error", "null");
-        } else if (arraySymbol == null) {
+        } else if (arraySymbol != null) {
+            String comparator = arraySymbol.getType().getName() + (arraySymbol.getType().isArray() ? "[]" : "");
+
+            if (!comparator.equals("int[]")) {
+                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(array.get("lineStart")), Integer.parseInt(array.get("colStart")), "Variable is not an array: " + array.get("id")));
+                return Map.entry("error", "null");
+            }
+        } else {
             reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(array.get("lineStart")), Integer.parseInt(array.get("colStart")), "Variable not declared: " + array.get("id")));
             return Map.entry("error", "null");
         }
@@ -563,6 +576,8 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         JmmNode child = node.getChildren().get(0);
         String returnType = visit(child, true).getKey();
 
+        System.out.println(returnType);
+
         if (returnType.contains("access")) {
             return Map.entry("access", "null");
         }
@@ -578,7 +593,9 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
             returnType = st.getMethod(node.getChildren().get(0).get("method")).getReturnType().getName();
         }
 
-        if (!returnType.equals(currentMethod.getReturnType().getName().replace("(imported)", ""))) {
+        String currentMethodReturnType = currentMethod.getReturnType().getName().replace("(imported)", "") + (currentMethod.getReturnType().isArray() ? "[]" : "");
+
+        if (!returnType.equals(currentMethodReturnType)) {
             reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Mismatched types on return statement: '" + currentMethod.getReturnType().getName() + "' and '" + returnType + "'"));
             return Map.entry("error", "null");
         }

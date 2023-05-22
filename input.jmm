@@ -1,23 +1,28 @@
 import io;
+import A;
+class Fac {
 
-class A {
-    int a;
+    int f1;
 
-    public int foo(int a, int b) {
-       int c;
-       c = a + b;
+    public int test2 (int param) {
+    int b;
+    boolean test = false;
+    return 0;
     }
 
-    public static void main(String[] args){
-        A teste;
+    public int test(int param) {
 
+        return 0;
+    }
+ public static void main(String[] args) {
+        Fac f;
+        f  = new Fac();
         int a;
-
-        a = 1;
         int b;
-        b = 2;
-        teste = new A();
+        a=1;
+        b=1;
+        f.test(b);
 
-        a.foo(a,b);
+        io.println(a + b);
     }
-}
+ }
