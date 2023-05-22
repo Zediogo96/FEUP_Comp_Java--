@@ -56,6 +56,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         addVisit("UnaryOp", this::visitNegation);
         addVisit("ArrayInit", this::visitArrayInit);
         addVisit("ArrayAccess", this::visitArrayAccess);
+        addVisit("ArrayLength", this::visitArrayLength);
 
         setDefaultVisit((node, dummy) -> null);
     }
@@ -785,6 +786,8 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         boolean opInsideCall = false;
 
+        boolean lengthInsideCall = false;
+
         for (int i = 2; i < methodCallNode.getChildren().size(); i++) {
 
             argsJmm.add(methodCallNode.getJmmChild(i));
@@ -799,7 +802,9 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
                 opInsideCall = true;
                 //visit(methodCallNode.getJmmChild(i), new OllirInference(returnType, true));
             }
-
+            if (methodCallNode.getJmmChild(i).getKind().equals("ArrayLength")) {
+                lengthInsideCall = true;
+            }
         }
 
         //System.out.println("DEBUGGING ARGS JMM: " + argsJmm);
@@ -836,7 +841,12 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
                 var ret = visit(arg, new OllirInference(returnType, true));
                 //System.out.println("DEBUGGING RET: " + ret);
                 operationString.append(", ").append(ret);
-            } else {
+            } else if (arg.getKind().equals("ArrayLength")){
+                var ret = visit(arg, new OllirInference(returnType, true));
+                var tVar = getTempVarCount();
+                operationString.append(", t").append(tVar).append(".i32");
+            }
+            else {
                 //System.out.println("ENTERED INLINE CLASS");
                 //System.out.println("DEBUGGING ARG TEMP: " + arg);
                 //System.out.println("LOCAL VARS: " + localvars);
@@ -1232,6 +1242,18 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 //        }
 
         return opString;
+    }
+
+    private String visitArrayLength(JmmNode arrayLengthNode, OllirInference inference) {
+        //System.out.println("VISITING ARRAY LENGTH");
+
+        var arrayName = arrayLengthNode.getJmmChild(0);
+
+        var tVar = getAndAddTempVarCount(arrayLengthNode);
+
+        ollirCode.append(getIndent()).append("t").append(tVar).append(".i32 :=.i32 arraylength(").append(arrayName.get("id")).append(".array.i32).i32;\n");
+
+        return "";
     }
 
 }
