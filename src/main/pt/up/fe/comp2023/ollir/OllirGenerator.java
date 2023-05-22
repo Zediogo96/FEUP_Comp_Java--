@@ -57,6 +57,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         addVisit("ArrayInit", this::visitArrayInit);
         addVisit("ArrayAccess", this::visitArrayAccess);
         addVisit("ArrayLength", this::visitArrayLength);
+        addVisit("ArrayAssignment", this::visitArrayAssignment);
 
         setDefaultVisit((node, dummy) -> null);
     }
@@ -1246,7 +1247,8 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             int tempVar = getAndAddTempVarCount(arrayAccessNode);
             ollirCode.append(getIndent()).append("t").append(tempVar).append(".i32 :=.i32 ").append(opString).append(";\n");
             var binaryOpParent = arrayAccessNode.getAncestor("BinaryOp").isPresent();
-            if (binaryOpParent) {
+            var arrayAssignmentParent = arrayAccessNode.getAncestor("ArrayAssignment").isPresent();
+            if (binaryOpParent || arrayAssignmentParent) {
                 return "t" + tempVar + ".i32";
             }
             else return "";
@@ -1263,6 +1265,37 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         var tVar = getAndAddTempVarCount(arrayLengthNode);
 
         ollirCode.append(getIndent()).append("t").append(tVar).append(".i32 :=.i32 arraylength(").append(arrayName.get("id")).append(".array.i32).i32;\n");
+
+        return "";
+    }
+
+    private String visitArrayAssignment(JmmNode arrayAssignmentNode, OllirInference inference) {
+        //System.out.println("VISITING ARRAY ASSIGNMENT");
+
+        var children = arrayAssignmentNode.getChildren();
+        System.out.println("DEBUG CHILDREN" + children);
+
+        //start
+
+        var arrayName = arrayAssignmentNode.get("id");
+        var index = arrayAssignmentNode.getJmmChild(0);
+        var value = arrayAssignmentNode.getJmmChild(1);
+
+        String indexReg = "";
+
+        indexReg = visit(index, new OllirInference(".i32", true));
+
+        String valueReg = "";
+
+        valueReg = visit(value, new OllirInference(".i32", true));
+
+        String opString = arrayName + ".array.i32[" + indexReg + "].i32 :=.i32 " + valueReg + ";\n";
+
+        ollirCode.append(getIndent()).append(opString);
+
+        //end
+
+
 
         return "";
     }
