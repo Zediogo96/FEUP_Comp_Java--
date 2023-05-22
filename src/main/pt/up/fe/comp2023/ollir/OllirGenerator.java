@@ -402,7 +402,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
                 ollirCode.append(returnstr);
             }
             if (child.getKind().equals("ArrayAccess")) {
-                ollirCode.append(";\n");
+                //ollirCode.append(";\n");
                 ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(type).append(" t").append(getTempVarCount()).append(toAssignType);
             }
             //System.out.println("OLLIR CODE AFTER VISITING CHILD OF ASSIGNMENT NODE: " + ollirCode);
@@ -606,6 +606,11 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
     private String integerVisit(JmmNode integerNode, OllirInference inference) {
         //System.out.println("DEBUGGING INTEGER NODE"  + integerNode.get("value"));
+//        if (inference != null && inference.getIsAssignedToTempVar()) {
+//            ollirCode.append(getIndent()).append("t").append(getAndAddTempVarCount(integerNode)).append(".i32 :=.i32 ").append(integerNode.get("value")).append(".i32;\n");
+//            var currentTemp = getTempVarCount();
+//            return "t" + currentTemp + ".i32";
+//        }
         var value = integerNode.get("value");
         var str = value + ".i32";
         return str;
@@ -1231,15 +1236,21 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         var arrayName = arrayAccessNode.getJmmChild(0);
         var index = arrayAccessNode.getJmmChild(1);
 
-        String indexReg = index.get("value");
+        String indexReg = "";
 
-        String opString = arrayName.get("id") + ".array.i32[" + indexReg + ".i32].i32";
+        indexReg = visit(index, new OllirInference(".i32", true));
 
-//        if (inference == null || inference.getIsAssignedToTempVar()) {
-//            int tempVar = getAndAddTempVarCount(arrayAccessNode);
-//            ollirCode.append(getIndent()).append("t").append(tempVar).append(".i32 :=.i32 ").append(opString).append(";\n");
-//            return "t" + tempVar + ".i32";
-//        }
+        String opString = arrayName.get("id") + ".array.i32[" + indexReg + "].i32";
+
+        if (inference == null || inference.getIsAssignedToTempVar()) {
+            int tempVar = getAndAddTempVarCount(arrayAccessNode);
+            ollirCode.append(getIndent()).append("t").append(tempVar).append(".i32 :=.i32 ").append(opString).append(";\n");
+            var binaryOpParent = arrayAccessNode.getAncestor("BinaryOp").isPresent();
+            if (binaryOpParent) {
+                return "t" + tempVar + ".i32";
+            }
+            else return "";
+        }
 
         return opString;
     }
