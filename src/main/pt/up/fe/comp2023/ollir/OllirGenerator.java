@@ -1289,7 +1289,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         valueReg = visit(value, new OllirInference(".i32", true));
 
-        String opString = arrayName + ".array.i32[" + indexReg + "].i32 :=.i32 " + valueReg + ";\n";
+        String opString = arrayName + "[" + indexReg + "].i32 :=.i32 " + valueReg + ";\n";
 
         ollirCode.append(getIndent()).append(opString);
 
