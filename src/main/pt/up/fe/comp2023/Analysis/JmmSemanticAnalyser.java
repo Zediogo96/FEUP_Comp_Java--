@@ -662,4 +662,3 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
     protected void buildVisitor() {
     }
 }
-

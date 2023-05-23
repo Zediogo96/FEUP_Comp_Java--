@@ -373,7 +373,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             if (assignmentNode.getJmmChild(0).getJmmChild(1).getKind().equals("Integer")) {
                 var tVar = getAndAddTempVarCount(assignmentNode);
                 var children = assignmentNode.getChildren();
-                ollirCode.append(getIndent()).append("t").append(tVar).append(".i32 :=.i32 ");  //temp var that will hold the value resulting from the array access
+                //ollirCode.append(getIndent()).append("t").append(tVar).append(".i32 :=.i32 ");  //temp var that will hold the value resulting from the array access
             }
         }
 
