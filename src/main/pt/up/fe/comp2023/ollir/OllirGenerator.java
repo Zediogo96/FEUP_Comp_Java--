@@ -1262,7 +1262,22 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         indexReg = visit(index, new OllirInference(".i32", true));
 
+        //if array is field
+
+        var arrayAsField = st.getField(arrayName.get("id"));
+
+        var tVar = 0;
+
+        if (arrayAsField != null) {
+            tVar = getAndAddTempVarCount(arrayAccessNode);
+            ollirCode.append(getIndent()).append("t").append(tVar).append(".array.i32 :=.array.i32 getfield(this, ").append(arrayName.get("id")).append(".array.i32).array.i32;\n");
+        }
+
         String opString = arrayName.get("id") + ".array.i32[" + indexReg + "].i32";
+
+        if (arrayAsField != null) {
+            opString = "t" + tVar + ".array.i32[" + indexReg + "].i32";
+        }
 
         if (inference == null || inference.getIsAssignedToTempVar()) {
             int tempVar = getAndAddTempVarCount(arrayAccessNode);
@@ -1312,7 +1327,6 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         String indexReg = "";
 
         indexReg = visit(index, new OllirInference(".i32", true));
-
 
         //if array is field
 
