@@ -1313,6 +1313,19 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         indexReg = visit(index, new OllirInference(".i32", true));
 
+
+        //if array is field
+
+        var arrayAsField = st.getField(arrayName);
+
+        if (arrayAsField != null) {
+            var tVar = getAndAddTempVarCount(arrayAssignmentNode);
+            ollirCode.append(getIndent()).append("t").append(tVar).append(".array.i32 :=.array.i32 getfield(this, ").append(arrayName).append(".array.i32).array.i32;\n");
+            arrayName = "t" + tVar;
+        }
+
+        System.out.println("DEBUG ARRAY AS FIELD" + arrayAsField);
+
         String valueReg = "";
 
         valueReg = visit(value, new OllirInference(".i32", true));
@@ -1323,6 +1336,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         //end
 
+        //check if array is field based on array name
 
 
         return "";
