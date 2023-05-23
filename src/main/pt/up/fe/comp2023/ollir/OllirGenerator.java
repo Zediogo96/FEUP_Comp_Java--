@@ -794,6 +794,10 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         boolean lengthInsideCall = false;
 
+        boolean isToAssignToTempVar = false;
+
+        var arrayAccessParent = methodCallNode.getAncestor("ArrayAccess").isPresent();
+
         for (int i = 2; i < methodCallNode.getChildren().size(); i++) {
 
             argsJmm.add(methodCallNode.getJmmChild(i));
@@ -810,6 +814,9 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             }
             if (methodCallNode.getJmmChild(i).getKind().equals("ArrayLength")) {
                 lengthInsideCall = true;
+            }
+            if (methodCallNode.getJmmChild(i).getKind().equals("ArrayAccess")) {
+                isToAssignToTempVar = true;
             }
         }
 
@@ -851,6 +858,10 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
                 var ret = visit(arg, new OllirInference(returnType, true));
                 var tVar = getTempVarCount();
                 operationString.append(", t").append(tVar).append(".i32");
+            } else if (arg.getKind().equals("ArrayAccess")){
+                var ret = visit(arg, new OllirInference(returnType, true));
+                System.out.println("DEBUGGING RET: " + ret);
+                operationString.append(", ").append(ret);
             }
             else {
                 //System.out.println("ENTERED INLINE CLASS");
@@ -898,6 +909,10 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
                 if (!found) {
                     operationString.append(", ").append("t").append(getTempVarCount()).append(".").append(arg.get("id"));
                 }
+                if (isToAssignToTempVar) {
+                    var tVar = getTempVarCount();
+                    operationString.append(", t").append(tVar).append(".i32");
+                }
             }
         }
 
@@ -908,6 +923,12 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         }
 
         String opstring = operationString.toString();
+
+        if (arrayAccessParent) {
+            var tVar = getAndAddTempVarCount(methodCallNode);
+            ollirCode.append(getIndent()).append("t").append(tVar).append(".i32 :=.i32 ").append(opstring).append(";\n");
+            return "t" + tVar + ".i32";
+        }
 
         if (parent.isPresent()) {
             ollirCode.append(opstring);
@@ -1248,7 +1269,8 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             ollirCode.append(getIndent()).append("t").append(tempVar).append(".i32 :=.i32 ").append(opString).append(";\n");
             var binaryOpParent = arrayAccessNode.getAncestor("BinaryOp").isPresent();
             var arrayAssignmentParent = arrayAccessNode.getAncestor("ArrayAssignment").isPresent();
-            if (binaryOpParent || arrayAssignmentParent) {
+            var accessMethodParent = arrayAccessNode.getAncestor("AccessMethod").isPresent();
+            if (binaryOpParent || arrayAssignmentParent || accessMethodParent) {
                 return "t" + tempVar + ".i32";
             }
             else return "";
@@ -1265,6 +1287,12 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         var tVar = getAndAddTempVarCount(arrayLengthNode);
 
         ollirCode.append(getIndent()).append("t").append(tVar).append(".i32 :=.i32 arraylength(").append(arrayName.get("id")).append(".array.i32).i32;\n");
+
+        var binOpParent = arrayLengthNode.getAncestor("BinaryOp").isPresent();
+
+        if (binOpParent) {
+            return "t" + tVar + ".i32";
+        }
 
         return "";
     }
