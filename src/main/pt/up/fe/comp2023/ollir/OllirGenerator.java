@@ -645,8 +645,15 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
     }
 
     private String visitVarDeclaration(JmmNode varDeclNode, OllirInference inference) {
-        //System.out.println("DEBUGGING VAR DECLARATION NODE: " + varDeclNode);
-        //System.out.println("DEBUGGING VAR DECLARATION NODE CHILDREN: " + varDeclNode.getChildren());
+        System.out.println("DEBUGGING VAR DECLARATION NODE: " + varDeclNode);
+        System.out.println("DEBUGGING VAR DECLARATION NODE CHILDREN: " + varDeclNode.getChildren());
+
+        var typeChild = varDeclNode.getJmmChild(1);  //newobject
+        var type = typeChild.get("id");  //BasicMethods
+        var varName = varDeclNode.get("name");  //var name
+
+        ollirCode.append(getIndent()).append(varName).append(".").append(type).append(":=.").append(type).append(" new").append("(").append(type).append(").").append(type).append(";\n");
+        ollirCode.append(getIndent()).append("invokespecial(").append(varName).append(".").append(type).append(",\"<init>\").V").append(";\n");
 
 //        String varName = varDeclNode.get("name");
 //        var varType = varDeclNode.getJmmChild(0);
