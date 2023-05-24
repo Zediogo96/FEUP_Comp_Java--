@@ -1081,12 +1081,13 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         var parent = newObjectNode.getAncestor("AccessMethod");
 
+        var parentRet = newObjectNode.getAncestor("ReturnStmt").isPresent();
 
-        String type = newObjectNode.get("id");
+        var type = newObjectNode.get("id");
 
         var newTemp = "";
 
-        if (parent.isPresent()) {
+        if (parent.isPresent() || parentRet) {
             newTemp = String.valueOf(getAndAddTempVarCount(newObjectNode));
             ollirCode.append("t").append(newTemp).append(".").append(type).append(" :=.").append(type).append(" new(").append(newObjectNode.get("id")).append(").").append(newObjectNode.get("id")).append(";\n");
             ollirCode.append(getIndent()).append("invokespecial(").append("t").append(newTemp).append(".").append(type).append(", \"<init>\").V").append(";\n");
@@ -1101,7 +1102,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         //for assignment
         //return "new " + newObjectNode.get("id");
-        return "t" + newTemp + type;
+        return "t" + newTemp + "." + type;
     }
 
     public String visitIfElse(JmmNode ifElseNode, OllirInference inference) {
