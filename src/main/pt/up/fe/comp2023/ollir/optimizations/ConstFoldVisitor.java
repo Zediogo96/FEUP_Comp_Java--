@@ -26,6 +26,7 @@ public class ConstFoldVisitor extends AJmmVisitor<String, Boolean> {
         changes = visit(right) || changes;
 
         boolean hasBoolOperands = left.getKind().equals("Boolean") && right.getKind().equals("Boolean");
+        boolean hasIntOperands = left.getKind().equals("Integer") && right.getKind().equals("Integer");
 
         if (hasBoolOperands) {
             boolean leftValue = Boolean.parseBoolean(left.get("value"));
@@ -44,6 +45,27 @@ public class ConstFoldVisitor extends AJmmVisitor<String, Boolean> {
             node.replace(newNode);
 
             return true;
+        }
+        // Meaning deal with <, >, <=, >=, ==, and !=
+        else if (hasIntOperands) {
+            int leftValue = Integer.parseInt(left.get("value"));
+            int rightValue = Integer.parseInt(right.get("value"));
+
+            boolean result = false;
+
+            switch (node.get("op")) {
+                case "<" -> result = leftValue < rightValue;
+                case ">" -> result = leftValue > rightValue;
+                case "<=" -> result = leftValue <= rightValue;
+                case ">=" -> result = leftValue >= rightValue;
+                case "==" -> result = leftValue == rightValue;
+                case "!=" -> result = leftValue != rightValue;
+            }
+
+            JmmNode newNode = new JmmNodeImpl("Boolean");
+            newNode.put("value", String.valueOf(result));
+
+            node.replace(newNode);
         }
         return changes;
     }

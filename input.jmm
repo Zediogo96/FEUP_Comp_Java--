@@ -4,12 +4,12 @@ class Fac {
 
     public static void main(String[] args) {
         boolean a;
-        boolean b;
-        boolean c;
+        int b;
+        int c;
 
+        b = 1;
+        c = 2;
 
-        a = true;
-        b = false;
-        c = false && true;
+        a = 10 < 5;
     }
  }
