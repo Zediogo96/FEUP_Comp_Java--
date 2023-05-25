@@ -46,7 +46,7 @@ public class ConstFoldVisitor extends AJmmVisitor<String, Boolean> {
 
             node.replace(newNode);
 
-            return false;
+            return true;
         }
         return changes;
     }
