@@ -561,6 +561,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         String exprnodeReturn = "";
         boolean returnIsparam = false;
+        boolean returnIsThis = false;
 
         //System.out.println("DEBUGGING RETURN NODE: " + returnNode);
         JmmNode exprNode = returnNode.getJmmChild(0);
@@ -568,6 +569,9 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         if (exprNode == null) {
             //return "null";
             System.out.println("aaa");
+        } else if (exprNode.getKind().equals("This")) {
+            var returnType = st.getReturnType(getCurrentMethodName(returnNode));
+            ollirCode.append(getIndent()).append("ret").append(OllirUtils.getOllirType(returnType)).append(" this").append(OllirUtils.getOllirType(returnType)).append(";\n");
         } else {
 
             //System.out.println("DEBUGGING RETURN NODE CHILD: " + exprNode);
