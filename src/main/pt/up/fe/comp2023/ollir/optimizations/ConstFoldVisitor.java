@@ -10,11 +10,42 @@ public class ConstFoldVisitor extends AJmmVisitor<String, Boolean> {
         super();
         setDefaultVisit(this::defaultVisit);
         addVisit("BinaryOp", this::binOpVisit);
+        addVisit("RelationalOp", this::relOpVisit);
     }
 
     @Override
     protected void buildVisitor() {
 
+    }
+
+    private Boolean relOpVisit(JmmNode node, String space) {
+        JmmNode left = node.getChildren().get(0);
+        JmmNode right = node.getChildren().get(1);
+
+        boolean changes = visit(left);
+        changes = visit(right) || changes;
+
+        boolean hasBoolOperands = left.getKind().equals("Boolean") && right.getKind().equals("Boolean");
+
+        if (hasBoolOperands) {
+            boolean leftValue = Boolean.parseBoolean(left.get("value"));
+            boolean rightValue = Boolean.parseBoolean(right.get("value"));
+
+            boolean result = false;
+
+            switch (node.get("op")) {
+                case "&&" -> result = leftValue && rightValue;
+                case "||" -> result = leftValue || rightValue;
+            }
+
+            JmmNode newNode = new JmmNodeImpl("Integer");
+            newNode.put("value", String.valueOf(result));
+
+            node.replace(newNode);
+
+            return true;
+        }
+        return changes;
     }
 
     private Boolean binOpVisit(JmmNode node, String space) {
@@ -26,7 +57,6 @@ public class ConstFoldVisitor extends AJmmVisitor<String, Boolean> {
         changes = visit(right) || changes;
 
         boolean hasIntOperands = left.getKind().equals("Integer") && right.getKind().equals("Integer");
-        System.out.println("hasIntOperands: " + hasIntOperands);
 
         if (hasIntOperands) {
             int leftValue = Integer.parseInt(left.get("value"));

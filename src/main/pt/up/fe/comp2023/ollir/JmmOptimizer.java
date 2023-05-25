@@ -32,8 +32,7 @@ public class JmmOptimizer implements JmmOptimization {
 
             changed = constFoldVisitor.visit(semanticsResult.getRootNode());
         }
-
-
+        
         return semanticsResult;
     }
 

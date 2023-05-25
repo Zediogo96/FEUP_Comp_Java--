@@ -2,11 +2,14 @@ import io;
 import A;
 class Fac {
 
-
-
-
     public static void main(String[] args) {
-        int a;
-        a = 10 + 5 - 5 * 2 / 2;
+        boolean a;
+        boolean b;
+        boolean c;
+
+
+        a = true;
+        b = false;
+        c = false && true;
     }
  }
