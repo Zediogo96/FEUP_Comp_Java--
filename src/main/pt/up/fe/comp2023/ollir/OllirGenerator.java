@@ -58,6 +58,7 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         addVisit("ArrayAccess", this::visitArrayAccess);
         addVisit("ArrayLength", this::visitArrayLength);
         addVisit("ArrayAssignment", this::visitArrayAssignment);
+        addVisit("Parenthesis", this::visitParenthesis);
 
         setDefaultVisit((node, dummy) -> null);
     }
@@ -573,7 +574,6 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             var returnType = st.getReturnType(getCurrentMethodName(returnNode));
             ollirCode.append(getIndent()).append("ret").append(OllirUtils.getOllirType(returnType)).append(" this").append(OllirUtils.getOllirType(returnType)).append(";\n");
         } else {
-
             //System.out.println("DEBUGGING RETURN NODE CHILD: " + exprNode);
             exprnodeReturn = visit(exprNode);
             //System.out.println("What is coming from expr node?: " + exprnodeReturn);
@@ -969,6 +969,11 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         for (var child : methodCallNode.getChildren()) {
             //argsList.add(methodCallNode.getJmmChild(i).get("id"));
             //System.out.println("DEBUGGING CHILD: " + child);
+            if (child.getKind().equals("ArrayAccess")) {
+                var testvisit = visit(child, new OllirInference("", true));
+                argsList.add(visit(child, new OllirInference("", true)));
+                continue;
+            }
             argsList.add(child.get("id"));
         }
 
@@ -995,10 +1000,11 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         //System.out.println("DEBUGGING ARGS SYMBOLS: " + argsSymbols);
 
         var parent = methodCallNode.getAncestor("This").isPresent();
+        var childArrayAccess = methodCallNode.getJmmChild(0).getKind().equals("ArrayAccess");
 
         StringBuilder operationString = new StringBuilder();
 
-        if (parent) {
+        if (parent || childArrayAccess) {
             operationString = new StringBuilder(invokeType + "(this, " + "\"" + methodId + "\"");
         } else {
             operationString = new StringBuilder(invokeType + "(" + "\"" + methodId + "\"");
@@ -1010,6 +1016,13 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         for (var arg : argsSymbols) {
             String argType = OllirUtils.getOllirType(arg.getType());
             operationString.append(", ").append(arg.getName()).append(argType);
+        }
+
+        //get all entries of argsList that are String anf start with "t"
+        var tempVars = argsList.stream().filter(arg -> arg.startsWith("t")).toList();
+
+        for (var t : tempVars) {
+            operationString.append(", ").append(t);
         }
 
         operationString.append(")").append(returnType);
@@ -1297,7 +1310,8 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
             var binaryOpParent = arrayAccessNode.getAncestor("BinaryOp").isPresent();
             var arrayAssignmentParent = arrayAccessNode.getAncestor("ArrayAssignment").isPresent();
             var accessMethodParent = arrayAccessNode.getAncestor("AccessMethod").isPresent();
-            if (binaryOpParent || arrayAssignmentParent || accessMethodParent) {
+            var methodCallParent = arrayAccessNode.getAncestor("MethodCall").isPresent();
+            if (binaryOpParent || arrayAssignmentParent || accessMethodParent || methodCallParent) {
                 return "t" + tempVar + ".i32";
             }
             else return "";
@@ -1316,8 +1330,9 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         ollirCode.append(getIndent()).append("t").append(tVar).append(".i32 :=.i32 arraylength(").append(arrayName.get("id")).append(".array.i32).i32;\n");
 
         var binOpParent = arrayLengthNode.getAncestor("BinaryOp").isPresent();
+        var relationalOpParent = arrayLengthNode.getAncestor("RelationalOp").isPresent();
 
-        if (binOpParent) {
+        if (binOpParent || relationalOpParent) {
             return "t" + tVar + ".i32";
         }
 
@@ -1366,6 +1381,14 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
 
         return "";
+    }
+
+    private String visitParenthesis(JmmNode parenthesisNode, OllirInference inference) {
+        //System.out.println("VISITING PARENTHESIS");
+
+        var child = parenthesisNode.getJmmChild(0);
+
+        return visit(child, inference);
     }
 
 }
