@@ -2,10 +2,7 @@ package pt.up.fe.comp2023;
 
 import pt.up.fe.comp.TestUtils;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
-import pt.up.fe.comp.jmm.jasmin.JasminResult;
-import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
-import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp2023.jmm.jasmin.JasminBuilder;
 import pt.up.fe.comp2023.ollir.JmmOptimizer;
 import pt.up.fe.specs.util.SpecsIo;
@@ -13,8 +10,9 @@ import pt.up.fe.specs.util.SpecsLogs;
 import pt.up.fe.specs.util.SpecsSystem;
 
 import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Launcher {
 
@@ -60,6 +58,13 @@ public class Launcher {
 
         var optimizer = new JmmOptimizer();
 
+        // Optimization stage
+        if (config.get("optimize") != null && config.get("optimize").equals("true")) {
+            semanticsResult = optimizer.optimize(semanticsResult);
+        }
+
+        System.out.println(config.get("optimize"));
+
         var ollirResult = optimizer.toOllir(semanticsResult);
 
         TestUtils.noErrors(ollirResult);
@@ -89,7 +94,7 @@ public class Launcher {
         // Create config
         Map<String, String> config = new HashMap<>();
         config.put("inputFile", args[0]);
-        config.put("optimize", "false");
+        config.put("optimize", "true");
         config.put("registerAllocation", "-1");
         config.put("debug", "false");
 

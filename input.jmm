@@ -2,27 +2,11 @@ import io;
 import A;
 class Fac {
 
-    int f1;
 
-    public int test2 (int param) {
-    int b;
-    boolean test = false;
-    return 0;
-    }
 
-    public int test(int param) {
 
-        return 0;
-    }
- public static void main(String[] args) {
-        Fac f;
-        f  = new Fac();
+    public static void main(String[] args) {
         int a;
-        int b;
-        a=1;
-        b=1;
-        f.test(b);
-
-        io.println(a + b);
+        a = 10 + 5;
     }
  }
