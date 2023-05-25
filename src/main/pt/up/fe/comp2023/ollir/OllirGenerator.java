@@ -356,9 +356,10 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         } else if (assignmentNode.getJmmChild(0).getKind().equals("NewObject")) {
 
             type = toAssignType;
-
         } else if (assignmentNode.getJmmChild(0).getKind().equals("AccessMethod")) {
-            type = toAssignType;
+            String retstr = visit(assignmentNode.getJmmChild(0));
+            ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(toAssignType).append(" ").append(retstr).append(";\n");
+            return retstr;
         } else if (assignmentNode.getJmmChild(0).getKind().equals("MethodCall")) {
             type = toAssignType;
         } else if (assignmentNode.getJmmChild(0).getKind().equals("This")) {
@@ -865,6 +866,18 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
                 var ret = visit(arg, new OllirInference(returnType, true));
                 //System.out.println("DEBUGGING RET: " + ret);
                 operationString.append(", ").append(ret);
+            } else if (arg.getKind().equals("RelationalOp")) {
+                var ret = visit(arg, new OllirInference(returnType, true));
+                //System.out.println("DEBUGGING RET: " + ret);
+                ollirCode.append("");
+                operationString.append(", ").append(ret);
+            } else if (arg.getKind().equals("UnaryOp")) {
+                var ret = visit(arg, new OllirInference(returnType, true));
+                //System.out.println("DEBUGGING RET: " + ret);
+                ollirCode.append(ret);
+                var tVar = getTempVarCount();
+                var tVarString = "t" + tVar + ".bool";
+                operationString.append(", ").append(tVarString);
             } else if (arg.getKind().equals("ArrayLength")){
                 var ret = visit(arg, new OllirInference(returnType, true));
                 var tVar = getTempVarCount();
@@ -936,6 +949,14 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         String opstring = operationString.toString();
 
         if (arrayAccessParent) {
+            var tVar = getAndAddTempVarCount(methodCallNode);
+            ollirCode.append(getIndent()).append("t").append(tVar).append(".i32 :=.i32 ").append(opstring).append(";\n");
+            return "t" + tVar + ".i32";
+        }
+
+        var assignmentParent = methodCallNode.getAncestor("Assignment").isPresent();
+
+        if (assignmentParent) {
             var tVar = getAndAddTempVarCount(methodCallNode);
             ollirCode.append(getIndent()).append("t").append(tVar).append(".i32 :=.i32 ").append(opstring).append(";\n");
             return "t" + tVar + ".i32";
