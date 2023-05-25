@@ -38,7 +38,7 @@ public class ConstFoldVisitor extends AJmmVisitor<String, Boolean> {
                 case "||" -> result = leftValue || rightValue;
             }
 
-            JmmNode newNode = new JmmNodeImpl("Integer");
+            JmmNode newNode = new JmmNodeImpl("Boolean");
             newNode.put("value", String.valueOf(result));
 
             node.replace(newNode);
