@@ -1,15 +1,10 @@
-import io;
-import A;
-class Fac {
-
+class PropSimple {
+    public int foo(){
+	  int a;
+	  a = 10;
+	  return a;
+	}
     public static void main(String[] args) {
-        boolean a;
-        int b;
-        int c;
 
-        b = 1;
-        c = 2;
-
-        a = 10 < 5;
     }
- }
+}

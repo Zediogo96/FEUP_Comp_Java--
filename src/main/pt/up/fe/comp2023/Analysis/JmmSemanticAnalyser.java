@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Objects;
 
 public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<String, String>> {
-
     private final MySymbolTable st;
     private final List<Report> reports;
     private String currentSCOPE;
