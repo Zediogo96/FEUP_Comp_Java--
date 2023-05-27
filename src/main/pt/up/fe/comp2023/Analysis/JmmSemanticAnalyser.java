@@ -80,7 +80,7 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         if (methodReturn.getKey().equals("error")) {
             if (objectReturn.getKey().contains("imported") || (st.getSuper() != null && st.getImportsAsList().contains(st.getSuper()))) {
                 return Map.entry("access", "null");
-            } else if (st.getImportsAsList().contains(object.get("id"))) {
+            } else if (!object.getKind().equals("Parenthesis") && st.getImportsAsList().contains(object.get("id"))) {
                 return Map.entry("access", "null");
             } else if ((st.getMethod(method.get("id")) != null)) {
 
@@ -573,8 +573,6 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
     private Map.Entry<String, String> dealWithReturn(JmmNode node, Boolean space) {
         JmmNode child = node.getChildren().get(0);
         String returnType = visit(child, true).getKey();
-
-        System.out.println(returnType);
 
         if (returnType.contains("access")) {
             return Map.entry("access", "null");

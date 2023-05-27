@@ -1,16 +1,30 @@
-class PropWithLoop {
-    public int foo(){
-	  int a;
-	  int i;
-	  int res;
-	  a = 10;
-	  i = 0;
-	  while (i < a){
-	    i=i+1;
-	  }
-	  res = i*a;
-	  return res;
-	}
-	public static void main(String[] args) {
-	}
+import ioPlus;
+
+class ComplexArgsFuncCall {
+
+    public int f1(int a) {
+        return a;
+    }
+
+    public int f2(int b) {
+        return b;
+    }
+
+    public int func(int a, int b) {
+        ioPlus.printResult(a);
+        ioPlus.printResult(b);
+        return 1;
+    }
+
+    public static void main(String[] args) {
+
+        int a;
+        int b;
+        ComplexArgsFuncCall d;
+        d = new ComplexArgsFuncCall();
+        a = 10;
+        b = 5;
+        a = d.func((new ComplexArgsFuncCall()).f1(a), (new ComplexArgsFuncCall()).f2(b)/5 + 40);
+
+    }
 }
