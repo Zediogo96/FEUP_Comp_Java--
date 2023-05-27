@@ -1,10 +1,10 @@
 package pt.up.fe.comp2023.ollir.optimizations;
 
-import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.JmmNodeImpl;
+import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 
-public class ConstFoldVisitor extends AJmmVisitor<String, Boolean> {
+public class ConstFoldVisitor extends PreorderJmmVisitor<String, Boolean> {
 
     public ConstFoldVisitor() {
         super();
