@@ -7,6 +7,8 @@ import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp2023.Analysis.MySymbolTable;
 import pt.up.fe.comp2023.ollir.optimizations.ConstFoldVisitor;
+import pt.up.fe.comp2023.ollir.optimizations.ConstPropParameters;
+import pt.up.fe.comp2023.ollir.optimizations.ConstPropVisitor;
 
 import java.util.Collections;
 
@@ -28,11 +30,17 @@ public class JmmOptimizer implements JmmOptimization {
         boolean changed = true;
 
         while (changed) {
+            ConstPropVisitor constPropVisitor = new ConstPropVisitor();
+
+            ConstPropParameters constPropPar = new ConstPropParameters();
+
+            changed = constPropVisitor.visit(semanticsResult.getRootNode(), constPropPar);
+
             ConstFoldVisitor constFoldVisitor = new ConstFoldVisitor();
 
             changed = constFoldVisitor.visit(semanticsResult.getRootNode());
         }
-        
+
         return semanticsResult;
     }
 
@@ -49,9 +57,6 @@ public class JmmOptimizer implements JmmOptimization {
 
         var ollirCode = ollirGenerator.getOllirCode();
 
-//        if (semanticsResult.getConfig().get("debug") != null
-//                && semanticsResult.getConfig().get("debug").equals("true")) {
-//        }
         System.out.println(ollirCode);
 
 

@@ -191,6 +191,4 @@ public class Cpf5_Optimizations {
 
         CpUtils.matches(optimized, "(bipush|sipush|ldc) 10\\s+imul");
     }
-
-
 }
