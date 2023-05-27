@@ -304,6 +304,30 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
 
         String type = "";
 
+        var childNode = assignmentNode.getJmmChild(0);
+
+        if (childNode.getKind().equals("AccessMethod") && childNode.getChildren().size() == 4) {
+            //
+            var c1 = childNode.getJmmChild(2);
+            var c2 = childNode.getJmmChild(3);
+            var testRet1 = visit(c1, new OllirInference(".i32", true)); //am
+            var testRet2 = visit(c2, new OllirInference(".i32", true)); //bop
+            var tVar = getAndAddTempVarCount(assignmentNode);
+
+            var localvars = st.getLocalVariables(getCurrentMethodName(assignmentNode));
+
+            var argType = "";
+
+            for (var localvar : localvars) {
+                if (localvar.getName().equals(childNode.getJmmChild(0).get("id"))) {
+                    argType = OllirUtils.getOllirType(localvar.getType());
+                }
+            }
+            ollirCode.append(getIndent()).append("t").append(tVar).append(toAssignType).append(" :=").append(toAssignType).append(" invokevirtual(").append(childNode.getJmmChild(0).get("id")).append(argType).append(", \"").append(childNode.getJmmChild(1).get("id")).append("\", ").append(testRet1).append(", ").append(testRet2).append(").i32;\n");
+            ollirCode.append(getIndent()).append(toAssign).append(toAssignType).append(" :=").append(toAssignType).append(" t").append(tVar).append(".i32;\n");
+            return "";
+        }
+
         if (assignmentNode.getJmmChild(0).getKind().equals("Integer")) {
             type = ".i32";
         } else if (assignmentNode.getJmmChild(0).getKind().equals("Boolean")) {
@@ -767,13 +791,15 @@ public class OllirGenerator extends AJmmVisitor <OllirInference, String> {
         }
 //        toAssignType = OllirUtils.getOllirType(toAssignSymbol.getType());
 
-        String firstArg = methodCallNode.getJmmChild(0).get("id");  //get the first identifier of the method call, like io in io.println(a)
-        //System.out.println("DEBUGGING FIRST ARG: " + firstArg);
-        String methodId = methodCallNode.getJmmChild(1).get("id");  //get the method identifier, like println in io.println(a)
-        //System.out.println("DEBUGGING METHOD ID: " + methodId);
-        //System.out.println("DEBUGGING METHOD ID" + methodId);
-        //String methodName = methodCallNode.get("method");  //get the method name, like println in io.println(a)
-        //for loop to visit the rest of the children
+        String firstArg = "";
+
+        if (!methodCallNode.getJmmChild(0).getKind().equals("Parenthesis")) {
+            firstArg = methodCallNode.getJmmChild(0).get("id");  //get the first identifier of the method call, like io in io.println(a)
+        } else {
+            firstArg = visit(methodCallNode.getJmmChild(0), new OllirInference(null, false));
+        }
+
+        String methodId = methodCallNode.getJmmChild(1).get("id");
 
         String invokeType = OllirUtils.getInvokeType(firstArg, st);
         //String returnType = OllirUtils.getOllirType(st.getReturnType(getCurrentMethodName(methodCallNode))) + " ";
