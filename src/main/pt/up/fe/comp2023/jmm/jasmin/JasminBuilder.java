@@ -281,6 +281,11 @@ public class JasminBuilder implements JasminBackend {
                         jasminBuilder.append(this.dealWithInst(condition, varTable));
                         operation = "ifne";
                     }
+                    case EQ, GTH, GTE, LTE, NEQ -> {
+                        jasminBuilder.append(this.dealWithLoadToStack(binaryOpInstruction.getLeftOperand(), varTable))
+                                .append(this.dealWithLoadToStack(binaryOpInstruction.getRightOperand(), varTable));
+                        operation = this.dealWithOper(binaryOpInstruction.getOperation());
+                    }
                     default -> {
                         // not supposed to happen
                         jasminBuilder.append("; Invalid BINARYOPER\n");
@@ -324,11 +329,16 @@ public class JasminBuilder implements JasminBackend {
             case LTH -> "if_icmplt";
             case ANDB -> "iand";
             case NOTB -> "ifeq";
-
             case ADD -> "iadd";
             case SUB -> "isub";
             case MUL -> "imul";
             case DIV -> "idiv";
+            case EQ -> "if_icmpeq";
+            case GTH -> "if_icmpgt";
+            case GTE -> "if_icmpge";
+            case LTE -> "if_icmple";
+            case NEQ -> "if_icmpne";
+
 
             default -> "; ERROR: operation not implemented: " + operation.getOpType() + "\n";
         };
