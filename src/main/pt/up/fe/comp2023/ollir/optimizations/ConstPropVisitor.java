@@ -1,12 +1,12 @@
 package pt.up.fe.comp2023.ollir.optimizations;
 
-import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.JmmNodeImpl;
+import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 
 import java.util.Map;
 
-public class ConstPropVisitor extends AJmmVisitor<ConstPropParameters, Boolean> {
+public class ConstPropVisitor extends PreorderJmmVisitor<ConstPropParameters, Boolean> {
 
     public ConstPropVisitor() {
         setDefaultVisit(this::defaultVisit);
@@ -56,6 +56,9 @@ public class ConstPropVisitor extends AJmmVisitor<ConstPropParameters, Boolean> 
         String name = node.get("id");
         Map<String, String> constants = constPropagationParam.getConstants();
 
+        System.out.println("CONSTANTS: " + constants);
+        System.out.println("NAME: " + name);
+
         if (constants.containsKey(name)) {
             JmmNode newNode;
 
@@ -63,9 +66,9 @@ public class ConstPropVisitor extends AJmmVisitor<ConstPropParameters, Boolean> 
                 case "true", "false" -> newNode = new JmmNodeImpl("Boolean");
                 default -> newNode = new JmmNodeImpl("Integer");
             }
-
             newNode.put("value", constants.get(name));
             node.replace(newNode);
+            System.out.println("NEW NODE 1: " + newNode);
             return true;
         }
         return false;
@@ -77,20 +80,25 @@ public class ConstPropVisitor extends AJmmVisitor<ConstPropParameters, Boolean> 
         boolean assignmentIsArrayVariable = node.getChildren().get(0).getKind().equals("ArrayAccess");
 
         if (constPropPar.toRemoveAssigned()) {
+            System.out.println("NODE: " + node);
+            System.out.println("NODE CHILDREN: " + node.getChildren());
             changes = visit(node.getChildren().get(0), constPropPar) || changes;
         }
 
         if (assignmentIsArrayVariable) return false;
 
         String assigneeName = node.get("id");
+        System.out.println("ASSIGNEE NAME: " + assigneeName);
 
         constPropPar.getConstants().remove(assigneeName);
 
         if (!constPropPar.toRemoveAssigned()) {
+
             JmmNode newNode = node.getChildren().get(0);
             switch (newNode.getKind()) {
                 case "Integer", "Boolean" -> {
                     constPropPar.getConstants().put(assigneeName, newNode.get("value"));
+                    System.out.println("CONSTANTS: " + constPropPar.getConstants());
                 }
             }
         }
@@ -100,8 +108,6 @@ public class ConstPropVisitor extends AJmmVisitor<ConstPropParameters, Boolean> 
 
     private Boolean dealWithWhile(JmmNode node, ConstPropParameters constPropagationParam) {
         boolean changes = false;
-
-        System.out.println("NODE WHILE CHILDREN: " + node.getChildren());
 
         JmmNode condNode = node.getJmmChild(0);
         JmmNode scopeNode = node.getJmmChild(1);
