@@ -78,30 +78,30 @@ public class JmmSemanticAnalyser extends PreorderJmmVisitor<Boolean, Map.Entry<S
         }
 
         if (methodReturn.getKey().equals("error")) {
-
-            if (objectReturn.getKey().contains("imported") || (st.getSuper() != null && st.getImportsAsList().contains(st.getSuper()))) {
-                return Map.entry("access", "null");
-            } else if (st.getImportsAsList().contains(object.get("id"))) {
-                return Map.entry("access", "null");
-            } else if ((st.getMethod(method.get("id")) != null)) {
-
-                List<String> argumentNames = st.getMethod(method.get("id"))
-                        .getParameters()
-                        .stream()
-                        .map(Symbol::getType)
-                        .map(t -> t.getName() + (t.isArray() ? "[]" : ""))
-                        .toList();
-
-                if (argumentNames.equals(parametersTypeNames)) {
-                    return Map.entry(st.getMethod(method.get("id")).getReturnType().getName(), "null");
-                } else {
-                    reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Incorrect parameters in method call: " + method.get("id") + "() in class " + st.getClassName()));
-                    return Map.entry("error", "null");
-                }
-            } else {
-                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method not found: " + method.get("id") + "() in class " + st.getClassName()));
-                return Map.entry("error", "null");
-            }
+            System.out.println("ERROR");
+//            if (objectReturn.getKey().contains("imported") || (st.getSuper() != null && st.getImportsAsList().contains(st.getSuper()))) {
+//                return Map.entry("access", "null");
+//            } else if (st.getImportsAsList().contains(object.get("id"))) {
+//                return Map.entry("access", "null");
+//            } else if ((st.getMethod(method.get("id")) != null)) {
+//
+//                List<String> argumentNames = st.getMethod(method.get("id"))
+//                        .getParameters()
+//                        .stream()
+//                        .map(Symbol::getType)
+//                        .map(t -> t.getName() + (t.isArray() ? "[]" : ""))
+//                        .toList();
+//
+//                if (argumentNames.equals(parametersTypeNames)) {
+//                    return Map.entry(st.getMethod(method.get("id")).getReturnType().getName(), "null");
+//                } else {
+//                    reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Incorrect parameters in method call: " + method.get("id") + "() in class " + st.getClassName()));
+//                    return Map.entry("error", "null");
+//                }
+//            } else {
+//                reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get("lineStart")), Integer.parseInt(node.get("colStart")), "Method not found: " + method.get("id") + "() in class " + st.getClassName()));
+//                return Map.entry("error", "null");
+//            }
         }
         return Map.entry("null", "null");
     }
