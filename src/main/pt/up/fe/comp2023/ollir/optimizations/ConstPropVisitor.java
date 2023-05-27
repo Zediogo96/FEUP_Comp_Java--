@@ -17,8 +17,24 @@ public class ConstPropVisitor extends AJmmVisitor<ConstPropParameters, Boolean> 
         addVisit("statement", this::defaultVisit);
         addVisit("expression", this::defaultVisit);
 
+
+        addVisit("While", this::dealWithWhile);
         addVisit("Variable", this::dealWithVariable);
         addVisit("Assignment", this::dealWithAssignment);
+    }
+
+    private static void intersectMaps(Map<String, String> res, Map<String, String> map1, Map<String, String> map2) {
+        Map<String, String> mapFiltered = map2.entrySet().stream().filter(map -> {
+            if (map1.containsKey(map.getKey())) {
+                String val = map1.get(map.getKey());
+                return val.equals(map.getValue());
+            } else {
+                return false;
+            }
+        }).collect(java.util.stream.Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        res.clear();
+        res.putAll(mapFiltered);
     }
 
     public Boolean defaultVisit(JmmNode node, ConstPropParameters constPropPar) {
@@ -61,7 +77,7 @@ public class ConstPropVisitor extends AJmmVisitor<ConstPropParameters, Boolean> 
         boolean assignmentIsArrayVariable = node.getChildren().get(0).getKind().equals("ArrayAccess");
 
         if (constPropPar.toRemoveAssigned()) {
-            changes = visit(node.getChildren().get(1), constPropPar) || changes;
+            changes = visit(node.getChildren().get(0), constPropPar) || changes;
         }
 
         if (assignmentIsArrayVariable) return false;
@@ -82,6 +98,37 @@ public class ConstPropVisitor extends AJmmVisitor<ConstPropParameters, Boolean> 
         return changes;
     }
 
+    private Boolean dealWithWhile(JmmNode node, ConstPropParameters constPropagationParam) {
+        boolean changes = false;
+
+        System.out.println("NODE WHILE CHILDREN: " + node.getChildren());
+
+        JmmNode condNode = node.getJmmChild(0);
+        JmmNode scopeNode = node.getJmmChild(1);
+
+        if (constPropagationParam.toRemoveAssigned()) {
+            changes = visit(scopeNode, constPropagationParam) || changes;
+
+        } else {
+            ConstPropParameters constPropagationParamCopy = new ConstPropParameters(constPropagationParam);
+
+            // 1st remove all that are assigned inside the scope
+            constPropagationParam.setToRemoveAssigned(true);
+            changes = visit(scopeNode, constPropagationParam) || changes;
+            constPropagationParam.setToRemoveAssigned(false);
+
+            changes = visit(condNode, constPropagationParam) || changes;
+            changes = visit(scopeNode, constPropagationParam) || changes;
+
+            ConstPropVisitor.intersectMaps(
+                    constPropagationParam.getConstants(),
+                    constPropagationParam.getConstants(),
+                    constPropagationParamCopy.getConstants()
+            );
+        }
+
+        return changes;
+    }
 
     @Override
     protected void buildVisitor() {
