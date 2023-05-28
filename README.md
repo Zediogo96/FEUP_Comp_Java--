@@ -1,6 +1,18 @@
 # Compilers Project
 
+## Group and Workload Distribution
+
+* Afonso Jorge Farroco Martins, up202005900@fe.up.pt - 33,3%
+
+* Eduardo Filipe Leite da Silva, up202005283@fe.up.pt - 33,3%
+
+* José Diogo Pinto, up202003529@fe.up.pt - 33,3%
+
 For this project, you need to install [Java](https://jdk.java.net/), [Gradle](https://gradle.org/install/), and [Git](https://git-scm.com/downloads/) (and optionally, a [Git GUI client](https://git-scm.com/downloads/guis), such as TortoiseGit or GitHub Desktop). Please check the [compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html) for Java and Gradle versions.
+
+## Auto-Evaluation
+
+Based on the private tests and overall performance of our project, we think our deserved grade is __19__.
 
 ## Project setup
 
