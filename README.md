@@ -14,6 +14,11 @@ For this project, you need to install [Java](https://jdk.java.net/), [Gradle](ht
 
 Based on the private tests and overall performance of our project, we think our deserved grade is __19__.
 
+## Optimizations / extra features
+
+We implemented __Constant Propagation__ and __Constant Folding__: These visitors run after the AST is generated and before Ollir generation.
+
+
 ## Project setup
 
 There are some import folders in the repository. Your development source code is inside the subfolder named ``src/main``. Specifically, your initially application is in the folder ``src/main/pt/up/fe/comp2023``, and the grammar is in the subfolder ``src/main/antlr/comp2023/grammar``. Finally, the subfolder named ``test`` contains your unit tests.
