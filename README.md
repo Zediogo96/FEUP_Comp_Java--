@@ -14,6 +14,8 @@ For this project, you need to install [Java](https://jdk.java.net/), [Gradle](ht
 
 Based on the private tests and overall performance of our project, we think our deserved grade is __19__.
 
+## Update: Obtained Grade: 19
+
 ## Optimizations / extra features
 
 We implemented __Constant Propagation__ and __Constant Folding__: these visitors run after the AST is generated and before Ollir generation.
